@@ -12,8 +12,4 @@
     <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Portless.Proxy\Portless.Proxy.csproj" />
-  </ItemGroup>
-
 </Project>

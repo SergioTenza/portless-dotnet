@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Portless.Core.Services;
 using Portless.Core.Models;
-using Portless.Proxy;
+using Portless.Core.Configuration;
 using Yarp.ReverseProxy.Configuration;
 
 namespace Portless.Tests;

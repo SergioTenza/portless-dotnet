@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Portless.Proxy;
+using Portless.Core.Configuration;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;

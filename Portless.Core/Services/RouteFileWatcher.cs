@@ -3,7 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Yarp.ReverseProxy.Configuration;
 using Portless.Core.Models;
-using Portless.Proxy;
+using Portless.Core.Configuration;
 
 namespace Portless.Core.Services;
 

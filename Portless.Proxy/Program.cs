@@ -1,6 +1,9 @@
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Model;
-using Portless.Proxy;
+using Portless.Core.Extensions;
+using Portless.Core.Services;
+using Portless.Core.Models;
+using Portless.Core.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,6 +47,10 @@ builder.WebHost.ConfigureKestrel(options =>
 builder.Services.AddSingleton<DynamicConfigProvider>();
 builder.Services.AddSingleton<IProxyConfigProvider>(sp => sp.GetRequiredService<DynamicConfigProvider>());
 
+// Add persistence layer
+builder.Services.AddPortlessPersistence();
+builder.Services.AddRouteFileWatcher();
+
 // Add Reverse Proxy with empty initial config (will be managed by DynamicConfigProvider)
 builder.Services.AddReverseProxy()
     .LoadFromMemory([],[]);
@@ -55,9 +62,40 @@ var logger = app.Services.GetRequiredService<ILogger<Program>>();
 logger.LogInformation("Portless Proxy starting on port {Port}", port);
 logger.LogInformation("Proxy URL: http://localhost:{Port}", port);
 
+// Load existing routes on startup
+var routeStore = app.Services.GetRequiredService<IRouteStore>();
+var configProvider = app.Services.GetRequiredService<DynamicConfigProvider>();
+
+try
+{
+    var existingRoutes = await routeStore.LoadRoutesAsync();
+    if (existingRoutes.Length > 0)
+    {
+        var routeConfigs = new List<RouteConfig>();
+        var clusterConfigs = new List<ClusterConfig>();
+
+        foreach (var route in existingRoutes)
+        {
+            routeConfigs.Add(CreateRoute(route.Hostname, $"cluster-{route.Hostname}"));
+            clusterConfigs.Add(CreateCluster($"cluster-{route.Hostname}", $"http://localhost:{route.Port}"));
+        }
+
+        configProvider.Update(routeConfigs, clusterConfigs);
+        logger.LogInformation("Loaded {Count} routes from persistence layer", existingRoutes.Length);
+    }
+    else
+    {
+        logger.LogInformation("No existing routes found, starting with empty configuration");
+    }
+}
+catch (Exception ex)
+{
+    logger.LogError(ex, "Error loading existing routes, starting with empty configuration");
+}
+
 app.UseMiddleware<RequestLoggingMiddleware>();
 
-app.MapPost("/api/v1/add-host", (AddHostRequest request, ILogger<Program> logger) =>
+app.MapPost("/api/v1/add-host", async (AddHostRequest request, ILogger<Program> logger) =>
 {
     try
     {
@@ -83,6 +121,7 @@ app.MapPost("/api/v1/add-host", (AddHostRequest request, ILogger<Program> logger
         }
 
         var config = app.Services.GetRequiredService<DynamicConfigProvider>();
+        var routeStore = app.Services.GetRequiredService<IRouteStore>();
 
         // Get existing configuration to preserve other routes
         var existingConfig = config.GetConfig();
@@ -111,6 +150,32 @@ app.MapPost("/api/v1/add-host", (AddHostRequest request, ILogger<Program> logger
 
         // Update configuration
         config.Update(existingRoutes, existingClusters);
+
+        // Persist route to file
+        try
+        {
+            var allRoutes = await routeStore.LoadRoutesAsync();
+
+            // Extract port from backendUrl
+            var uri = new Uri(request.BackendUrl);
+            var port = uri.Port;
+
+            var newRouteInfo = new RouteInfo
+            {
+                Hostname = request.Hostname,
+                Port = port,
+                Pid = Environment.ProcessId,
+                CreatedAt = DateTime.UtcNow
+            };
+            var updatedRoutes = allRoutes.Append(newRouteInfo).ToArray();
+            await routeStore.SaveRoutesAsync(updatedRoutes);
+
+            logger.LogInformation("Route persisted: {Hostname} => {Port}", request.Hostname, port);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error persisting route to file");
+        }
 
         logger.LogInformation("Host added successfully: {Hostname} => {BackendUrl}",
             request.Hostname, request.BackendUrl);
