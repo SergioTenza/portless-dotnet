@@ -26,7 +26,7 @@ Requirements para el lanzamiento inicial enfocado en funcionalidad HTTP básica.
 - [ ] **CLI-01**: `portless proxy start` inicia proxy en puerto 1355
 - [ ] **CLI-02**: `portless proxy stop` detiene proxy limpiamente
 - [ ] **CLI-03**: `portless <name> <command>` ejecuta app con URL nombrada
-- [ ] **CLI-04**: `portless list` muestra apps activas con hostname → puerto mapping
+- [ ] **CLI-04**: `portless list` muestra apps activas con hostname -> puerto mapping
 - [ ] **CLI-05**: CLI muestra errores claros y accionables
 
 ### Asignación de Puertos
@@ -137,4 +137,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2025-02-19*
-*Last updated: 2025-02-19 after initial definition*
+*Last updated: 2025-02-19 after roadmap creation*
