@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2025-02-19)
 
 **Core value:** URLs estables y predecibles para desarrollo local
-**Current focus:** Phase 2 - Route Persistence
+**Current focus:** Phase 3 - CLI Commands
 
 ## Current Position
 
-Phase: 2 of 7 (Route Persistence)
+Phase: 3 of 7 (CLI Commands)
 Plan: 3 of 3 in current phase
-Status: Plan 02-03 automated tests complete, awaiting manual verification
-Last activity: 2026-02-19 — All 3 plans executed, test suite created, manual verification pending
+Status: Plan 03-03 run command complete, all CLI commands implemented
+Last activity: 2026-02-19 — Run command with port allocation and background execution
 
-Progress: [████░░░░░░░] 67%
+Progress: [██████░░░░] 71%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7 (1 pending verification)
+- Total plans completed: 10
 - Average duration: 7 min
-- Total execution time: 0.9 hours
+- Total execution time: 1.2 hours
 
 **By Phase:**
 
@@ -29,13 +29,15 @@ Progress: [████░░░░░░░] 67%
 |-------|-------|-------|----------|
 | 01-proxy-core | 4 | 36 min | 9 min |
 | 02-route-persistence | 3 | 22 min | 7 min |
+| 03-cli-commands | 3 | 21 min | 7 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-04 (15 min), 02-01 (1 min), 02-02 (5 min), 02-03 (16 min)
-- Trend: Phase 2 complete, awaiting manual verification
+- Last 5 plans: 02-03 (16 min), 03-01 (5 min), 03-02 (9 min), 03-03 (7 min)
+- Trend: Phase 3 complete, all CLI commands implemented
 
 *Updated after each plan completion*
 | Phase 02-route-persistence P03 | 16min | 3 tasks | 3 files |
+| Phase 03-cli-commands P03-03 | 420 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -74,6 +76,18 @@ Recent decisions affecting current work:
 - [Phase 02-route-persistence]: Atomic writes via temp file in same directory as target to prevent corruption
 - [Phase 02-route-persistence]: Platform-specific state directories: Windows (%APPDATA%/portless) vs Unix (~/.portless)
 - [Phase 02-route-persistence]: Graceful degradation pattern - returns empty array if routes.json missing
+- [Plan 03-01]: ProxyProcessManager with BackgroundChildProcessTracker for Windows process management
+- [Plan 03-01]: Proxy lifecycle managed via dotnet run with --project flag for in-process execution
+- [Plan 03-02]: List command with TTY detection - table format for terminals, JSON for pipes
+- [Plan 03-02]: PID liveness detection using Process.GetProcessById() + HasExited
+- [Plan 03-03]: TCP listener binding for port detection (reliable, prevents conflicts)
+- [Plan 03-03]: Random port allocation in 4000-4999 range with 50 attempt limit
+- [Plan 03-03]: Background process execution with UseShellExecute=true for detached execution
+- [Plan 03-03]: PORT environment variable injection via ProcessStartInfo.Environment
+- [Plan 03-03]: Duplicate route detection in ExecuteAsync (not Validate due to Spectre.Console.Cli DI limitation)
+- [Plan 03-03]: Explicit Spectre.Console package reference for .NET 10 compatibility (transitive dependency issue)
+- [Phase 03-cli-commands]: Commands organized hierarchically: proxy start/stop/status, list, run
+- [Phase 03-cli-commands]: Spectre.Console.Cli with custom TypeRegistrar for dependency injection
 
 ### Pending Todos
 
@@ -85,6 +99,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-19 (Plan 02-02 execution)
-Stopped at: Completed Plan 02-02 - background cleanup service and hot-reload integration
+Last session: 2026-02-19 (Plan 03-03 execution)
+Stopped at: Completed Plan 03-03 - run command with port allocation and background execution
 Resume file: None
