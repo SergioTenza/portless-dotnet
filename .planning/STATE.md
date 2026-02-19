@@ -10,33 +10,32 @@ See: .planning/PROJECT.md (updated 2025-02-19)
 ## Current Position
 
 Phase: 2 of 7 (Route Persistence)
-Plan: 1 of 3 in current phase
-Status: Plan 02-01 completed, core persistence layer with file locking
-Last activity: 2026-02-19 — Plan 02-01 executed successfully (RouteInfo, StateDirectoryProvider, RouteStore)
+Plan: 2 of 3 in current phase
+Status: Plan 02-02 completed, background cleanup and hot-reload integration
+Last activity: 2026-02-19 — Plan 02-02 executed successfully (RouteCleanupService, RouteFileWatcher, persistence integration)
 
-Progress: [█░░░░░░░░░░] 11%
+Progress: [██░░░░░░░░░] 22%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
+- Total plans completed: 6
 - Average duration: 8 min
-- Total execution time: 0.7 hours
+- Total execution time: 0.8 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-proxy-core | 4 | 36 min | 9 min |
-| 02-route-persistence | 1 | 1 min | 1 min |
+| 02-route-persistence | 2 | 6 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (15 min), 01-02 (5 min), 01-03 (1 min), 01-04 (15 min), 02-01 (1 min)
-- Trend: Consistent implementation, phase 2 started
+- Last 5 plans: 01-02 (5 min), 01-03 (1 min), 01-04 (15 min), 02-01 (1 min), 02-02 (5 min)
+- Trend: Consistent implementation, phase 2 progressing
 
 *Updated after each plan completion*
-| Phase 02-route-persistence P01 | 1min | 2 tasks | 4 files |
-| Phase 02-route-persistence P01 | 80 | 2 tasks | 4 files |
+| Phase 02-route-persistence P02 | 5min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -59,6 +58,12 @@ Recent decisions affecting current work:
 - [Plan 02-01]: Atomic writes via temp file in same directory as target to prevent corruption
 - [Plan 02-01]: Platform-specific state directories: Windows (%APPDATA%/portless) vs Unix (~/.portless)
 - [Plan 02-01]: Graceful degradation pattern - returns empty array if routes.json missing
+- [Plan 02-02]: RouteCleanupService runs every 30 seconds with Process.GetProcessById() + HasExited validation
+- [Plan 02-02]: PID recycling detection via StartTime comparison to prevent false positives
+- [Plan 02-02]: RouteFileWatcher with 500ms debounce monitors routes.json for hot-reload
+- [Plan 02-02]: DynamicConfigProvider moved from Portless.Proxy to Portless.Core.Configuration to resolve circular dependency
+- [Plan 02-02]: Proxy startup loads existing routes from persistence layer before YARP initialization
+- [Plan 02-02]: /api/v1/add-host endpoint persists new routes with extracted port and current PID
 - [Phase 02-route-persistence]: Named mutex "Portless.Routes.Lock" for cross-process file locking with 5-second timeout
 - [Phase 02-route-persistence]: Atomic writes via temp file in same directory as target to prevent corruption
 - [Phase 02-route-persistence]: Platform-specific state directories: Windows (%APPDATA%/portless) vs Unix (~/.portless)
@@ -74,6 +79,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-19 (Plan 02-01 execution)
-Stopped at: Completed Plan 02-01 - core persistence layer with RouteInfo, StateDirectoryProvider, RouteStore
+Last session: 2026-02-19 (Plan 02-02 execution)
+Stopped at: Completed Plan 02-02 - background cleanup service and hot-reload integration
 Resume file: None

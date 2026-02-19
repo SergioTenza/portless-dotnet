@@ -18,8 +18,8 @@ Requirements para el lanzamiento inicial enfocado en funcionalidad HTTP básica.
 
 - [x] **ROUTE-01**: Sistema persiste rutas en archivo JSON (~/.portless/routes.json)
 - [x] **ROUTE-02**: Sistema implementa file locking para concurrencia
-- [ ] **ROUTE-03**: Sistema limpia rutas muertas (verifica PIDs)
-- [ ] **ROUTE-04**: Sistema soporta hot-reload de configuración
+- [x] **ROUTE-03**: Sistema limpia rutas muertas (verifica PIDs)
+- [x] **ROUTE-04**: Sistema soporta hot-reload de configuración
 
 ### CLI Commands
 
@@ -108,8 +108,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PROXY-04 | Phase 1 | Complete |
 | ROUTE-01 | Phase 2 | Complete |
 | ROUTE-02 | Phase 2 | Complete |
-| ROUTE-03 | Phase 2 | Pending |
-| ROUTE-04 | Phase 2 | Pending |
+| ROUTE-03 | Phase 2 | Complete |
+| ROUTE-04 | Phase 2 | Complete |
 | CLI-01 | Phase 3 | Pending |
 | CLI-02 | Phase 3 | Pending |
 | CLI-03 | Phase 3 | Pending |
