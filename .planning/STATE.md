@@ -38,6 +38,7 @@ Progress: [██████░░░░] 71%
 *Updated after each plan completion*
 | Phase 02-route-persistence P03 | 16min | 3 tasks | 3 files |
 | Phase 03-cli-commands P03-03 | 420 | 2 tasks | 4 files |
+| Phase 03-cli-commands P03-01 | 11min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -88,6 +89,9 @@ Recent decisions affecting current work:
 - [Plan 03-03]: Explicit Spectre.Console package reference for .NET 10 compatibility (transitive dependency issue)
 - [Phase 03-cli-commands]: Commands organized hierarchically: proxy start/stop/status, list, run
 - [Phase 03-cli-commands]: Spectre.Console.Cli with custom TypeRegistrar for dependency injection
+- [Phase 03-cli-commands]: UseShellExecute=true for Windows detached process execution
+- [Phase 03-cli-commands]: PID file tracking in state directory for process lifecycle
+- [Phase 03-cli-commands]: Spectre.Console.Cli DI via TypeRegistrar/TypeResolver bridge pattern
 
 ### Pending Todos
 

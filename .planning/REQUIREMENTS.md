@@ -23,8 +23,8 @@ Requirements para el lanzamiento inicial enfocado en funcionalidad HTTP básica.
 
 ### CLI Commands
 
-- [ ] **CLI-01**: `portless proxy start` inicia proxy en puerto 1355
-- [ ] **CLI-02**: `portless proxy stop` detiene proxy limpiamente
+- [x] **CLI-01**: `portless proxy start` inicia proxy en puerto 1355
+- [x] **CLI-02**: `portless proxy stop` detiene proxy limpiamente
 - [x] **CLI-03**: `portless <name> <command>` ejecuta app con URL nombrada
 - [x] **CLI-04**: `portless list` muestra apps activas con hostname -> puerto mapping
 - [x] **CLI-05**: CLI muestra errores claros y accionables
