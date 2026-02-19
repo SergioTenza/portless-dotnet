@@ -150,5 +150,28 @@ None - no external service configuration required.
 - Ready for Plan 03-02 (run command) and 03-03 (list command)
 
 ---
+
+## Self-Check: PASSED
+
+**Created files:**
+- Portless.Cli/Services/IProxyProcessManager.cs ✓
+- Portless.Cli/Services/ProxyProcessManager.cs ✓
+- Portless.Cli/Commands/ProxyCommand/ProxyStartCommand.cs ✓
+- Portless.Cli/Commands/ProxyCommand/ProxyStopCommand.cs ✓
+- Portless.Cli/Commands/ProxyCommand/ProxyStatusCommand.cs ✓
+- Portless.Cli/DependencyInjection/TypeRegistrar.cs ✓
+- Portless.Cli/DependencyInjection/TypeResolver.cs ✓
+- .planning/phases/03-cli-commands/03-01-SUMMARY.md ✓
+
+**Commits:**
+- f7badba (Task 1) ✓
+- 6c09c05 (Task 2) ✓
+- 71b7832 (fix) ✓
+- da19689 (metadata) ✓
+
+**Build verification:**
+- dotnet build Portless.slnx: 0 errors, 5 warnings (unrelated test warnings) ✓
+
+---
 *Phase: 03-cli-commands*
 *Completed: 2026-02-19*
