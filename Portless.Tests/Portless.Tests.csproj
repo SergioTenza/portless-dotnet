@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Portless.Core\Portless.Core.csproj" />
     <ProjectReference Include="..\Portless.Proxy\Portless.Proxy.csproj" />
   </ItemGroup>
 
