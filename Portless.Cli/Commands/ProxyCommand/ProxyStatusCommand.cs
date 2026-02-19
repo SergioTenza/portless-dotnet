@@ -26,8 +26,8 @@ public class ProxyStatusCommand : AsyncCommand<CommandSettings>
             }
 
             AnsiConsole.MarkupLine("[green]✓[/] Proxy is [bold]running[/]");
-            AnsiConsole.MarkupLine("  URL: [blue]http://localhost:{0}[/]", status.port);
-            AnsiConsole.MarkupLine("  PID: {0}", status.pid);
+            AnsiConsole.MarkupLine("  URL: [blue]http://localhost:{0}[/]", status.port ?? 1355);
+            AnsiConsole.MarkupLine("  PID: {0}", status.pid ?? 0);
             return 0;
         }
         catch (Exception ex)
