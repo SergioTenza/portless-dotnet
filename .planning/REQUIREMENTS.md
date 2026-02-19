@@ -16,8 +16,8 @@ Requirements para el lanzamiento inicial enfocado en funcionalidad HTTP básica.
 
 ### Gestión de Rutas
 
-- [ ] **ROUTE-01**: Sistema persiste rutas en archivo JSON (~/.portless/routes.json)
-- [ ] **ROUTE-02**: Sistema implementa file locking para concurrencia
+- [x] **ROUTE-01**: Sistema persiste rutas en archivo JSON (~/.portless/routes.json)
+- [x] **ROUTE-02**: Sistema implementa file locking para concurrencia
 - [ ] **ROUTE-03**: Sistema limpia rutas muertas (verifica PIDs)
 - [ ] **ROUTE-04**: Sistema soporta hot-reload de configuración
 
@@ -106,8 +106,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PROXY-02 | Phase 1 | Complete |
 | PROXY-03 | Phase 1 | Complete |
 | PROXY-04 | Phase 1 | Complete |
-| ROUTE-01 | Phase 2 | Pending |
-| ROUTE-02 | Phase 2 | Pending |
+| ROUTE-01 | Phase 2 | Complete |
+| ROUTE-02 | Phase 2 | Complete |
 | ROUTE-03 | Phase 2 | Pending |
 | ROUTE-04 | Phase 2 | Pending |
 | CLI-01 | Phase 3 | Pending |
