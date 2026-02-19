@@ -31,11 +31,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Proxy routea requests a diferentes backends basado en Host header
   3. Proxy forwarda requests correctamente al backend destino
   4. Proxy retorna respuestas del backend al cliente sin modificaciones
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: [Brief description of first plan]
-- [ ] 01-02: [Brief description of second plan]
+- [ ] 01-01: Configure port binding, request logging, and enhanced API validation (Wave 1)
+- [ ] 01-02: Implement InMemoryConfigProvider, routing helpers, and manual testing verification (Wave 2)
 
 ### Phase 2: Route Persistence
 **Goal**: Sistema persiste rutas en archivo JSON con file locking para concurrencia y hot-reload
