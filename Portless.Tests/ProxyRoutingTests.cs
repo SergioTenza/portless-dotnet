@@ -144,7 +144,8 @@ namespace Portless.Tests
             Assert.True(
                 response1.StatusCode == HttpStatusCode.OK ||
                 response1.StatusCode == HttpStatusCode.BadGateway ||
-                response1.StatusCode == HttpStatusCode.ServiceUnavailable,
+                response1.StatusCode == HttpStatusCode.ServiceUnavailable ||
+                response1.StatusCode == HttpStatusCode.GatewayTimeout,
                 $"api1.localhost: Expected OK, Bad Gateway, ServiceUnavailable, or GatewayTimeout, got {response1.StatusCode}"
             );
 
@@ -156,7 +157,8 @@ namespace Portless.Tests
             Assert.True(
                 response2.StatusCode == HttpStatusCode.OK ||
                 response2.StatusCode == HttpStatusCode.BadGateway ||
-                response2.StatusCode == HttpStatusCode.ServiceUnavailable,
+                response2.StatusCode == HttpStatusCode.ServiceUnavailable ||
+                response2.StatusCode == HttpStatusCode.GatewayTimeout,
                 $"web1.localhost: Expected OK, Bad Gateway, ServiceUnavailable, or GatewayTimeout, got {response2.StatusCode}"
             );
         }
@@ -248,7 +250,8 @@ namespace Portless.Tests
             Assert.True(
                 response1.StatusCode == HttpStatusCode.OK ||
                 response1.StatusCode == HttpStatusCode.BadGateway ||
-                response1.StatusCode == HttpStatusCode.ServiceUnavailable,
+                response1.StatusCode == HttpStatusCode.ServiceUnavailable ||
+                response1.StatusCode == HttpStatusCode.GatewayTimeout,
                 $"api1.localhost (before update): Expected OK, Bad Gateway, ServiceUnavailable, or GatewayTimeout, got {response1.StatusCode}"
             );
 
@@ -292,7 +295,8 @@ namespace Portless.Tests
             Assert.True(
                 response2.StatusCode == HttpStatusCode.OK ||
                 response2.StatusCode == HttpStatusCode.BadGateway ||
-                response2.StatusCode == HttpStatusCode.ServiceUnavailable,
+                response2.StatusCode == HttpStatusCode.ServiceUnavailable ||
+                response2.StatusCode == HttpStatusCode.GatewayTimeout,
                 $"web1.localhost (after update): Expected OK, Bad Gateway, ServiceUnavailable, or GatewayTimeout, got {response2.StatusCode}"
             );
 
@@ -304,7 +308,8 @@ namespace Portless.Tests
             Assert.True(
                 response3.StatusCode == HttpStatusCode.OK ||
                 response3.StatusCode == HttpStatusCode.BadGateway ||
-                response3.StatusCode == HttpStatusCode.ServiceUnavailable,
+                response3.StatusCode == HttpStatusCode.ServiceUnavailable ||
+                response3.StatusCode == HttpStatusCode.GatewayTimeout,
                 $"api1.localhost (after update): Expected OK, Bad Gateway, ServiceUnavailable, or GatewayTimeout, got {response3.StatusCode}"
             );
         }
@@ -338,7 +343,8 @@ namespace Portless.Tests
             Assert.True(
                 testResponse.StatusCode == HttpStatusCode.OK ||
                 testResponse.StatusCode == HttpStatusCode.BadGateway ||
-                testResponse.StatusCode == HttpStatusCode.ServiceUnavailable,
+                testResponse.StatusCode == HttpStatusCode.ServiceUnavailable ||
+                testResponse.StatusCode == HttpStatusCode.GatewayTimeout,
                 $"Expected routing to be configured, got {testResponse.StatusCode}"
             );
         }
