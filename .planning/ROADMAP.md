@@ -51,9 +51,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 02-01: Core persistence layer with RouteInfo model, StateDirectoryProvider, and RouteStore with file locking (Wave 1)
-- [ ] 02-02: Background cleanup service and hot-reload integration with FileSystemWatcher (Wave 2)
-- [ ] 02-03: Comprehensive testing suite for persistence, cleanup, and hot-reload functionality (Wave 3)
+- [x] 02-01: Core persistence layer with RouteInfo model, StateDirectoryProvider, and RouteStore with file locking (Wave 1)
+- [x] 02-02: Background cleanup service and hot-reload integration with FileSystemWatcher (Wave 1)
+- [x] 02-03: Comprehensive testing suite for persistence, cleanup, and hot-reload functionality (Wave 1) - PENDING MANUAL VERIFICATION
 
 ### Phase 3: CLI Commands
 **Goal**: CLI completa con comandos para iniciar/detener proxy, ejecutar apps, y listar rutas activas
@@ -137,8 +137,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Proxy Core | 3/4 | In progress | 2026-02-19 |
-| 2. Route Persistence | 0/2 | Not started | - |
+| 1. Proxy Core | 4/4 | Complete | 2026-02-19 |
+| 2. Route Persistence | 3/3 | Manual Verification Pending | 2026-02-19 |
 | 3. CLI Commands | 0/3 | Not started | - |
 | 4. Port Management | 0/2 | Not started | - |
 | 5. Process Management | 0/2 | Not started | - |
