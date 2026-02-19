@@ -26,7 +26,7 @@ Requirements para el lanzamiento inicial enfocado en funcionalidad HTTP básica.
 - [ ] **CLI-01**: `portless proxy start` inicia proxy en puerto 1355
 - [ ] **CLI-02**: `portless proxy stop` detiene proxy limpiamente
 - [x] **CLI-03**: `portless <name> <command>` ejecuta app con URL nombrada
-- [ ] **CLI-04**: `portless list` muestra apps activas con hostname -> puerto mapping
+- [x] **CLI-04**: `portless list` muestra apps activas con hostname -> puerto mapping
 - [x] **CLI-05**: CLI muestra errores claros y accionables
 
 ### Asignación de Puertos
@@ -110,10 +110,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ROUTE-02 | Phase 2 | Complete |
 | ROUTE-03 | Phase 2 | Complete |
 | ROUTE-04 | Phase 2 | Complete |
-| CLI-01 | Phase 3 | Pending |
-| CLI-02 | Phase 3 | Pending |
+| CLI-01 | Phase 3 | Complete |
+| CLI-02 | Phase 3 | Complete |
 | CLI-03 | Phase 3 | Complete |
-| CLI-04 | Phase 3 | Pending |
+| CLI-04 | Phase 3 | Complete |
 | CLI-05 | Phase 3 | Complete |
 | PORT-01 | Phase 4 | Pending |
 | PORT-02 | Phase 4 | Pending |
