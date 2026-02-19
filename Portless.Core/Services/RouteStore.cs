@@ -6,8 +6,8 @@ namespace Portless.Core.Services;
 
 public class RouteStore : IRouteStore, IDisposable
 {
-    private const string MutexName = "Portless.Routes.Lock";
-    private const int MutexTimeoutMs = 5000; // 5 seconds
+    private const int LockRetryMs = 100;
+    private const int LockTimeoutMs = 5000; // 5 seconds
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -18,31 +18,18 @@ public class RouteStore : IRouteStore, IDisposable
     };
 
     private readonly string _routesFilePath;
-    private Mutex? _mutex;
+    private readonly string _lockFilePath;
 
     public RouteStore()
     {
         _routesFilePath = StateDirectoryProvider.GetRoutesFilePath();
+        _lockFilePath = _routesFilePath + ".lock";
     }
 
     public async Task<RouteInfo[]> LoadRoutesAsync(CancellationToken cancellationToken = default)
     {
-        // Create or reuse mutex
-        if (_mutex == null)
-        {
-            _mutex = new Mutex(false, MutexName);
-        }
-
-        // Try to acquire the mutex (handles abandoned mutexes automatically)
-        try
-        {
-            _mutex.WaitOne(MutexTimeoutMs);
-        }
-        catch (AbandonedMutexException)
-        {
-            // Mutex was abandoned by another process, but we now own it
-            // Continue normally - this is expected behavior
-        }
+        // Use file-based locking instead of Mutex
+        await using var lockStream = await AcquireFileLockAsync(cancellationToken);
 
         try
         {
@@ -63,29 +50,14 @@ public class RouteStore : IRouteStore, IDisposable
         }
         finally
         {
-            // Always release the mutex (we own it whether abandoned or not)
-            _mutex.ReleaseMutex();
+            await lockStream.DisposeAsync();
         }
     }
 
     public async Task SaveRoutesAsync(RouteInfo[] routes, CancellationToken cancellationToken = default)
     {
-        // Create or reuse mutex
-        if (_mutex == null)
-        {
-            _mutex = new Mutex(false, MutexName);
-        }
-
-        // Try to acquire the mutex (handles abandoned mutexes automatically)
-        try
-        {
-            _mutex.WaitOne(MutexTimeoutMs);
-        }
-        catch (AbandonedMutexException)
-        {
-            // Mutex was abandoned by another process, but we now own it
-            // Continue normally - this is expected behavior
-        }
+        // Use file-based locking instead of Mutex
+        await using var lockStream = await AcquireFileLockAsync(cancellationToken);
 
         try
         {
@@ -112,13 +84,45 @@ public class RouteStore : IRouteStore, IDisposable
         }
         finally
         {
-            // Always release the mutex (we own it whether abandoned or not)
-            _mutex.ReleaseMutex();
+            await lockStream.DisposeAsync();
+        }
+    }
+
+    private async Task<FileStream> AcquireFileLockAsync(CancellationToken cancellationToken)
+    {
+        var startTime = DateTime.UtcNow;
+
+        while (true)
+        {
+            try
+            {
+                // Try to open the lock file exclusively
+                // This will fail if another process has it open
+                return new FileStream(
+                    _lockFilePath,
+                    FileMode.OpenOrCreate,
+                    FileAccess.ReadWrite,
+                    FileShare.None,
+                    bufferSize: 4096,
+                    options: FileOptions.DeleteOnClose
+                );
+            }
+            catch (IOException)
+            {
+                // Check timeout
+                if ((DateTime.UtcNow - startTime).TotalMilliseconds > LockTimeoutMs)
+                {
+                    throw new IOException("Timeout acquiring route store lock");
+                }
+
+                // Wait before retry
+                await Task.Delay(LockRetryMs, cancellationToken);
+            }
         }
     }
 
     public void Dispose()
     {
-        _mutex?.Dispose();
+        // No need to dispose anything with file-based locking
     }
 }
