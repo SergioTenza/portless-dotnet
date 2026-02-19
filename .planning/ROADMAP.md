@@ -34,8 +34,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: Configure port binding, request logging, and enhanced API validation (Wave 1)
-- [ ] 01-02: Implement InMemoryConfigProvider, routing helpers, and manual testing verification (Wave 2)
+- [x] 01-01: Configure port binding, request logging, and enhanced API validation (Wave 1)
+- [x] 01-02: Implement InMemoryConfigProvider, routing helpers, and manual testing verification (Wave 2)
 
 ### Phase 2: Route Persistence
 **Goal**: Sistema persiste rutas en archivo JSON con file locking para concurrencia y hot-reload
@@ -134,7 +134,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Proxy Core | 0/2 | Not started | - |
+| 1. Proxy Core | 2/2 | Complete | 2026-02-19 |
 | 2. Route Persistence | 0/2 | Not started | - |
 | 3. CLI Commands | 0/3 | Not started | - |
 | 4. Port Management | 0/2 | Not started | - |

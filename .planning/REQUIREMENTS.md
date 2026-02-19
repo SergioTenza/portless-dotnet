@@ -9,10 +9,10 @@ Requirements para el lanzamiento inicial enfocado en funcionalidad HTTP básica.
 
 ### Proxy Core
 
-- [ ] **PROXY-01**: Proxy acepta requests HTTP en puerto configurado (default 1355)
-- [ ] **PROXY-02**: Proxy routea requests basado en Host header
-- [ ] **PROXY-03**: Proxy forwarda requests al backend correcto
-- [ ] **PROXY-04**: Proxy retorna respuestas del backend al cliente
+- [x] **PROXY-01**: Proxy acepta requests HTTP en puerto configurado (default 1355)
+- [x] **PROXY-02**: Proxy routea requests basado en Host header
+- [x] **PROXY-03**: Proxy forwarda requests al backend correcto
+- [x] **PROXY-04**: Proxy retorna respuestas del backend al cliente
 
 ### Gestión de Rutas
 
