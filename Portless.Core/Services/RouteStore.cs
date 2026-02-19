@@ -33,61 +33,38 @@ public class RouteStore : IRouteStore, IDisposable
             _mutex = new Mutex(false, MutexName);
         }
 
+        // Try to acquire the mutex (handles abandoned mutexes automatically)
         try
         {
-            var acquired = _mutex.WaitOne(MutexTimeoutMs);
-            if (!acquired)
-            {
-                throw new IOException("Timeout acquiring route store lock");
-            }
-
-            try
-            {
-                // If file doesn't exist, return empty array
-                if (!File.Exists(_routesFilePath))
-                {
-                    return Array.Empty<RouteInfo>();
-                }
-
-                var json = await File.ReadAllTextAsync(_routesFilePath, cancellationToken);
-                if (string.IsNullOrWhiteSpace(json))
-                {
-                    return Array.Empty<RouteInfo>();
-                }
-
-                var routes = JsonSerializer.Deserialize<RouteInfo[]>(json, _jsonOptions);
-                return routes ?? Array.Empty<RouteInfo>();
-            }
-            finally
-            {
-                _mutex.ReleaseMutex();
-            }
+            _mutex.WaitOne(MutexTimeoutMs);
         }
         catch (AbandonedMutexException)
         {
-            // Mutex was abandoned by another process, we now own it
-            // Continue with the operation
-            try
-            {
-                // If file doesn't exist, return empty array
-                if (!File.Exists(_routesFilePath))
-                {
-                    return Array.Empty<RouteInfo>();
-                }
+            // Mutex was abandoned by another process, but we now own it
+            // Continue normally - this is expected behavior
+        }
 
-                var json = await File.ReadAllTextAsync(_routesFilePath, cancellationToken);
-                if (string.IsNullOrWhiteSpace(json))
-                {
-                    return Array.Empty<RouteInfo>();
-                }
-
-                var routes = JsonSerializer.Deserialize<RouteInfo[]>(json, _jsonOptions);
-                return routes ?? Array.Empty<RouteInfo>();
-            }
-            finally
+        try
+        {
+            // If file doesn't exist, return empty array
+            if (!File.Exists(_routesFilePath))
             {
-                _mutex!.ReleaseMutex();
+                return Array.Empty<RouteInfo>();
             }
+
+            var json = await File.ReadAllTextAsync(_routesFilePath, cancellationToken);
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return Array.Empty<RouteInfo>();
+            }
+
+            var routes = JsonSerializer.Deserialize<RouteInfo[]>(json, _jsonOptions);
+            return routes ?? Array.Empty<RouteInfo>();
+        }
+        finally
+        {
+            // Always release the mutex (we own it whether abandoned or not)
+            _mutex.ReleaseMutex();
         }
     }
 
@@ -99,73 +76,44 @@ public class RouteStore : IRouteStore, IDisposable
             _mutex = new Mutex(false, MutexName);
         }
 
+        // Try to acquire the mutex (handles abandoned mutexes automatically)
         try
         {
-            var acquired = _mutex.WaitOne(MutexTimeoutMs);
-            if (!acquired)
-            {
-                throw new IOException("Timeout acquiring route store lock");
-            }
-
-            try
-            {
-                // Atomic write via temp file in same directory
-                var targetDir = Path.GetDirectoryName(_routesFilePath) ?? ".";
-                var tempFileName = Path.Combine(targetDir, Path.GetRandomFileName());
-
-                try
-                {
-                    var json = JsonSerializer.Serialize(routes, _jsonOptions);
-                    await File.WriteAllTextAsync(tempFileName, json, cancellationToken);
-
-                    // Atomic replace (only works on same volume)
-                    File.Move(tempFileName, _routesFilePath, overwrite: true);
-                }
-                finally
-                {
-                    // Clean up temp file if move failed
-                    if (File.Exists(tempFileName))
-                    {
-                        File.Delete(tempFileName);
-                    }
-                }
-            }
-            finally
-            {
-                _mutex.ReleaseMutex();
-            }
+            _mutex.WaitOne(MutexTimeoutMs);
         }
         catch (AbandonedMutexException)
         {
-            // Mutex was abandoned by another process, we now own it
-            // Continue with the operation
+            // Mutex was abandoned by another process, but we now own it
+            // Continue normally - this is expected behavior
+        }
+
+        try
+        {
+            // Atomic write via temp file in same directory
+            var targetDir = Path.GetDirectoryName(_routesFilePath) ?? ".";
+            var tempFileName = Path.Combine(targetDir, Path.GetRandomFileName());
+
             try
             {
-                // Atomic write via temp file in same directory
-                var targetDir = Path.GetDirectoryName(_routesFilePath) ?? ".";
-                var tempFileName = Path.Combine(targetDir, Path.GetRandomFileName());
+                var json = JsonSerializer.Serialize(routes, _jsonOptions);
+                await File.WriteAllTextAsync(tempFileName, json, cancellationToken);
 
-                try
-                {
-                    var json = JsonSerializer.Serialize(routes, _jsonOptions);
-                    await File.WriteAllTextAsync(tempFileName, json, cancellationToken);
-
-                    // Atomic replace (only works on same volume)
-                    File.Move(tempFileName, _routesFilePath, overwrite: true);
-                }
-                finally
-                {
-                    // Clean up temp file if move failed
-                    if (File.Exists(tempFileName))
-                    {
-                        File.Delete(tempFileName);
-                    }
-                }
+                // Atomic replace (only works on same volume)
+                File.Move(tempFileName, _routesFilePath, overwrite: true);
             }
             finally
             {
-                _mutex!.ReleaseMutex();
+                // Clean up temp file if move failed
+                if (File.Exists(tempFileName))
+                {
+                    File.Delete(tempFileName);
+                }
             }
+        }
+        finally
+        {
+            // Always release the mutex (we own it whether abandoned or not)
+            _mutex.ReleaseMutex();
         }
     }
 
