@@ -53,7 +53,7 @@ var logger = app.Services.GetRequiredService<ILogger<Program>>();
 logger.LogInformation("Portless Proxy starting on port {Port}", port);
 logger.LogInformation("Proxy URL: http://localhost:{Port}", port);
 
-app.MapReverseProxy();
+app.UseMiddleware<RequestLoggingMiddleware>();
 
 app.MapPost("/api/v1/add-host", (AddHostRequest request, ILogger<Program> logger) =>
 {
@@ -137,8 +137,8 @@ app.MapPost("/api/v1/add-host", (AddHostRequest request, ILogger<Program> logger
     }
 });
 
-// Add request logging middleware
-app.UseMiddleware<RequestLoggingMiddleware>();
+// Configure reverse proxy (must be after logging middleware)
+app.MapReverseProxy();
 
 app.Run();
 
