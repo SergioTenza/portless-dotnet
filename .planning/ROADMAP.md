@@ -65,12 +65,12 @@ Plans:
   3. Usuario puede ejecutar app con URL nombrada usando `portless <name> <command>`
   4. Usuario puede ver apps activas y mapeo hostname→puerto con `portless list`
   5. CLI muestra errores claros con mensajes accionables (no excepciones crudas)
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 03-01: [Brief description]
-- [ ] 03-02: [Brief description]
-- [ ] 03-03: [Brief description]
+- [ ] 03-01: Proxy lifecycle management commands (start/stop/status) with PID tracking (Wave 1)
+- [ ] 03-02: Route listing command with TTY-aware output (table vs JSON) (Wave 1)
+- [ ] 03-03: Run command with automatic port allocation and background process execution (Wave 2)
 
 ### Phase 4: Port Management
 **Goal**: Sistema detecta puertos libres automáticamente y los asigna a procesos
