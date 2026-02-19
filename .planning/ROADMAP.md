@@ -31,11 +31,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Proxy routea requests a diferentes backends basado en Host header
   3. Proxy forwarda requests correctamente al backend destino
   4. Proxy retorna respuestas del backend al cliente sin modificaciones
-**Plans**: 2 plans
+**Plans**: 4 plans
 
 Plans:
 - [x] 01-01: Configure port binding, request logging, and enhanced API validation (Wave 1)
 - [x] 01-02: Implement InMemoryConfigProvider, routing helpers, and manual testing verification (Wave 2)
+- [ ] 01-03: Fix middleware ordering to enable request logging for proxied requests (Wave 1) - GAP CLOSURE
+- [ ] 01-04: Create automated integration tests for YARP routing behavior (Wave 1) - GAP CLOSURE
 
 ### Phase 2: Route Persistence
 **Goal**: Sistema persiste rutas en archivo JSON con file locking para concurrencia y hot-reload
