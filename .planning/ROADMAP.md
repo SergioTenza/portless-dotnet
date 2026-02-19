@@ -36,7 +36,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 Plans:
 - [x] 01-01: Configure port binding, request logging, and enhanced API validation (Wave 1)
 - [x] 01-02: Implement InMemoryConfigProvider, routing helpers, and manual testing verification (Wave 2)
-- [ ] 01-03: Fix middleware ordering to enable request logging for proxied requests (Wave 1) - GAP CLOSURE
+- [x] 01-03: Fix middleware ordering to enable request logging for proxied requests (Wave 1) - GAP CLOSURE
 - [ ] 01-04: Create automated integration tests for YARP routing behavior (Wave 1) - GAP CLOSURE
 
 ### Phase 2: Route Persistence
@@ -136,7 +136,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Proxy Core | 2/2 | Complete | 2026-02-19 |
+| 1. Proxy Core | 3/4 | In progress | 2026-02-19 |
 | 2. Route Persistence | 0/2 | Not started | - |
 | 3. CLI Commands | 0/3 | Not started | - |
 | 4. Port Management | 0/2 | Not started | - |

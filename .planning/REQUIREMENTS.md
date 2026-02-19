@@ -102,10 +102,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PROXY-01 | Phase 1 | Pending |
-| PROXY-02 | Phase 1 | Pending |
-| PROXY-03 | Phase 1 | Pending |
-| PROXY-04 | Phase 1 | Pending |
+| PROXY-01 | Phase 1 | Complete |
+| PROXY-02 | Phase 1 | Complete |
+| PROXY-03 | Phase 1 | Complete |
+| PROXY-04 | Phase 1 | Complete |
 | ROUTE-01 | Phase 2 | Pending |
 | ROUTE-02 | Phase 2 | Pending |
 | ROUTE-03 | Phase 2 | Pending |
