@@ -40,11 +40,13 @@ builder.WebHost.ConfigureKestrel(options =>
     options.ListenAnyIP(int.Parse(port));
 });
 
+// Register DynamicConfigProvider as singleton for YARP
+builder.Services.AddSingleton<DynamicConfigProvider>();
+builder.Services.AddSingleton<IProxyConfigProvider>(sp => sp.GetRequiredService<DynamicConfigProvider>());
+
+// Add Reverse Proxy with empty initial config (will be managed by DynamicConfigProvider)
 builder.Services.AddReverseProxy()
     .LoadFromMemory([],[]);
-
-// Register DynamicConfigProvider as singleton
-builder.Services.AddSingleton<DynamicConfigProvider>();
 
 var app = builder.Build();
 
@@ -186,3 +188,6 @@ public class RequestLoggingMiddleware
         }
     }
 }
+
+// Expose Program class for WebApplicationFactory testing
+public partial class Program { }
