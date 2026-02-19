@@ -152,9 +152,12 @@ app.MapPost("/api/v1/add-host", async (AddHostRequest request, ILogger<Program> 
         config.Update(existingRoutes, existingClusters);
 
         // Persist route to file
+        logger.LogInformation("Attempting to persist route: {Hostname} => {BackendUrl}", request.Hostname, request.BackendUrl);
+
         try
         {
             var allRoutes = await routeStore.LoadRoutesAsync();
+            logger.LogInformation("Loaded {Count} existing routes from file", allRoutes.Length);
 
             // Extract port from backendUrl
             var uri = new Uri(request.BackendUrl);
@@ -167,14 +170,19 @@ app.MapPost("/api/v1/add-host", async (AddHostRequest request, ILogger<Program> 
                 Pid = Environment.ProcessId,
                 CreatedAt = DateTime.UtcNow
             };
+
             var updatedRoutes = allRoutes.Append(newRouteInfo).ToArray();
+            logger.LogInformation("Saving {Count} routes to file", updatedRoutes.Length);
+
             await routeStore.SaveRoutesAsync(updatedRoutes);
 
-            logger.LogInformation("Route persisted: {Hostname} => {Port}", request.Hostname, port);
+            logger.LogInformation("✓ Route persisted successfully: {Hostname} => {Port} (PID: {Pid})",
+                request.Hostname, port, Environment.ProcessId);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error persisting route to file");
+            logger.LogError(ex, "✗ Error persisting route to file: {Message}", ex.Message);
+            // Don't fail the request - route was added to YARP successfully
         }
 
         logger.LogInformation("Host added successfully: {Hostname} => {BackendUrl}",
