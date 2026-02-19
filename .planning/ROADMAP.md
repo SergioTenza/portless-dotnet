@@ -48,11 +48,12 @@ Plans:
   2. Múltiples procesos pueden leer/escribir rutas simultáneamente sin corrupción
   3. Rutas de procesos terminados se limpian automáticamente (verificación de PIDs)
   4. Proxy recarga configuración sin restart cuando cambia archivo de rutas
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 02-01: [Brief description]
-- [ ] 02-02: [Brief description]
+- [ ] 02-01: Core persistence layer with RouteInfo model, StateDirectoryProvider, and RouteStore with file locking (Wave 1)
+- [ ] 02-02: Background cleanup service and hot-reload integration with FileSystemWatcher (Wave 2)
+- [ ] 02-03: Comprehensive testing suite for persistence, cleanup, and hot-reload functionality (Wave 3)
 
 ### Phase 3: CLI Commands
 **Goal**: CLI completa con comandos para iniciar/detener proxy, ejecutar apps, y listar rutas activas
