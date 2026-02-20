@@ -81,11 +81,11 @@ Plans:
   2. Sistema asigna puerto único a cada app sin conflictos
   3. Sistema inyecta variable PORT en el comando ejecutado
   4. Sistema libera puerto cuando proceso termina (para reutilización)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: [Brief description]
-- [ ] 04-02: [Brief description]
+- [ ] 04-01: Port pooling and lifecycle management with PID tracking (Wave 1)
+- [ ] 04-02: Cross-platform PORT injection and automatic port release (Wave 2)
 
 ### Phase 5: Process Management
 **Goal**: Sistema spawnea procesos, trackea PIDs, y limpia rutas cuando terminan
