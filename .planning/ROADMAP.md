@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 2: Route Persistence** - Gestión de rutas con persistencia en archivo JSON
 - [ ] **Phase 3: CLI Commands** - Comandos básicos para controlar proxy y ejecutar apps
 - [ ] **Phase 4: Port Management** - Detección y asignación automática de puertos
-- [x] **Phase 5: Process Management** - Spawning, tracking y cleanup de procesos (completed 2026-02-21)
+- [x] **Phase 5: Process Management** - Spawning, tracking y cleanup de procesos (completed 2026-02-21)
 - [ ] **Phase 6: .NET Integration** - Empaquetado como dotnet tool y ejemplos de integración
 - [ ] **Phase 7: Cross-Platform** - Validación de compatibilidad Windows/macOS/Linux
 
@@ -110,11 +110,12 @@ Plans:
   1. Usuario puede instalar como dotnet tool global con `dotnet tool install`
   2. Ejemplos muestran cómo integrar con launchSettings.json de proyectos .NET
   3. Ejemplos muestran cómo integrar con appsettings.json para configuración
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 06-01: [Brief description]
-- [ ] 06-02: [Brief description]
+- [ ] 06-01: Configure PackAsTool settings and validate tool packaging with Native AOT (Wave 1)
+- [ ] 06-02: Create integration examples (WebApi, BlazorApp, WorkerService, ConsoleApp) with PORT variable usage (Wave 1)
+- [ ] 06-03: Create installation scripts and comprehensive documentation (tutorials + integration guides) (Wave 2)
 
 ### Phase 7: Cross-Platform
 **Goal**: Validación de que Portless.NET funciona idénticamente en Windows, macOS y Linux
@@ -142,7 +143,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 3. CLI Commands | 3/3 | Complete | 2026-02-19 |
 | 4. Port Management | 0/2 | Not started | - |
 | 5. Process Management | 2/2 | Complete   | 2026-02-21 |
-| 6. .NET Integration | 0/2 | Not started | - |
+| 6. .NET Integration | 0/3 | Not started | - |
 | 7. Cross-Platform | 0/2 | Not started | - |
 
 ### Phase 8: Integration Tests Automation for .NET Tool
