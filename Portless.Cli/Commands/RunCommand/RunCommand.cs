@@ -1,7 +1,9 @@
+using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Portless.Core.Models;
 using Portless.Core.Services;
 using Portless.Cli.Services;
@@ -17,19 +19,23 @@ public class RunCommand : AsyncCommand<RunSettings>
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IProxyProcessManager _proxyManager;
     private readonly IProcessManager _processManager;
+    private readonly ILogger<RunCommand> _logger;
+    private Process? _spawnedProcess;
 
     public RunCommand(
         IPortAllocator portAllocator,
         IRouteStore routeStore,
         IHttpClientFactory httpClientFactory,
         IProxyProcessManager proxyManager,
-        IProcessManager processManager)
+        IProcessManager processManager,
+        ILogger<RunCommand> logger)
     {
         _portAllocator = portAllocator;
         _routeStore = routeStore;
         _httpClientFactory = httpClientFactory;
         _proxyManager = proxyManager;
         _processManager = processManager;
+        _logger = logger;
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, RunSettings settings, CancellationToken cancellationToken)
@@ -103,6 +109,20 @@ public class RunCommand : AsyncCommand<RunSettings>
                 port,                                                       // allocated port
                 Directory.GetCurrentDirectory()                            // working directory
             );
+
+            // Store process reference for signal forwarding
+            _spawnedProcess = process;
+
+            // Set up signal forwarding for graceful shutdown
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            using var _ = cts.Token.Register(() =>
+            {
+                if (_spawnedProcess != null && !_spawnedProcess.HasExited)
+                {
+                    AnsiConsole.MarkupLine($"[yellow]Forwarding SIGTERM to process {_spawnedProcess.Id}...[/]");
+                    ForwardSignalToProcess(_spawnedProcess);
+                }
+            });
 
             // Step 4: Update port allocation with real PID
             // Note: This is a workaround - we allocated with PID=0, now we need to update
@@ -190,6 +210,44 @@ public class RunCommand : AsyncCommand<RunSettings>
         catch
         {
             return false;
+        }
+    }
+
+    private void ForwardSignalToProcess(Process process)
+    {
+        try
+        {
+            _logger.LogInformation("Forwarding SIGTERM to process {Pid}", process.Id);
+
+            // Try graceful shutdown first (GUI-friendly, cross-platform)
+            // CloseMainWindow sends WM_CLOSE on Windows, SIGTERM on Unix
+            process.CloseMainWindow();
+            bool exitedGracefully = process.WaitForExit(10000); // 10-second timeout
+
+            if (exitedGracefully)
+            {
+                _logger.LogInformation("Process {Pid} exited gracefully", process.Id);
+                AnsiConsole.MarkupLine($"[green]✓[/] Process {process.Id} exited gracefully");
+                return;
+            }
+
+            // Force kill if timeout expired
+            _logger.LogWarning("Process {Pid} did not exit gracefully, forcing termination", process.Id);
+            AnsiConsole.MarkupLine($"[yellow]Process {process.Id} did not exit gracefully, forcing termination...[/]");
+            process.Kill(entireProcessTree: true);
+            process.WaitForExit(); // Ensure cleanup completes
+            _logger.LogInformation("Process {Pid} terminated forcefully", process.Id);
+            AnsiConsole.MarkupLine($"[green]✓[/] Process {process.Id} terminated");
+        }
+        catch (InvalidOperationException ex)
+        {
+            // Process already terminated during signal forwarding
+            _logger.LogWarning(ex, "Process {Pid} already terminated during signal forwarding", process.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error forwarding signal to process {Pid}", process.Id);
+            AnsiConsole.MarkupLine($"[red]Error:[/] Failed to forward signal to process {process.Id}: {ex.Message}");
         }
     }
 }
