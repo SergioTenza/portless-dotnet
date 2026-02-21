@@ -167,6 +167,8 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 1 | Configurar GitHub Actions para generar artefactos de release descargables | 2026-02-21 | 03f7db4 | [1-configurar-github-actions-para-generar-a](./quick/1-configurar-github-actions-para-generar-a/) |
+| 2 | Establecer flujo de trabajo git con rama development | 2026-02-21 | 45be157 | [2-establecer-flujo-de-trabajo-git-con-rama](./quick/2-establecer-flujo-de-trabajo-git-con-rama/) |
+| 3 | Documentar flujo de trabajo de ramas git en CLAUDE.md y templates GSD | 2026-02-21 | 59cc694 | [3-documentar-flujo-de-trabajo-de-ramas-git](./quick/3-documentar-flujo-de-trabajo-de-ramas-git/) |
 | 2 | Establecer flujo de trabajo git con rama development | 2026-02-21 | 2cbdb33 | [2-establecer-flujo-de-trabajo-git-con-rama](./quick/2-establecer-flujo-de-trabajo-git-con-rama/) |
 | 3 | Documentar flujo de trabajo de ramas git | 2026-02-21 | 59cc694 | [3-documentar-flujo-de-trabajo-de-ramas-git](./quick/3-documentar-flujo-de-trabajo-de-ramas-git/) |
 
