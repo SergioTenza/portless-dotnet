@@ -113,6 +113,9 @@ public class RunCommand : AsyncCommand<RunSettings>
             // Store process reference for signal forwarding
             _spawnedProcess = process;
 
+            // Register process for tracking
+            await _proxyManager.RegisterManagedProcessAsync(process.Id);
+
             // Set up signal forwarding for graceful shutdown
             var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             using var _ = cts.Token.Register(() =>
