@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-02-21)
 Milestone: v1.0 MVP — SHIPPED 2026-02-21
 Status: All phases complete (7 phases, 20 plans)
 Phase 07 (Cross-Platform) deferred to future milestone
-Last activity: 2026-02-21 — v1.0 MVP milestone complete
+Last activity: 2026-02-21 - Completed quick task 1: Configurar GitHub Actions para generar artefactos de release descargables
 
 Progress: [████████████████████] 20/20 plans (100%)
 
@@ -123,6 +123,7 @@ Recent decisions affecting current work:
 - [Phase 06]: Installation scripts follow Microsoft dotnet-install pattern with automatic shell detection and persistent PATH configuration
 - [Phase 06]: Documentation structured with progressive learning path: migration → new project → microservices → testing
 - [Phase 06]: Integration guides separated by configuration method (launchSettings, appsettings, Kestrel) for code vs configuration flexibility
+- [Phase quick]: GitHub Actions workflow configured for automated releases with cross-platform Native AOT binaries triggered by version tags (v*.*.*)
 
 ### Roadmap Evolution
 
@@ -139,6 +140,12 @@ Recent decisions affecting current work:
 ### Blockers/Concerns
 
 None yet.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 1 | Configurar GitHub Actions para generar artefactos de release descargables | 2026-02-21 | 03f7db4 | [1-configurar-github-actions-para-generar-a](./quick/1-configurar-github-actions-para-generar-a/) |
 
 ## Session Continuity
 
