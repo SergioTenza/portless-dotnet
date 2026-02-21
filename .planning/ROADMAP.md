@@ -96,11 +96,11 @@ Plans:
   2. Sistema trackea PID del proceso para monitorear su estado
   3. Sistema limpia automáticamente la ruta cuando proceso termina
   4. Sistema forwarda signals (SIGTERM, SIGINT) al proceso para shutdown limpio
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 05-01: [Brief description]
-- [ ] 05-02: [Brief description]
+- [ ] 05-01: Process spawning and health monitoring with PORT injection (Wave 1)
+- [ ] 05-02: Signal forwarding and graceful shutdown coordination (Wave 2)
 
 ### Phase 6: .NET Integration
 **Goal**: Empaquetado como dotnet tool global con ejemplos de integración para proyectos .NET
