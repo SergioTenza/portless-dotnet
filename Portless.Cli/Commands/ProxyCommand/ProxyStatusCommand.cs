@@ -4,7 +4,7 @@ using Portless.Cli.Services;
 
 namespace Portless.Cli.Commands.ProxyCommand;
 
-public class ProxyStatusCommand : AsyncCommand<CommandSettings>
+public class ProxyStatusCommand : AsyncCommand<ProxyStatusSettings>
 {
     private readonly IProxyProcessManager _proxyManager;
 
@@ -13,7 +13,7 @@ public class ProxyStatusCommand : AsyncCommand<CommandSettings>
         _proxyManager = proxyManager;
     }
 
-    public override async Task<int> ExecuteAsync(CommandContext context, CommandSettings settings, CancellationToken cancellationToken)
+    public override async Task<int> ExecuteAsync(CommandContext context, ProxyStatusSettings settings, CancellationToken cancellationToken)
     {
         try
         {

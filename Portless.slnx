@@ -3,4 +3,5 @@
   <Project Path="Portless.Core/Portless.Core.csproj" />
   <Project Path="Portless.Proxy/Portless.Proxy.csproj" />
   <Project Path="Portless.Tests/Portless.Tests.csproj" />
+  <Project Path="TestApi/TestApi.csproj" />
 </Solution>

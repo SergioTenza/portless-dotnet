@@ -214,6 +214,63 @@ app.MapPost("/api/v1/add-host", async (AddHostRequest request, ILogger<Program> 
 });
 
 // Configure reverse proxy (must be after logging middleware)
+app.MapDelete("/api/v1/remove-host", async (string hostname, ILogger<Program> logger, DynamicConfigProvider config, IRouteStore routeStore) =>
+{
+    try
+    {
+        if (string.IsNullOrWhiteSpace(hostname))
+        {
+            return Results.Problem(
+                detail: "Hostname cannot be null or empty",
+                statusCode: 400,
+                title: "Validation Error"
+            );
+        }
+
+        var existingConfig = config.GetConfig();
+        var existingRoutes = existingConfig.Routes.ToList();
+        var existingClusters = existingConfig.Clusters.ToList();
+
+        // Remove route and cluster
+        var routeToRemove = existingRoutes.FirstOrDefault(r => r.Match?.Hosts?.Contains(hostname) == true);
+        if (routeToRemove != null)
+        {
+            existingRoutes.Remove(routeToRemove);
+        }
+
+        var clusterToRemove = existingClusters.FirstOrDefault(c => c.ClusterId == $"cluster-{hostname}");
+        if (clusterToRemove != null)
+        {
+            existingClusters.Remove(clusterToRemove);
+        }
+
+        // Update configuration
+        config.Update(existingRoutes, existingClusters);
+
+        // Remove from file storage
+        var allRoutes = await routeStore.LoadRoutesAsync();
+        var updatedRoutes = allRoutes.Where(r => r.Hostname != hostname).ToArray();
+        await routeStore.SaveRoutesAsync(updatedRoutes);
+
+        logger.LogInformation("Host removed: {Hostname}", hostname);
+
+        return Results.Ok(new
+        {
+            success = true,
+            message = $"Host '{hostname}' removed successfully"
+        });
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error removing host");
+        return Results.Problem(
+            detail: ex.Message,
+            statusCode: 500,
+            title: "Remove Host Error"
+        );
+    }
+});
+
 app.MapReverseProxy();
 
 app.Run();

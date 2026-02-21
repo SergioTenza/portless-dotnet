@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2025-02-19)
 
 **Core value:** URLs estables y predecibles para desarrollo local
-**Current focus:** Phase 5 - Process Management
+**Current focus:** Phase 8 - Integration Tests Automation
 
 ## Current Position
 
-Phase: 5 of 7 (Process Management)
-Plan: 0 of 2 in current phase (not planned yet)
-Status: Phase 5 context gathered, ready for planning
-Last activity: 2026-02-21 — Phase 5 process management context captured via discuss-phase
+Phase: 8 of 8 (Integration Tests Automation)
+Plan: 0 of 1 in current phase (not planned yet)
+Status: Phase 8 created, ready for planning
+Last activity: 2026-02-21 — Phase 8 integration tests automation added
 
 Progress: [██████░░░░] 71%
 
@@ -104,9 +104,15 @@ Recent decisions affecting current work:
 - [Phase 05]: Default to false for user prompt to avoid accidental data loss
 - [Phase 05]: Store managed PIDs in JSON file for persistence across proxy restarts
 
+### Roadmap Evolution
+
+- Phase 8 added: Integration tests automation for dotnet tool
+- Phase 6 added: .NET tool packaging with examples and documentation
+- Phase 7 added: Production readiness and polish
+
 ### Pending Todos
 
-None yet.
+- Plan phase 8 implementation
 
 ### Blockers/Concerns
 

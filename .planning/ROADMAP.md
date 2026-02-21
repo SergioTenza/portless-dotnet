@@ -144,3 +144,12 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 5. Process Management | 2/2 | Complete   | 2026-02-21 |
 | 6. .NET Integration | 0/2 | Not started | - |
 | 7. Cross-Platform | 0/2 | Not started | - |
+
+### Phase 8: integration tests automation for dotnet tool
+
+**Goal:** [To be planned]
+**Depends on:** Phase 7
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 8 to break down)

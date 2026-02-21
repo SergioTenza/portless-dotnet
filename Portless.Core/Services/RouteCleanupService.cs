@@ -8,14 +8,17 @@ namespace Portless.Core.Services;
 public class RouteCleanupService : BackgroundService
 {
     private readonly IRouteStore _routeStore;
+    private readonly IPortAllocator _portAllocator;
     private readonly ILogger<RouteCleanupService> _logger;
     private readonly TimeSpan _cleanupInterval = TimeSpan.FromSeconds(30);
 
     public RouteCleanupService(
         IRouteStore routeStore,
+        IPortAllocator portAllocator,
         ILogger<RouteCleanupService> logger)
     {
         _routeStore = routeStore;
+        _portAllocator = portAllocator;
         _logger = logger;
     }
 
@@ -38,6 +41,21 @@ public class RouteCleanupService : BackgroundService
                     var deadCount = routes.Length - aliveRoutes.Length;
                     _logger.LogInformation("Cleaning up {DeadCount} dead routes (total: {Total})",
                         deadCount, routes.Length);
+
+                    // Extract ports from dead routes for release
+                    var deadPorts = routes
+                        .Where(r => !aliveRoutes.Contains(r))
+                        .Select(r => r.Port)
+                        .ToArray();
+
+                    // Release ports back to pool
+                    foreach (var port in deadPorts)
+                    {
+                        await _portAllocator.ReleasePortAsync(port);
+                    }
+
+                    _logger.LogInformation("Released {PortCount} ports from dead processes",
+                        deadPorts.Length);
 
                     await _routeStore.SaveRoutesAsync(aliveRoutes, stoppingToken);
 

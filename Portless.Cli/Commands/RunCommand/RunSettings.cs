@@ -7,7 +7,4 @@ public class RunSettings : CommandSettings
 {
     [CommandArgument(0, "[NAME]")]
     public string Name { get; set; } = string.Empty;
-
-    [CommandArgument(1, "[COMMAND...]")]
-    public string[] Command { get; set; } = Array.Empty<string>();
 }

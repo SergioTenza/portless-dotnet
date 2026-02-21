@@ -11,12 +11,11 @@ using Portless.Core.Extensions;
 // Create service collection
 var services = new ServiceCollection();
 
-// Register Core services
+// Register Core services (includes PortPool, PortAllocator, RouteStore, and CleanupService)
 services.AddPortlessPersistence();
 
 // Register CLI services
 services.AddSingleton<IProxyProcessManager, ProxyProcessManager>();
-services.AddSingleton<IPortAllocator, PortAllocator>();
 services.AddHttpClient();
 
 // Configure command app with dependency injection
@@ -27,7 +26,8 @@ app.Configure(config =>
 {
     config.AddCommand<RunCommand>("run")
         .WithAlias("r")
-        .WithDescription("Run an app with a named URL");
+        .WithDescription("Run an app with a named URL")
+        .WithExample("run", "testapi", "dotnet", "run", "--project", "TestApi/TestApi.csproj");
 
     config.AddCommand<ListCommand>("list")
         .WithAlias("ls")
