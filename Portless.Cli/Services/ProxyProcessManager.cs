@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.Json;
 using Portless.Core.Services;
 
 namespace Portless.Cli.Services;
@@ -8,11 +9,14 @@ public class ProxyProcessManager : IProxyProcessManager
     private const string DefaultPort = "1355";
     private readonly string _stateDirectory;
     private readonly string _pidFilePath;
+    private readonly string _managedPidsFilePath;
+    private readonly HashSet<int> _managedPids = new HashSet<int>();
 
     public ProxyProcessManager()
     {
         _stateDirectory = StateDirectoryProvider.GetStateDirectory();
         _pidFilePath = Path.Combine(_stateDirectory, "proxy.pid");
+        _managedPidsFilePath = Path.Combine(_stateDirectory, "managed-pids.json");
 
         // Ensure state directory exists
         Directory.CreateDirectory(_stateDirectory);
@@ -29,7 +33,8 @@ public class ProxyProcessManager : IProxyProcessManager
         // Build path to Portless.Proxy.csproj
         var assemblyLocation = typeof(ProxyProcessManager).Assembly.Location;
         var assemblyDirectory = Path.GetDirectoryName(assemblyLocation) ?? ".";
-        var solutionRoot = Path.GetFullPath(Path.Combine(assemblyDirectory, "../../.."));
+        // Navigate from bin/Debug/net10.0/ up to solution root (4 levels up)
+        var solutionRoot = Path.GetFullPath(Path.Combine(assemblyDirectory, "../../../../"));
         var proxyProjectPath = Path.Combine(solutionRoot, "Portless.Proxy", "Portless.Proxy.csproj");
 
         if (!File.Exists(proxyProjectPath))
@@ -40,16 +45,12 @@ public class ProxyProcessManager : IProxyProcessManager
         // Create process start info for detached execution
         var startInfo = new ProcessStartInfo
         {
-            FileName = "dotnet",
-            Arguments = $"run --project \"{proxyProjectPath}\" --urls http://*:{port}",
+            FileName = "cmd.exe",
+            Arguments = $"/c set PORTLESS_PORT={port} && set DOTNET_MODIFIABLE_ASSEMBLIES=debug && dotnet run --project \"{proxyProjectPath}\" --urls http://*:{port}",
             UseShellExecute = true,  // Required for detached execution on Windows
             CreateNoWindow = true,
             WindowStyle = ProcessWindowStyle.Hidden
         };
-
-        // Set environment variables
-        startInfo.Environment["PORTLESS_PORT"] = port.ToString();
-        startInfo.Environment["DOTNET_MODIFIABLE_ASSEMBLIES"] = "debug"; // Hot reload support
 
         // Start the process
         var process = Process.Start(startInfo);
@@ -148,5 +149,89 @@ public class ProxyProcessManager : IProxyProcessManager
         // For now, return default port
         // Port tracking can be enhanced later by storing port in a separate file
         return (true, int.Parse(DefaultPort), pid);
+    }
+
+    public async Task<int[]> GetActiveManagedProcessesAsync()
+    {
+        await LoadManagedPidsAsync();
+
+        // Filter out dead PIDs
+        var alivePids = _managedPids.Where(pid =>
+        {
+            try
+            {
+                var p = Process.GetProcessById(pid);
+                return !p.HasExited;
+            }
+            catch (ArgumentException)
+            {
+                return false; // Process doesn't exist
+            }
+        }).ToArray();
+
+        return alivePids;
+    }
+
+    public async Task KillManagedProcessesAsync(int[] pids)
+    {
+        foreach (var pid in pids)
+        {
+            try
+            {
+                var p = Process.GetProcessById(pid);
+                p.Kill(entireProcessTree: true);
+            }
+            catch (ArgumentException)
+            {
+                // Process already dead, ignore
+            }
+        }
+
+        // Remove from tracked PIDs
+        foreach (var pid in pids)
+        {
+            _managedPids.Remove(pid);
+        }
+
+        await SaveManagedPidsAsync();
+    }
+
+    public async Task RegisterManagedProcessAsync(int pid)
+    {
+        _managedPids.Add(pid);
+        await SaveManagedPidsAsync();
+    }
+
+    private async Task LoadManagedPidsAsync()
+    {
+        if (!File.Exists(_managedPidsFilePath))
+        {
+            _managedPids.Clear();
+            return;
+        }
+
+        try
+        {
+            var json = await File.ReadAllTextAsync(_managedPidsFilePath);
+            _managedPids.Clear();
+            var loaded = JsonSerializer.Deserialize<HashSet<int>>(json);
+            if (loaded != null)
+            {
+                foreach (var pid in loaded)
+                {
+                    _managedPids.Add(pid);
+                }
+            }
+        }
+        catch
+        {
+            _managedPids.Clear();
+        }
+    }
+
+    private async Task SaveManagedPidsAsync()
+    {
+        var json = JsonSerializer.Serialize(_managedPids);
+        await File.WriteAllTextAsync(_managedPidsFilePath, json);
     }
 }
