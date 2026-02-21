@@ -10,20 +10,58 @@ Es un port de [Portless](https://github.com/portless/portless) (Node.js) a .NET 
 
 **URLs estables y predecibles para desarrollo local** - Si esta única cosa falla, el proyecto no tiene propósito.
 
+## Current State
+
+**Shipped:** v1.0 MVP — 2026-02-21
+
+Portless.NET v1.0 is a fully functional `dotnet tool` for Windows development that provides stable `.localhost` URLs. The tool includes:
+
+- HTTP proxy with YARP routing by hostname
+- CLI commands (proxy start/stop/status, list, run)
+- Automatic port allocation (4000-4999 range)
+- Route persistence with hot-reload
+- Process management with PID tracking
+- Global tool installation (761KB package)
+- 4 integration examples (WebApi, Blazor, Worker, Console)
+- Comprehensive documentation (3,049 lines)
+- Integration test suite (45 tests)
+
+**Platform:** Windows 10+ (macOS/Linux validation deferred)
+
+**Codebase:** ~5,000 LOC C# across 4 projects (Core, Cli, Proxy, Tests)
+
+## Next Milestone Goals
+
+**Future work for v1.1 or later:**
+- Cross-platform validation (macOS, Linux)
+- HTTPS support
+- HTTP/2 and WebSocket support
+- Performance optimization
+- Advanced CLI features (profiles, configuration files)
+
 ## Requirements
 
-### Validated
+### Validated (v1.0)
 
 - ✓ Proxy HTTP funcional con routing por hostname — Phase 01
 - ✓ CLI commands básicos: `proxy start`, `proxy stop`, `list`, ejecución de apps — Phase 03
 - ✓ Asignación automática de puertos (4000-4999) — Phase 03
 - ✓ Gestión de rutas dinámicas con persistencia — Phase 02
-- ✓ Soporte Windows nativo (diferenciador clave vs Portless original) — Phase 01-05
+- ✓ Soporte Windows nativo — Phase 01-05
 - ✓ Integración con ecosistema .NET (dotnet tool, launchSettings.json) — Phase 06
+- ✓ Integration test automation — Phase 08
 
 ### Active
 
-(Próximos requisitos en Phase 07 - Production Readiness)
+(No active requirements — all v1.0 requirements validated)
+
+### Out of Scope
+
+- **Interfaz gráfica** — Es una herramienta CLI para desarrolladores
+- **Soporte remoto** — Solo desarrollo local (localhost/127.0.0.1)
+- **Load balancing** — Single destination por hostname
+- **Auth/Z** — No expone servicios externamente, solo desarrollo local
+- **Cross-platform (macOS/Linux)** — Deferred to v1.1+, Windows prioritized
 
 ### Out of Scope
 
@@ -71,4 +109,4 @@ Evolutivo - empezar con MVP HTTP básico, agregar HTTP/2, HTTPS y WebSockets en 
 | Documentación progresiva | Tutorials (migration, new, microservices, E2E) + guías integration | ✓ Good - 3,049 líneas de documentación |
 
 ---
-*Last updated: 2026-02-21 after Phase 06 (.NET Integration)*
+*Last updated: 2026-02-21 after v1.0 MVP milestone*
