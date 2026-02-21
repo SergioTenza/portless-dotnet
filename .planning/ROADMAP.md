@@ -117,19 +117,17 @@ Plans:
 - [ ] 06-02: Create integration examples (WebApi, BlazorApp, WorkerService, ConsoleApp) with PORT variable usage (Wave 1)
 - [ ] 06-03: Create installation scripts and comprehensive documentation (tutorials + integration guides) (Wave 2)
 
-### Phase 7: Cross-Platform
+### Phase 7: Cross-Platform (DEFERRED)
 **Goal**: Validación de que Portless.NET funciona idénticamente en Windows, macOS y Linux
+**Status**: Deferred to future milestone - cross-platform validation will be addressed when macOS/Linux deployment is needed
 **Depends on**: Phase 6
 **Requirements**: XPLAT-01, XPLAT-02, XPLAT-03
 **Success Criteria** (what must be TRUE):
   1. Proxy funciona correctamente en Windows 10+ con comportamiento idéntico
   2. Proxy funciona correctamente en macOS 12+ con comportamiento idéntico
   3. Proxy funciona correctamente en Linux (Ubuntu 20.04+, Debian 11+) con comportamiento idéntico
-**Plans**: TBD
 
-Plans:
-- [ ] 07-01: [Brief description]
-- [ ] 07-02: [Brief description]
+**Note**: Phase 07 was deferred in milestone v1.0 to focus on Windows delivery. Cross-platform validation (macOS/Linux) will be added in a future milestone when platform expansion is prioritized.
 
 ## Progress
 
@@ -144,7 +142,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 4. Port Management | 0/2 | Not started | - |
 | 5. Process Management | 2/2 | Complete   | 2026-02-21 |
 | 6. .NET Integration | 1/3 | In Progress|  |
-| 7. Cross-Platform | 0/2 | Not started | - |
+| 7. Cross-Platform | 0/2 | Deferred | Future milestone |
 
 ### Phase 8: Integration Tests Automation for .NET Tool
 
