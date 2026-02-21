@@ -40,6 +40,7 @@ Progress: [██████░░░░] 71%
 | Phase 03-cli-commands P03-03 | 420 | 2 tasks | 4 files |
 | Phase 03-cli-commands P03-01 | 11min | 2 tasks | 9 files |
 | Phase 05-process-management P01 | 236 | 3 tasks | 5 files |
+| Phase 05 P02 | 173 | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -98,6 +99,10 @@ Recent decisions affecting current work:
 - [Phase 05]: Detect PID recycling via StartTime comparison with 1-second buffer per RESEARCH.md
 - [Phase 05]: Coordinated cleanup releases ports AND removes routes atomically
 - [Phase 05]: Working directory defaults to Directory.GetCurrentDirectory() per CONTEXT.md decision
+- [Phase 05]: Use CloseMainWindow for SIGTERM forwarding (GUI-friendly, cross-platform)
+- [Phase 05]: 10-second timeout before force kill per CONTEXT.md locked decision
+- [Phase 05]: Default to false for user prompt to avoid accidental data loss
+- [Phase 05]: Store managed PIDs in JSON file for persistence across proxy restarts
 
 ### Pending Todos
 

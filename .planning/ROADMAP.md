@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 2: Route Persistence** - Gestión de rutas con persistencia en archivo JSON
 - [ ] **Phase 3: CLI Commands** - Comandos básicos para controlar proxy y ejecutar apps
 - [ ] **Phase 4: Port Management** - Detección y asignación automática de puertos
-- [ ] **Phase 5: Process Management** - Spawning, tracking y cleanup de procesos
+- [x] **Phase 5: Process Management** - Spawning, tracking y cleanup de procesos (completed 2026-02-21)
 - [ ] **Phase 6: .NET Integration** - Empaquetado como dotnet tool y ejemplos de integración
 - [ ] **Phase 7: Cross-Platform** - Validación de compatibilidad Windows/macOS/Linux
 
@@ -141,6 +141,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 2. Route Persistence | 3/3 | Complete | 2026-02-19 |
 | 3. CLI Commands | 3/3 | Complete | 2026-02-19 |
 | 4. Port Management | 0/2 | Not started | - |
-| 5. Process Management | 1/2 | In Progress|  |
+| 5. Process Management | 2/2 | Complete   | 2026-02-21 |
 | 6. .NET Integration | 0/2 | Not started | - |
 | 7. Cross-Platform | 0/2 | Not started | - |
