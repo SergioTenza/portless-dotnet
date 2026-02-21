@@ -1,3 +1,6 @@
 <Solution>
+  <Project Path="BlazorApp/BlazorApp.csproj" />
+  <Project Path="ConsoleApp/ConsoleApp.csproj" />
   <Project Path="WebApi/WebApi.csproj" />
+  <Project Path="WorkerService/WorkerService.csproj" />
 </Solution>
