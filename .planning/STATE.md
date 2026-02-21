@@ -5,17 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-21)
 
 **Core value:** URLs estables y predecibles para desarrollo local
-**Current focus:** v1.0 MVP shipped — Planning next milestone
+**Current focus:** v1.1 Advanced Protocols — HTTP/2 and WebSockets support
 
 ## Current Position
 
-Milestone: v1.0 MVP — SHIPPED 2026-02-21
-Status: All phases complete (7 phases, 20 plans)
-Phase 07 (Cross-Platform) deferred to future milestone
-Last activity: 2026-02-21 - Completed quick task 3: Documentar flujo de trabajo de ramas git
+Milestone: v1.1 Advanced Protocols — STARTING 2026-02-21
+Status: Defining requirements
+Last activity: 2026-02-21 — Milestone v1.1 started
 Current branch: development (active development branch)
 
-Progress: [████████████████████] 20/20 plans (100%)
+Progress: [░░░░░░░░░░░░░░░░░░░░] 0/0 plans (0%)
 
 ## Git Workflow
 

@@ -30,12 +30,21 @@ Portless.NET v1.0 is a fully functional `dotnet tool` for Windows development th
 
 **Codebase:** ~5,000 LOC C# across 4 projects (Core, Cli, Proxy, Tests)
 
+## Current Milestone: v1.1 Advanced Protocols
+
+**Goal:** Habilitar protocolos avanzados (HTTP/2 y WebSockets) para mejorar performance y permitir real-time communication.
+
+**Target features:**
+- HTTP/2 support en YARP (multiplexing, header compression)
+- WebSocket proxy bidireccional
+- Detección automática de upgrade HTTP/2
+- Ejemplos de uso (SignalR, real-time apps)
+
 ## Next Milestone Goals
 
-**Future work for v1.1 or later:**
+**Future work for v1.2 or later:**
+- HTTPS support con certificados automáticos
 - Cross-platform validation (macOS, Linux)
-- HTTPS support
-- HTTP/2 and WebSocket support
 - Performance optimization
 - Advanced CLI features (profiles, configuration files)
 
@@ -53,7 +62,10 @@ Portless.NET v1.0 is a fully functional `dotnet tool` for Windows development th
 
 ### Active
 
-(No active requirements — all v1.0 requirements validated)
+- [ ] HTTP/2 support con YARP para protocolo avanzado — v1.1
+- [ ] WebSocket proxy para comunicación bidireccional — v1.1
+- [ ] Detección automática de upgrade HTTP/2 — v1.1
+- [ ] Ejemplos de uso (SignalR, real-time apps) — v1.1
 
 ### Out of Scope
 
@@ -62,6 +74,7 @@ Portless.NET v1.0 is a fully functional `dotnet tool` for Windows development th
 - **Load balancing** — Single destination por hostname
 - **Auth/Z** — No expone servicios externamente, solo desarrollo local
 - **Cross-platform (macOS/Linux)** — Deferred to v1.1+, Windows prioritized
+- **HTTPS** — Deffered to v1.2+, HTTP/2/WebSockets prioritized
 
 ### Out of Scope
 
@@ -109,4 +122,4 @@ Evolutivo - empezar con MVP HTTP básico, agregar HTTP/2, HTTPS y WebSockets en 
 | Documentación progresiva | Tutorials (migration, new, microservices, E2E) + guías integration | ✓ Good - 3,049 líneas de documentación |
 
 ---
-*Last updated: 2026-02-21 after v1.0 MVP milestone*
+*Last updated: 2026-02-21 starting v1.1 Advanced Protocols milestone*
