@@ -55,6 +55,14 @@ Requirements para el lanzamiento inicial enfocado en funcionalidad HTTP básica.
 - [ ] **XPLAT-02**: Proxy funciona idénticamente en macOS 12+
 - [ ] **XPLAT-03**: Proxy funciona idénticamente en Linux (Ubuntu 20.04+, Debian 11+)
 
+### Integration Tests
+
+- [ ] **TEST-01**: Tests de integración validan comandos CLI (proxy start/stop, list, run)
+- [ ] **TEST-02**: Tests de integración validan routing YARP con múltiples hostnames
+- [ ] **TEST-03**: Tests de integración validan gestión de procesos y PORT injection
+- [ ] **TEST-04**: Tests de integración validan persistencia de rutas con file locking y cleanup
+- [ ] **TEST-05**: Tests E2E validan instalación de tool y comportamiento cross-platform
+
 ## v2 Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
@@ -129,10 +137,22 @@ Which phases cover which requirements. Updated during roadmap creation.
 | XPLAT-01 | Phase 7 | Pending |
 | XPLAT-02 | Phase 7 | Pending |
 | XPLAT-03 | Phase 7 | Pending |
+| TEST-01 | Phase 8 | Pending |
+| TEST-02 | Phase 8 | Pending |
+| TEST-03 | Phase 8 | Pending |
+| TEST-04 | Phase 8 | Pending |
+| TEST-05 | Phase 8 | Pending |
+| PROC-04 | Phase 5 | Pending |
+| DOTNET-01 | Phase 6 | Pending |
+| DOTNET-02 | Phase 6 | Pending |
+| DOTNET-03 | Phase 6 | Pending |
+| XPLAT-01 | Phase 7 | Pending |
+| XPLAT-02 | Phase 7 | Pending |
+| XPLAT-03 | Phase 7 | Pending |
 
 **Coverage:**
-- v1 requirements: 24 total
-- Mapped to phases: 24
+- v1 requirements: 29 total
+- Mapped to phases: 29
 - Unmapped: 0 ✓
 
 ---

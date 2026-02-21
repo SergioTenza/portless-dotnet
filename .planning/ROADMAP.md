@@ -145,11 +145,20 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 6. .NET Integration | 0/2 | Not started | - |
 | 7. Cross-Platform | 0/2 | Not started | - |
 
-### Phase 8: integration tests automation for dotnet tool
+### Phase 8: Integration Tests Automation for .NET Tool
 
-**Goal:** [To be planned]
-**Depends on:** Phase 7
-**Plans:** 0 plans
+**Goal:** Sistema de pruebas de integración automatizadas para validar que Portless.NET funcione correctamente como dotnet tool instalado globalmente, incluyendo validación de comandos CLI, proxy YARP, gestión de procesos, y comportamiento cross-platform.
+**Depends on:** Phase 5 (Process Management completed)
+**Requirements:** TEST-01, TEST-02, TEST-03, TEST-04, TEST-05
+**Success Criteria** (what must be TRUE):
+  1. Tests de integración validan comandos CLI (proxy start/stop, list, run)
+  2. Tests E2E validan instalación de tool (dotnet tool install/uninstall)
+  3. Tests de integración validan routing YARP con múltiples hostnames
+  4. Tests de persistencia validan file locking, cleanup, y hot-reload
+  5. Tests corren en Windows y Linux sin modificaciones
+**Plans:** 3 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 8 to break down)
+- [ ] 08-01: Integration test project for CLI commands, proxy process management, and port allocation (Wave 1)
+- [ ] 08-02: E2E test project for full tool installation, CLI invocation, and cross-platform validation (Wave 1)
+- [ ] 08-03: Enhanced YARP proxy and route persistence integration tests with README documentation (Wave 2)
