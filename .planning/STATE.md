@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2025-02-19)
 
 **Core value:** URLs estables y predecibles para desarrollo local
-**Current focus:** Phase 8 - Integration Tests Automation
+**Current focus:** Phase 8 COMPLETE - Integration Tests Automation
 
 ## Current Position
 
-Phase: 8 of 8 (Integration Tests Automation)
-Plan: 0 of 1 in current phase (not planned yet)
-Status: Phase 8 created, ready for planning
-Last activity: 2026-02-21 — Phase 8 integration tests automation added
+Phase: 8 of 8 (Integration Tests Automation) ✅ COMPLETE
+Plan: 3 of 3 in current phase (all plans executed)
+Status: Phase 8 completed successfully - 45 tests created
+Last activity: 2026-02-21 — Phase 8 integration tests automation completed
 
-Progress: [██████░░░░] 71%
+Progress: [██████████░] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
+- Total plans completed: 16
 - Average duration: 7 min
-- Total execution time: 1.2 hours
+- Total execution time: 1.9 hours
 
 **By Phase:**
 
@@ -30,10 +30,11 @@ Progress: [██████░░░░] 71%
 | 01-proxy-core | 4 | 36 min | 9 min |
 | 02-route-persistence | 3 | 22 min | 7 min |
 | 03-cli-commands | 3 | 21 min | 7 min |
+| 08-integration-tests | 3 | 45 min | 15 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-03 (16 min), 03-01 (5 min), 03-02 (9 min), 03-03 (7 min)
-- Trend: Phase 3 complete, all CLI commands implemented
+- Last 3 plans: 08-01 (15 min), 08-02 (20 min), 08-03 (10 min)
+- Trend: Phase 8 complete, 45 tests created for comprehensive validation
 
 *Updated after each plan completion*
 | Phase 02-route-persistence P03 | 16min | 3 tasks | 3 files |
@@ -103,6 +104,14 @@ Recent decisions affecting current work:
 - [Phase 05]: 10-second timeout before force kill per CONTEXT.md locked decision
 - [Phase 05]: Default to false for user prompt to avoid accidental data loss
 - [Phase 05]: Store managed PIDs in JSON file for persistence across proxy restarts
+- [Phase 08]: Three-tier test architecture: Unit (Portless.Tests), Integration (Portless.IntegrationTests), E2E (Portless.E2ETests)
+- [Phase 08]: Integration tests use in-process CommandApp testing via Spectre.Console.Cli TypeRegistrar
+- [Phase 08]: E2E tests use real Process.Start with solution root working directory resolution
+- [Phase 08]: TestRouteStore implementation for isolated persistence testing with custom directories
+- [Phase 08]: WebApplicationFactory<Program> for in-memory YARP routing tests (502 responses acceptable)
+- [Phase 08]: Cross-platform validation using Path.GetTempPath(), Path.DirectorySeparatorChar detection
+- [Phase 08]: Named mutex "Portless.Routes.Lock" for concurrent file access testing
+- [Phase 08]: Atomic write pattern via temp file for corruption-free persistence testing
 
 ### Roadmap Evolution
 
@@ -112,7 +121,9 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-- Plan phase 8 implementation
+- Phase 8 complete - ready for Phase 6 (tool packaging) or Phase 7 (production polish)
+- Consider CI/CD automation for automated test execution
+- macOS validation for cross-platform testing
 
 ### Blockers/Concerns
 

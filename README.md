@@ -133,15 +133,106 @@ Portless.NET está construido con:
 
 ```
 portless-dotnet/
-├── Portless.Core/          # Lógica central compartida
-├── Portless.Cli/           # CLI entry point (dotnet tool)
-├── Portless.Proxy/         # Proxy YARP (Kestrel)
-├── Portless.Tests/         # Test suite (xUnit)
-├── TestApi/                # API de prueba para desarrollo
-├── CLAUDE.md               # Guía para Claude Code
-├── PRD.md                  # Product Requirements Document
-├── PLAN.md                 # Plan técnico
+├── Portless.Core/              # Lógica central compartida
+├── Portless.Cli/               # CLI entry point (dotnet tool)
+├── Portless.Proxy/             # Proxy YARP (Kestrel)
+├── Portless.Tests/             # Unit tests (xUnit)
+├── Portless.IntegrationTests/  # Integration tests (CLI, procesos, puertos)
+├── Portless.E2ETests/          # E2E tests (instalación, workflows)
+├── TestApi/                    # API de prueba para desarrollo
+├── CLAUDE.md                   # Guía para Claude Code
+├── PRD.md                      # Product Requirements Document
+├── PLAN.md                     # Plan técnico
 └── README.md
+```
+
+## 🧪 Testing
+
+Portless.NET tiene tres suites de tests para validación completa:
+
+### Unit Tests (Portless.Tests)
+
+Tests de nivel de componente con WebApplicationFactory para routing YARP.
+
+```bash
+# Ejecutar tests unitarios
+dotnet test Portless.Tests/Portless.Tests.csproj
+
+# Ejecutar tests específicos
+dotnet test --filter "FullyQualifiedName~ProxyRoutingTests"
+dotnet test --filter "FullyQualifiedName~YarpProxyIntegrationTests"
+dotnet test --filter "FullyQualifiedName~RoutePersistenceIntegrationTests"
+```
+
+### Integration Tests (Portless.IntegrationTests)
+
+Tests in-process de comandos CLI y gestión de procesos.
+
+```bash
+# Ejecutar tests de integración
+dotnet test Portless.IntegrationTests/Portless.IntegrationTests.csproj
+
+# Ejecutar por categoría
+dotnet test --filter "FullyQualifiedName~CliCommandTests"
+dotnet test --filter "FullyQualifiedName~ProxyProcessTests"
+dotnet test --filter "FullyQualifiedName~PortAllocatorTests"
+```
+
+### E2E Tests (Portless.E2ETests)
+
+Tests de instalación completa de herramienta y workflows CLI.
+
+```bash
+# Ejecutar tests E2E
+dotnet test Portless.E2ETests/Portless.E2ETests.csproj
+
+# Ejecutar por categoría
+dotnet test --filter "FullyQualifiedName~CrossPlatformTests"
+dotnet test --filter "FullyQualifiedName~ToolInstallationTests"
+dotnet test --filter "FullyQualifiedName~CommandLineE2ETests"
+```
+
+### Ejecutar Todos los Tests
+
+```bash
+# Ejecutar todas las suites de tests
+dotnet test
+
+# Con coverage
+dotnet test --collect:"XPlat Code Coverage"
+
+# Con output detallado
+dotnet test --logger "console;verbosity=detailed"
+```
+
+### Organización de Tests
+
+- **Unit Tests**: Component-level con WebApplicationFactory para YARP routing
+- **Integration Tests**: In-process CLI y process management
+- **E2E Tests**: Full tool installation y workflow validation
+
+### Cross-Platform Testing
+
+Tests validados en Windows y Linux (Ubuntu/Debian). Cada test es independiente con directorio temporal único y cleanup después de la ejecución.
+
+### Testing Manual
+
+Antes de cada release, ejecutar tests E2E para validar instalación de herramienta:
+
+```bash
+# Build
+dotnet build Portless.slnx
+
+# Pack
+dotnet pack Portless.Cli/Portless.Cli.csproj -o ./nupkg
+
+# Install (local)
+dotnet tool install --add-source ./nupkg portless.dotnet
+
+# Verify
+portless --help
+portless proxy status
+portless list
 ```
 
 ## 🎯 Casos de Uso
