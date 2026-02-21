@@ -44,6 +44,7 @@ Progress: [████████░░] 87%
 | Phase 05 P02 | 173 | 3 tasks | 4 files |
 | Phase 06 P01 | 5 | 3 tasks | 1 files |
 | Phase 06 P02 | 19 | 3 tasks | 11 files |
+| Phase 06 P03 | 4024 | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -119,6 +120,9 @@ Recent decisions affecting current work:
 - [Phase 06]: WorkerService demonstrates PORT variable for logging (non-HTTP workload example)
 - [Phase 06]: ConsoleApp demonstrates PORT variable for simple display scenarios
 - [Phase 06]: README.md provides comprehensive 306-line documentation with troubleshooting section
+- [Phase 06]: Installation scripts follow Microsoft dotnet-install pattern with automatic shell detection and persistent PATH configuration
+- [Phase 06]: Documentation structured with progressive learning path: migration → new project → microservices → testing
+- [Phase 06]: Integration guides separated by configuration method (launchSettings, appsettings, Kestrel) for code vs configuration flexibility
 
 ### Roadmap Evolution
 
