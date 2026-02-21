@@ -45,7 +45,7 @@ Requirements para el lanzamiento inicial enfocado en funcionalidad HTTP básica.
 
 ### Integración .NET
 
-- [ ] **DOTNET-01**: CLI funciona como `dotnet tool` global
+- [x] **DOTNET-01**: CLI funciona como `dotnet tool` global
 - [ ] **DOTNET-02**: Ejemplos para integrar con launchSettings.json
 - [ ] **DOTNET-03**: Ejemplos para integrar con appsettings.json
 
@@ -131,7 +131,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PROC-02 | Phase 5 | Complete |
 | PROC-03 | Phase 5 | Complete |
 | PROC-04 | Phase 5 | Pending |
-| DOTNET-01 | Phase 6 | Pending |
+| DOTNET-01 | Phase 6 | Complete |
 | DOTNET-02 | Phase 6 | Pending |
 | DOTNET-03 | Phase 6 | Pending |
 | XPLAT-01 | Phase 7 | Pending |
@@ -143,7 +143,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TEST-04 | Phase 8 | Pending |
 | TEST-05 | Phase 8 | Pending |
 | PROC-04 | Phase 5 | Pending |
-| DOTNET-01 | Phase 6 | Pending |
+| DOTNET-01 | Phase 6 | Complete |
 | DOTNET-02 | Phase 6 | Pending |
 | DOTNET-03 | Phase 6 | Pending |
 | XPLAT-01 | Phase 7 | Pending |

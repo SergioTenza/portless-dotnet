@@ -143,7 +143,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 3. CLI Commands | 3/3 | Complete | 2026-02-19 |
 | 4. Port Management | 0/2 | Not started | - |
 | 5. Process Management | 2/2 | Complete   | 2026-02-21 |
-| 6. .NET Integration | 0/3 | Not started | - |
+| 6. .NET Integration | 1/3 | In Progress|  |
 | 7. Cross-Platform | 0/2 | Not started | - |
 
 ### Phase 8: Integration Tests Automation for .NET Tool
@@ -157,7 +157,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
   3. Tests de integración validan routing YARP con múltiples hostnames
   4. Tests de persistencia validan file locking, cleanup, y hot-reload
   5. Tests corren en Windows y Linux sin modificaciones
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
 - [ ] 08-01: Integration test project for CLI commands, proxy process management, and port allocation (Wave 1)

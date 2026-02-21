@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2025-02-19)
 
 **Core value:** URLs estables y predecibles para desarrollo local
-**Current focus:** Phase 8 COMPLETE - Integration Tests Automation
+**Current focus:** Phase 06 - .NET Tool Packaging
 
 ## Current Position
 
-Phase: 8 of 8 (Integration Tests Automation) ✅ COMPLETE
-Plan: 3 of 3 in current phase (all plans executed)
-Status: Phase 8 completed successfully - 45 tests created
-Last activity: 2026-02-21 — Phase 8 integration tests automation completed
+Phase: 6 of 8 (.NET Tool Packaging)
+Plan: 1 of 3 (PackAsTool Configuration)
+Status: Plan 06-01 completed - dotnet tool packaging configured
+Last activity: 2026-02-21 — Phase 06-01 PackAsTool configuration completed
 
-Progress: [██████████░] 100%
+Progress: [████████░░] 87%
 
 ## Performance Metrics
 
@@ -42,6 +42,7 @@ Progress: [██████████░] 100%
 | Phase 03-cli-commands P03-01 | 11min | 2 tasks | 9 files |
 | Phase 05-process-management P01 | 236 | 3 tasks | 5 files |
 | Phase 05 P02 | 173 | 3 tasks | 4 files |
+| Phase 06 P01 | 5 | 3 tasks | 1 files |
 
 ## Accumulated Context
 
