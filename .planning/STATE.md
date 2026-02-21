@@ -12,9 +12,30 @@ See: .planning/PROJECT.md (updated 2026-02-21)
 Milestone: v1.0 MVP — SHIPPED 2026-02-21
 Status: All phases complete (7 phases, 20 plans)
 Phase 07 (Cross-Platform) deferred to future milestone
-Last activity: 2026-02-21 - Completed quick task 1: Configurar GitHub Actions para generar artefactos de release descargables
+Last activity: 2026-02-21 - Completed quick task 2: Establecer flujo de trabajo git con rama development
+Current branch: development (active development branch)
 
 Progress: [████████████████████] 20/20 plans (100%)
+
+## Git Workflow
+
+Branch structure established to isolate development from production:
+
+- **main**: Production branch (v1.0 MVP stable)
+  - Protected from direct commits during development
+  - Only updated via merges from development when ready for release
+  - Represents stable, released code
+
+- **development**: Active development branch
+  - All new feature development happens here
+  - Merged into main when ready for release
+  - Allows experimentation without affecting production
+
+Workflow rules:
+- New development happens in development branch
+- Merge development → main when ready for release
+- main is protected, only for releases
+- Both branches tracked on remote for collaboration
 
 ## Performance Metrics
 
@@ -146,6 +167,7 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 1 | Configurar GitHub Actions para generar artefactos de release descargables | 2026-02-21 | 03f7db4 | [1-configurar-github-actions-para-generar-a](./quick/1-configurar-github-actions-para-generar-a/) |
+| 2 | Establecer flujo de trabajo git con rama development | 2026-02-21 | 2cbdb33 | [2-establecer-flujo-de-trabajo-git-con-rama](./quick/2-establecer-flujo-de-trabajo-git-con-rama/) |
 
 ## Session Continuity
 
