@@ -5,6 +5,23 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+    <!-- Tool packaging configuration -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>portless</ToolCommandName>
+    <Version>1.0.0</Version>
+    <Authors>Portless.NET Contributors</Authors>
+    <Description>Stable .localhost URLs for local .NET development</Description>
+
+    <!-- Package metadata -->
+    <PackageId>Portless.NET.Tool</PackageId>
+    <PackageTags>dotnet-tool;proxy;localhost;development;portless</PackageTags>
+    <PackageProjectUrl>https://github.com/portless/portless-dotnet</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/portless/portless-dotnet</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+
+    <!-- Native AOT for single executable (test compatibility with Spectre.Console.Cli) -->
+    <PublishAot>true</PublishAot>
   </PropertyGroup>
 
   <ItemGroup>
