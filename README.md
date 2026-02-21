@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![.NET](https://img.shields.io/badge/.NET-10-purple.svg)](https://dotnet.microsoft.com/download/dotnet/10.0)
-[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://github.com/yourusername/portless-dotnet)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://github.com/SergioTenza/portless-dotnet)
 
 ## 🎯 ¿Qué es Portless.NET?
 
@@ -17,18 +17,20 @@ Portless.NET es un port a .NET 10 del excelente [Portless](https://github.com/po
 ### ✨ Ventajas
 
 - ✅ **Soporte Windows nativo** (a diferencia de Portless original)
-- ✅ **Mejor rendimiento** con .NET 10 + Kestrel + Native AOT
-- ✅ **Single binary deployment**
+- ✅ **Mejor rendimiento** con .NET 10 + Kestrel
 - ✅ **Integración nativa** con ecosistema .NET
-- ✅ **HTTP/2 + HTTPS** con certificados auto-generados
-- ✅ **WebSockets** transparentes
+- ✅ **HTTP/1.1** con rutas dinámicas
 
 ## 🚀 Quick Start
 
 ### Instalación
 
 ```bash
+# Instalar desde NuGet.org (cuando esté publicado)
 dotnet tool install -g portless.dotnet
+
+# O instalar desde fuente local
+dotnet tool install --add-source . -g portless.dotnet
 ```
 
 ### Uso Básico
@@ -38,7 +40,7 @@ dotnet tool install -g portless.dotnet
 portless proxy start
 
 # Ejecuta tu app con un nombre
-portless miapi dotnet run
+portless run miapi dotnet run
 
 # Accede a tu app en:
 # http://miapi.localhost:1355
@@ -48,24 +50,14 @@ portless miapi dotnet run
 
 ```bash
 # Monorepo con múltiples servicios
-portless orders dotnet run --project services/Orders
-portless products dotnet run --project services/Products
-portless frontend dotnet run --project web/Frontend
+portless run orders dotnet run --project services/Orders
+portless run products dotnet run --project services/Products
+portless run frontend dotnet run --project web/Frontend
 
 # Accede a cada servicio:
 # http://orders.localhost:1355
 # http://products.localhost:1355
 # http://frontend.localhost:1355
-```
-
-### Con HTTPS
-
-```bash
-# Inicia el proxy con HTTPS
-portless proxy start --https
-
-# Accede con HTTPS:
-# https://miapi.localhost:1355
 ```
 
 ### Listar Apps Activas
@@ -87,14 +79,16 @@ Active routes:
 ## 📚 Comandos
 
 ```bash
-portless proxy start [--https] [-p <port>]    # Inicia proxy (default: puerto 1355)
-portless proxy stop                          # Detiene proxy
-portless <name> <command...>                 # Ejecuta app con URL nombrada
-portless list                                # Lista apps activas
-portless trust                               # Confía CA local (para HTTPS)
+portless proxy start [--port <PORT>]    # Inicia proxy (default: puerto 1355)
+portless proxy stop                      # Detiene proxy
+portless run <name> <command...>         # Ejecuta app con URL nombrada
+portless r <name> <command...>           # Alias corto de 'run'
+portless list                            # Lista apps activas
 ```
 
 ## 🔧 Integración con ASP.NET Core
+
+Portless.NET inyecta la variable de entorno `PORT` con el puerto asignado. Tu aplicación debe configurarse para usar esta variable.
 
 ### En `launchSettings.json`
 
@@ -131,23 +125,23 @@ portless trust                               # Confía CA local (para HTTPS)
 Portless.NET está construido con:
 
 - **.NET 10** con C# 14
-- **YARP 2.x** - Reverse proxy de Microsoft
-- **System.CommandLine** - CLI framework
-- **Native AOT** - Single binary deployment
-- **Serilog** - Logging estructurado
+- **YARP 2.3.0** - Reverse proxy de Microsoft
+- **Spectre.Console.Cli 0.53.1** - CLI framework
+- **Microsoft.Extensions.Logging** - Logging estructurado
 
-## 📁 Estructura del Proyecto
+### Estructura del Proyecto
 
 ```
 portless-dotnet/
-├── src/
-│   ├── Portless.Core/        # Lógica central
-│   ├── Portless.Cli/         # CLI entry point
-│   └── Portless.Tests/       # Tests
-├── docs/
-├── README.md
-├── PRD.md                    # Product Requirements Document
-└── PLAN.md                   # Plan técnico
+├── Portless.Core/          # Lógica central compartida
+├── Portless.Cli/           # CLI entry point (dotnet tool)
+├── Portless.Proxy/         # Proxy YARP (Kestrel)
+├── Portless.Tests/         # Test suite (xUnit)
+├── TestApi/                # API de prueba para desarrollo
+├── CLAUDE.md               # Guía para Claude Code
+├── PRD.md                  # Product Requirements Document
+├── PLAN.md                 # Plan técnico
+└── README.md
 ```
 
 ## 🎯 Casos de Uso
@@ -156,39 +150,25 @@ portless-dotnet/
 
 ```bash
 # Frontend + Backend
-portless web npm run dev
-portless api dotnet run
+portless run web npm run dev
+portless run api dotnet run
 ```
 
 ### Microservicios
 
 ```bash
 # Múltiples servicios independientes
-portless auth dotnet run --project src/Auth
-portless users dotnet run --project src/Users
-portless payments dotnet run --project src/Payments
+portless run auth dotnet run --project src/Auth
+portless run users dotnet run --project src/Users
+portless run payments dotnet run --project src/Payments
 ```
 
 ### Testing E2E
 
 ```bash
 # URLs predecibles para tests automatizados
-portless test-e2e dotnet test
+portless run test-e2e dotnet test
 # Test usa: http://test-e2e.localhost:1355
-```
-
-## 🔐 HTTPS
-
-Portless.NET genera automáticamente certificados TLS y los agrega a tu sistema trust store. No necesitas configuración manual.
-
-### Trust Store Management
-
-```bash
-# Verificar si CA es confiable
-portless trust
-
-# Agregar manualmente (automático con --https)
-sudo portless trust
 ```
 
 ## 🌍 Cross-Platform
@@ -204,29 +184,17 @@ Portless.NET funciona en:
 | Variable | Descripción | Default |
 |----------|-------------|---------|
 | `PORTLESS_PORT` | Puerto del proxy | `1355` |
-| `PORTLESS_HTTPS` | Habilitar HTTPS | `0` |
-| `PORTLESS_STATE_DIR` | Directorio de estado | `~/.portless` |
-| `PORTLESS` | Bypass proxy | - |
-
-### Bypass
-
-```bash
-# Ejecutar directamente sin proxy
-PORTLESS=0 portless miapp dotnet run
-
-# O
-PORTLESS=skip portless miapp dotnet run
-```
 
 ## 🤝 Contribuyendo
 
-¡Contribuciones bienvenidas! Por favor lee [CONTRIBUTING.md](CONTRIBUTING.md) para detalles.
+¡Contribuciones bienvenidas! Este proyecto está en desarrollo activo.
 
 ### Roadmap
 
-- [ ] v0.1.0 - MVP (HTTP/1.1, rutas dinámicas)
+- [x] v0.1.0 - MVP (HTTP/1.1, rutas dinámicas)
 - [ ] v0.2.0 - HTTP/2 + HTTPS
 - [ ] v0.3.0 - WebSockets
+- [ ] v0.4.0 - Native AOT
 - [ ] v1.0.0 - Stable release
 
 Ver [PRD.md](PRD.md) para roadmap completo.
