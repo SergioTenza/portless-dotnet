@@ -39,6 +39,7 @@ Progress: [██████░░░░] 71%
 | Phase 02-route-persistence P03 | 16min | 3 tasks | 3 files |
 | Phase 03-cli-commands P03-03 | 420 | 2 tasks | 4 files |
 | Phase 03-cli-commands P03-01 | 11min | 2 tasks | 9 files |
+| Phase 05-process-management P01 | 236 | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -92,6 +93,11 @@ Recent decisions affecting current work:
 - [Phase 03-cli-commands]: UseShellExecute=true for Windows detached process execution
 - [Phase 03-cli-commands]: PID file tracking in state directory for process lifecycle
 - [Phase 03-cli-commands]: Spectre.Console.Cli DI via TypeRegistrar/TypeResolver bridge pattern
+- [Phase 05]: Use System.Diagnostics.Process.Start with UseShellExecute=false for PORT environment variable injection
+- [Phase 05]: Use BackgroundService pattern with 5-second polling interval per CONTEXT.md locked decision
+- [Phase 05]: Detect PID recycling via StartTime comparison with 1-second buffer per RESEARCH.md
+- [Phase 05]: Coordinated cleanup releases ports AND removes routes atomically
+- [Phase 05]: Working directory defaults to Directory.GetCurrentDirectory() per CONTEXT.md decision
 
 ### Pending Todos
 

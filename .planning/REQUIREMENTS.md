@@ -38,9 +38,9 @@ Requirements para el lanzamiento inicial enfocado en funcionalidad HTTP básica.
 
 ### Process Management
 
-- [ ] **PROC-01**: Sistema spawnea comando con variable PORT
-- [ ] **PROC-02**: Sistema trackea PID de proceso
-- [ ] **PROC-03**: Sistema limpia ruta cuando proceso termina
+- [x] **PROC-01**: Sistema spawnea comando con variable PORT
+- [x] **PROC-02**: Sistema trackea PID de proceso
+- [x] **PROC-03**: Sistema limpia ruta cuando proceso termina
 - [ ] **PROC-04**: Sistema forwarda signals (SIGTERM, SIGINT)
 
 ### Integración .NET
@@ -119,9 +119,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PORT-02 | Phase 4 | Pending |
 | PORT-03 | Phase 4 | Pending |
 | PORT-04 | Phase 4 | Pending |
-| PROC-01 | Phase 5 | Pending |
-| PROC-02 | Phase 5 | Pending |
-| PROC-03 | Phase 5 | Pending |
+| PROC-01 | Phase 5 | Complete |
+| PROC-02 | Phase 5 | Complete |
+| PROC-03 | Phase 5 | Complete |
 | PROC-04 | Phase 5 | Pending |
 | DOTNET-01 | Phase 6 | Pending |
 | DOTNET-02 | Phase 6 | Pending |
