@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2025-02-19)
 ## Current Position
 
 Phase: 6 of 8 (.NET Tool Packaging)
-Plan: 1 of 3 (PackAsTool Configuration)
-Status: Plan 06-01 completed - dotnet tool packaging configured
-Last activity: 2026-02-21 — Phase 06-01 PackAsTool configuration completed
+Plan: 2 of 3 (Integration Examples)
+Status: Plan 06-02 completed - integration examples created
+Last activity: 2026-02-21 — Phase 06-02 integration examples completed (WebApi, BlazorApp, WorkerService, ConsoleApp)
 
 Progress: [████████░░] 87%
 
@@ -43,6 +43,7 @@ Progress: [████████░░] 87%
 | Phase 05-process-management P01 | 236 | 3 tasks | 5 files |
 | Phase 05 P02 | 173 | 3 tasks | 4 files |
 | Phase 06 P01 | 5 | 3 tasks | 1 files |
+| Phase 06 P02 | 19 | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -113,6 +114,11 @@ Recent decisions affecting current work:
 - [Phase 08]: Cross-platform validation using Path.GetTempPath(), Path.DirectorySeparatorChar detection
 - [Phase 08]: Named mutex "Portless.Routes.Lock" for concurrent file access testing
 - [Phase 08]: Atomic write pattern via temp file for corruption-free persistence testing
+- [Phase 06]: All example projects use Environment.GetEnvironmentVariable("PORT") pattern for consistency
+- [Phase 06]: WebApi and BlazorApp include launchSettings.json with Portless profile (localhost:0) for easy testing
+- [Phase 06]: WorkerService demonstrates PORT variable for logging (non-HTTP workload example)
+- [Phase 06]: ConsoleApp demonstrates PORT variable for simple display scenarios
+- [Phase 06]: README.md provides comprehensive 306-line documentation with troubleshooting section
 
 ### Roadmap Evolution
 
@@ -132,6 +138,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-21 (Phase 5 discuss-phase)
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-process-management/05-CONTEXT.md
+Last session: 2026-02-21 (Phase 06-02 integration examples)
+Stopped at: Completed 06-02 integration examples (WebApi, BlazorApp, WorkerService, ConsoleApp)
+Resume file: .planning/phases/06-dotnet-integration/06-02-SUMMARY.md
