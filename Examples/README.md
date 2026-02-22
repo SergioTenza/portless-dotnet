@@ -1,6 +1,6 @@
 # Portless.NET Integration Examples
 
-This solution contains four example projects demonstrating how to integrate Portless.NET with different .NET workloads.
+This solution contains example projects demonstrating how to integrate Portless.NET with different .NET workloads, including real-time communication with SignalR and WebSocket.
 
 ## Projects
 
@@ -8,6 +8,9 @@ This solution contains four example projects demonstrating how to integrate Port
 - **BlazorApp** - Blazor Web App with PORT integration
 - **WorkerService** - Background service with PORT integration
 - **ConsoleApp** - Console application with PORT integration
+- **SignalRChat** - Real-time chat application with SignalR through Portless.NET proxy
+- **SignalRChat.Client** - .NET console client for SignalR chat
+- **WebSocketEchoServer** - WebSocket echo server for testing WebSocket proxy support
 
 ## Prerequisites
 
@@ -87,6 +90,62 @@ Running on port: 4004 (assigned by Portless)
 URL: http://localhost:4004
 ```
 
+### SignalRChat Example (Real-Time Communication)
+
+Start the SignalR chat server with Portless:
+```bash
+cd Examples/SignalRChat
+portless chatsignalr dotnet run
+```
+
+Access the chat at: `http://chatsignalr.localhost:1355`
+
+**Features:**
+- Real-time bidirectional messaging using SignalR
+- Browser-based client with modern UI
+- WebSocket transport through Portless.NET proxy
+- Automatic reconnection on connection loss
+- Broadcast to all connected clients
+
+**Testing:**
+1. Open the URL in multiple browser windows
+2. Send messages from any window
+3. All clients receive the broadcast messages
+
+**Console Client:**
+```bash
+cd Examples/SignalRChat.Client
+dotnet run -- http://chatsignalr.localhost:1355/chathub
+```
+
+See [SignalRChat/README.md](SignalRChat/README.md) for detailed documentation.
+
+### WebSocketEchoServer Example
+
+Start the WebSocket echo server with Portless:
+```bash
+cd Examples/WebSocketEchoServer
+portless echoserver dotnet run
+```
+
+Access the echo server at: `http://echoserver.localhost:1355`
+
+**Features:**
+- WebSocket echo server for testing proxy support
+- Bidirectional messaging through Portless.NET
+- Connection status indicator
+- Message logging
+
+**Testing:**
+Open browser DevTools Console and run:
+```javascript
+const ws = new WebSocket('ws://echoserver.localhost:1355/ws');
+ws.onmessage = (event) => console.log('Received:', event.data);
+ws.send('Hello WebSocket!');
+```
+
+See [WebSocketEchoServer/README.md](WebSocketEchoServer/README.md) for detailed documentation.
+
 ## Running Multiple Examples
 
 You can run multiple examples simultaneously - Portless will assign unique ports to each:
@@ -103,6 +162,10 @@ portless blazor dotnet run
 # Terminal 3
 cd Examples/ConsoleApp
 portless myconsole dotnet run
+
+# Terminal 4
+cd Examples/SignalRChat
+portless chatsignalr dotnet run
 ```
 
 Each example will receive a unique port in the 4000-4999 range and be accessible via its `.localhost` URL.
@@ -121,6 +184,7 @@ webapi      4001  dotnet   12345
 blazorapp   4002  dotnet   12346
 worker      4003  dotnet   12347
 myconsole   4004  dotnet   12348
+chatsignalr 4005  dotnet   12349
 ```
 
 ## Integration Pattern
@@ -256,6 +320,31 @@ portless proxy stop
 **Solution**: This is normal for the Blazor template's counter component. The main app should still work. If you see connection issues:
 1. Check that the Blazor app is running on the PORT assigned by Portless
 2. Verify the proxy is routing correctly to the blazorapp.localhost hostname
+
+### Issue: SignalR chat shows "Disconnected - Reconnecting..."
+
+**Solution**:
+1. Verify Portless proxy is running: `portless proxy status`
+2. Check that the SignalR chat server is running
+3. Ensure the hostname is registered: `portless list`
+4. Check browser DevTools Console for WebSocket connection errors
+5. Verify the chat server is listening on the assigned PORT
+
+### Issue: WebSocket connection fails
+
+**Solution**:
+1. Ensure Portless proxy is running with WebSocket support enabled (default)
+2. Check browser DevTools Network tab for WebSocket connection (status 101)
+3. Verify the WebSocket server is running on the assigned PORT
+4. Check that your WebSocket client uses the correct URL (ws://hostname.localhost:1355/path)
+
+### Issue: SignalR messages don't appear in browser
+
+**Solution**:
+1. Open browser DevTools Console (F12) and check for JavaScript errors
+2. Verify the SignalR hub URL is correct (/chathub)
+3. Check that multiple clients can receive broadcast messages
+4. Try refreshing the browser page to re-establish the connection
 
 ## Integration with Your Projects
 
