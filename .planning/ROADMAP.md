@@ -100,10 +100,12 @@ Portless.NET delivers stable `.localhost` URLs for Windows .NET development thro
   3. Trust status check detects if CA is not trusted and displays platform-specific installation instructions
   4. User can uninstall CA certificate from trust store via `portless cert uninstall` command
   5. macOS/Linux trust installation is documented as known limitation (deferred to v1.3+)
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 14-01: [TBD during planning]
+- [ ] 14-01-PLAN.md — Certificate trust service with Windows X509Store API (TRUST-01, TRUST-02, TRUST-05)
+- [ ] 14-02-PLAN.md — CLI commands for certificate trust management (CLI-01, CLI-02, CLI-04, TRUST-03, TRUST-04)
+- [ ] 14-03-PLAN.md — Cross-platform messaging and error handling (TRUST-04, TRUST-06)
 
 #### Phase 15: HTTPS Endpoint
 **Goal**: Dual HTTP/HTTPS proxy endpoints with automatic certificate binding
