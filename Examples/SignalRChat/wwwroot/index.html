@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignalR Chat - Portless.NET Example</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .status {
+            padding: 10px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #dc3545;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.connected {
+            background: #28a745;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-text {
+            font-size: 14px;
+            color: #495057;
+        }
+
+        .chat-container {
+            height: 400px;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .message-user {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .message-content {
+            color: #212529;
+            line-height: 1.5;
+        }
+
+        .system-message {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+
+        .input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #dee2e6;
+            display: flex;
+            gap: 10px;
+        }
+
+        .username-input {
+            flex: 0 0 150px;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .send-button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        .send-button:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .send-button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .input-container input:focus,
+        .input-container button:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 15px;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>SignalR Chat</h1>
+            <p>Real-time messaging through Portless.NET proxy</p>
+        </div>
+
+        <div class="status">
+            <div class="status-indicator" id="statusIndicator"></div>
+            <span class="status-text" id="statusText">Connecting...</span>
+        </div>
+
+        <div class="chat-container" id="chatContainer">
+            <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+                </svg>
+                <p>No messages yet. Start the conversation!</p>
+            </div>
+        </div>
+
+        <div class="input-container">
+            <input type="text" id="usernameInput" class="username-input" placeholder="Your name" maxlength="30">
+            <input type="text" id="messageInput" class="message-input" placeholder="Type a message..." maxlength="500">
+            <button id="sendButton" class="send-button" disabled>Send</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/chathub")
+            .withAutomaticReconnect()
+            .configureLogging(signalR.LogLevel.Information)
+            .build();
+
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+        const chatContainer = document.getElementById('chatContainer');
+        const usernameInput = document.getElementById('usernameInput');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+
+        let isEmptyState = true;
+
+        function updateStatus(connected) {
+            if (connected) {
+                statusIndicator.classList.add('connected');
+                statusText.textContent = 'Connected';
+                sendButton.disabled = false;
+            } else {
+                statusIndicator.classList.remove('connected');
+                statusText.textContent = 'Disconnected - Reconnecting...';
+                sendButton.disabled = true;
+            }
+        }
+
+        function addMessage(user, message, isSystem = false) {
+            // Remove empty state on first message
+            if (isEmptyState) {
+                const emptyState = chatContainer.querySelector('.empty-state');
+                if (emptyState) {
+                    emptyState.remove();
+                }
+                isEmptyState = false;
+            }
+
+            const messageDiv = document.createElement('div');
+
+            if (isSystem) {
+                messageDiv.className = 'system-message';
+                messageDiv.textContent = message;
+            } else {
+                messageDiv.className = 'message';
+                const time = new Date().toLocaleTimeString();
+                messageDiv.innerHTML = `
+                    <div class="message-header">
+                        <span class="message-user">${escapeHtml(user)}</span>
+                        <span class="message-time">${time}</span>
+                    </div>
+                    <div class="message-content">${escapeHtml(message)}</div>
+                `;
+            }
+
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function sendMessage() {
+            const user = usernameInput.value.trim() || 'Anonymous';
+            const message = messageInput.value.trim();
+
+            if (message) {
+                connection.invoke('SendMessage', user, message)
+                    .catch(err => {
+                        console.error('Error sending message:', err);
+                        addMessage('System', 'Failed to send message: ' + err.message, true);
+                    });
+
+                messageInput.value = '';
+            }
+        }
+
+        // Receive message from server
+        connection.on('ReceiveMessage', (user, message) => {
+            addMessage(user, message);
+        });
+
+        // Connection started
+        connection.start()
+            .then(() => {
+                console.log('SignalR Connected');
+                updateStatus(true);
+                addMessage('System', 'Connected to chat server', true);
+            })
+            .catch(err => {
+                console.error('SignalR Connection Error:', err);
+                updateStatus(false);
+                statusText.textContent = 'Connection failed: ' + err.message;
+            });
+
+        // Connection events
+        connection.onreconnecting(err => {
+            console.log('SignalR Reconnecting...', err);
+            updateStatus(false);
+        });
+
+        connection.onreconnected(connectionId => {
+            console.log('SignalR Reconnected', connectionId);
+            updateStatus(true);
+            addMessage('System', 'Reconnected to chat server', true);
+        });
+
+        connection.onclose(err => {
+            console.log('SignalR Connection Closed', err);
+            updateStatus(false);
+        });
+
+        // Event listeners
+        sendButton.addEventListener('click', sendMessage);
+
+        messageInput.addEventListener('keypress', e => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        usernameInput.addEventListener('keypress', e => {
+            if (e.key === 'Enter') {
+                messageInput.focus();
+            }
+        });
+
+        // Set default username
+        usernameInput.value = 'User' + Math.floor(Math.random() * 1000);
+        messageInput.focus();
+    </script>
+</body>
+</html>
