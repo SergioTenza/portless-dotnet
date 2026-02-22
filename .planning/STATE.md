@@ -5,22 +5,29 @@
 See: .planning/PROJECT.md (updated 2026-02-22)
 
 **Core value:** URLs estables y predecibles para desarrollo local
-**Current focus:** Phase 12 - Documentation
+**Current focus:** Phase 13: Certificate Generation
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-02-22 — Milestone v1.2 HTTPS with Automatic Certificates started
+Phase: 13 of 19 (Certificate Generation)
+Plan: 0 of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-02-22 — Roadmap created for v1.2 HTTPS with Automatic Certificates milestone
 Current branch: development (active development branch)
+
+Progress: [████████░░░░░░░░░░░░] 42%
+
+**Milestone completion:**
+- v1.0 MVP: Complete (2026-02-21) — 20 plans
+- v1.1 Advanced Protocols: Complete (2026-02-22) — 14 plans
+- v1.2 HTTPS with Automatic Certificates: 0/7 phases started
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 27
-- Average duration: ~18 min
-- Total execution time: ~8 hours
+- Total plans completed: 59 plans (v1.0 + v1.1)
+- Average duration: ~11 min per plan
+- Total execution time: ~11 hours across 2 milestones
 
 **By Phase:**
 
@@ -39,17 +46,10 @@ Current branch: development (active development branch)
 | 12 | 5 | ~35 min | ~7 min |
 
 **Recent Trend:**
-- Last 3 plans: ~7 min avg
-- Trend: Efficient documentation phase
+- Last 5 plans: ~7 min avg
+- Trend: Efficient — v1.1 milestone completed successfully with documentation
 
-*Updated after v1.0 completion*
-| Phase 09-http2-baseline P01 | 8 | 4 tasks | 2 files |
-| Phase 10 P01 | 7 | 4 tasks | 7 files |
-| Phase 12 P01 | 8 | 5 tasks | 1 file |
-| Phase 12 P02 | 8 | 5 tasks | 2 files |
-| Phase 12 P03 | 12 | 5 tasks | 9 files |
-| Phase 12 P04 | 2 | 2 tasks | 2 files |
-| Phase 12 P05 | 8 | 5 tasks | 1 file |
+*Updated: 2026-02-22*
 
 ## Accumulated Context
 
@@ -58,35 +58,6 @@ Current branch: development (active development branch)
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- [Phase 8]: Integration test suite provides safety net for v1.1 protocol changes
-- [Phase 6]: PackAsTool works with acceptable warnings for .NET 10 Native AOT
-- [Phase 1]: YARP selected as reverse proxy engine with built-in HTTP/2 and WebSocket support
-- [Research]: HTTP/2 and WebSocket support require configuration changes only, no new packages (YARP 2.3.0 already supports both)
-- [Phase 09]: Used ForwardedHeaders middleware instead of YARP transforms for X-Forwarded headers (simpler, built-in support)
-- [Phase 09]: HTTP/2 over HTTP requires prior knowledge (curl --http2-prior-knowledge), HTTPS requires TLS 1.2+ for ALPN
-- [Phase 10]: Set Kestrel KeepAliveTimeout to 10 minutes and MaxConcurrentUpgradedConnections to 1000 for long-lived WebSocket connections
-- [Phase 10]: Created WebSocket echo server example for testing and documentation
-- [Phase 10]: Integration tests verify WebSocket bidirectional messaging, long-lived connections, and concurrent connections
-- [Phase 10]: Kestrel KeepAliveTimeout set to 10 minutes, MaxConcurrentUpgradedConnections to 1000 for long-lived WebSocket connections
-- [Phase 10]: Simple echo server example chosen over full chat app for easier testing and clearer WebSocket demonstration
-- [Phase 10]: Integration tests use direct WebSocket connections (not through proxy); end-to-end proxy testing deferred to Phase 11
-- [Phase 11]: SignalR works through Portless.NET proxy with WebSocket transport without special YARP configuration
-- [Phase 11]: SignalR chat example demonstrates real-time bidirectional messaging and broadcast patterns
-- [Phase 11]: Integration tests verify SignalR connection establishment and message flow through proxy
-- [Phase 11]: Troubleshooting guide documents common SignalR issues: SSE fallback, connection drops, "connection not started" errors, message delivery, and multi-client broadcasts
-- [Phase 11]: Best practices documented for connection management, error handling, retry logic, testing strategy, and development vs production considerations
-- [Phase 11-01]: SignalR chat example created with browser and console clients demonstrating real-time messaging through proxy
-- [Phase 11-01]: Used Microsoft.AspNetCore.SignalR.Client 8.0.0 for console client (latest stable, compatible with .NET 10)
-- [Phase 11-01]: Single HTML file browser client with embedded CSS/JS for simplicity (no build step required)
-- [Phase 11-01]: Simple broadcast pattern (Clients.All) for stateless demonstration of SignalR connectivity
-- [Phase 11-02]: SignalR integration tests verify connection through proxy and bidirectional messaging
-- [Phase 11-03]: SignalR troubleshooting guide covers SSE fallback, connection drops, message delivery, and best practices
-- [Phase 12-04]: Protocol testing guide created with HTTP/2, WebSocket, and SignalR verification procedures
-- [Phase 12-04]: Used WebApi example for HTTP/2 testing instead of creating new Http2Test example (simpler, already available)
-- [Phase 12-04]: Included multiple WebSocket testing methods (browser, websocat, wscat, Python) for broad developer accessibility
-- [Phase 12-04]: Provided both Bash and PowerShell automated testing scripts for cross-platform support
-- [Phase 11-02]: SignalR integration tests verify connection through proxy and bidirectional messaging
-- [Phase 11-03]: SignalR troubleshooting guide covers SSE fallback, connection drops, message delivery, and best practices
 - [Phase 12]: Documentation completed for all v1.1 features (HTTP/2, WebSocket, SignalR)
 - [Phase 12-05]: Migration guide emphasizes "no breaking changes" with clear upgrade path
 - [Phase 12-05]: Examples README reorganized to highlight v1.1 examples first with comprehensive quick starts
@@ -97,6 +68,11 @@ Recent decisions affecting current work:
 - [Phase 12-03]: CLI reference documentation created with comprehensive command descriptions and protocol support information
 - [Phase 12-03]: Removed Description attributes from command classes (not supported in Spectre.Console.Cli 0.53.1) to fix build errors
 - [Phase 12-03]: Protocol information added to status command with --protocol flag for detailed protocol support display
+- [Phase 11]: SignalR works through Portless.NET proxy with WebSocket transport without special YARP configuration
+- [Phase 11]: SignalR chat example demonstrates real-time bidirectional messaging and broadcast patterns
+- [Phase 11]: Integration tests verify SignalR connection establishment and message flow through proxy
+- [Phase 11]: Troubleshooting guide documents common SignalR issues: SSE fallback, connection drops, "connection not started" errors, message delivery, and multi-client broadcasts
+- [Phase 11]: Best practices documented for connection management, error handling, retry logic, testing strategy, and development vs production considerations
 
 ### Pending Todos
 
@@ -104,7 +80,7 @@ None yet.
 
 ### Blockers/Concerns
 
-None - v1.1 Advanced Protocols milestone complete with full documentation
+None yet.
 
 ### Completed Mitigations
 
@@ -116,6 +92,6 @@ None - v1.1 Advanced Protocols milestone complete with full documentation
 
 ## Session Continuity
 
-Last session: 2026-02-22 (Phase 12 Plan 04 execution)
-Stopped at: Completed Phase 12 Plan 04 (Protocol Testing Guide), created comprehensive HTTP/2, WebSocket, and SignalR testing guide with curl commands and browser DevTools instructions
+Last session: 2026-02-22 (Roadmap creation for v1.2)
+Stopped at: ROADMAP.md and STATE.md created for v1.2 HTTPS with Automatic Certificates milestone (7 phases, 36 requirements mapped)
 Resume file: None

@@ -119,20 +119,61 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CERT-01 through CERT-09 | Phase 13-01 | Pending |
-| TRUST-01 through TRUST-06 | Phase 13-02 | Pending |
-| HTTPS-01 through HTTPS-05 | Phase 13-03 | Pending |
-| MIXED-01 through MIXED-05 | Phase 13-04 | Pending |
-| LIFECYCLE-01 through LIFECYCLE-07 | Phase 13-05 | Pending |
-| CLI-01 through CLI-06 | Phase 13-02, Phase 13-05 | Pending |
-| TEST-01 through TEST-06 | Phase 13-06 | Pending |
-| DOCS-01 through DOCS-05 | Phase 13-07 | Pending |
+| CERT-01 | Phase 13 | Pending |
+| CERT-02 | Phase 13 | Pending |
+| CERT-03 | Phase 13 | Pending |
+| CERT-04 | Phase 13 | Pending |
+| CERT-05 | Phase 13 | Pending |
+| CERT-06 | Phase 13 | Pending |
+| CERT-07 | Phase 13 | Pending |
+| CERT-08 | Phase 13 | Pending |
+| CERT-09 | Phase 13 | Pending |
+| TRUST-01 | Phase 14 | Pending |
+| TRUST-02 | Phase 14 | Pending |
+| TRUST-03 | Phase 14 | Pending |
+| TRUST-04 | Phase 14 | Pending |
+| TRUST-05 | Phase 14 | Pending |
+| TRUST-06 | Phase 14 | Pending |
+| HTTPS-01 | Phase 15 | Pending |
+| HTTPS-02 | Phase 15 | Pending |
+| HTTPS-03 | Phase 15 | Pending |
+| HTTPS-04 | Phase 15 | Pending |
+| HTTPS-05 | Phase 15 | Pending |
+| MIXED-01 | Phase 16 | Pending |
+| MIXED-02 | Phase 16 | Pending |
+| MIXED-03 | Phase 16 | Pending |
+| MIXED-04 | Phase 16 | Pending |
+| MIXED-05 | Phase 16 | Pending |
+| LIFECYCLE-01 | Phase 17 | Pending |
+| LIFECYCLE-02 | Phase 17 | Pending |
+| LIFECYCLE-03 | Phase 17 | Pending |
+| LIFECYCLE-04 | Phase 17 | Pending |
+| LIFECYCLE-05 | Phase 17 | Pending |
+| LIFECYCLE-06 | Phase 17 | Pending |
+| LIFECYCLE-07 | Phase 17 | Pending |
+| CLI-01 | Phase 14 | Pending |
+| CLI-02 | Phase 14 | Pending |
+| CLI-03 | Phase 17 | Pending |
+| CLI-04 | Phase 14 | Pending |
+| CLI-05 | Phase 15 | Pending |
+| CLI-06 | Phase 17 | Pending |
+| TEST-01 | Phase 18 | Pending |
+| TEST-02 | Phase 18 | Pending |
+| TEST-03 | Phase 18 | Pending |
+| TEST-04 | Phase 18 | Pending |
+| TEST-05 | Phase 18 | Pending |
+| TEST-06 | Phase 18 | Pending |
+| DOCS-01 | Phase 19 | Pending |
+| DOCS-02 | Phase 19 | Pending |
+| DOCS-03 | Phase 19 | Pending |
+| DOCS-04 | Phase 19 | Pending |
+| DOCS-05 | Phase 19 | Pending |
 
 **Coverage:**
 - v1.2 requirements: 36 total
-- Mapped to phases: 36 (7 phases proposed)
+- Mapped to phases: 36 (7 phases)
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-02-22*
-*Last updated: 2026-02-22 after initial definition*
+*Last updated: 2026-02-22 after roadmap creation*

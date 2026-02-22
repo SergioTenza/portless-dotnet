@@ -2,13 +2,13 @@
 
 ## Overview
 
-Portless.NET delivers stable `.localhost` URLs for Windows .NET development through a reverse proxy with automatic port management. v1.0 established HTTP/1.1 proxying, CLI commands, and route persistence. v1.1 adds advanced protocol support (HTTP/2 and WebSockets) to enable real-time applications and improved performance. The roadmap evolves from MVP protocol support to advanced features, with each phase delivering complete, verifiable capabilities.
+Portless.NET delivers stable `.localhost` URLs for Windows .NET development through a reverse proxy with automatic port management. v1.0 established HTTP/1.1 proxying, CLI commands, and route persistence. v1.1 added advanced protocol support (HTTP/2 and WebSockets) to enable real-time applications. v1.2 brings HTTPS support with automatic certificate generation, completing the secure local development experience. The roadmap evolves from MVP protocol support to advanced features, with each phase delivering complete, verifiable capabilities.
 
 ## Milestones
 
 - ✅ **v1.0 MVP** - Phases 1-8 (shipped 2026-02-21)
 - ✅ **v1.1 Advanced Protocols** - Phases 9-12 (shipped 2026-02-22)
-- 📋 **v1.2 Platform Expansion** - Planned (HTTPS, cross-platform validation)
+- 🚧 **v1.2 HTTPS with Automatic Certificates** - Phases 13-19 (in progress)
 
 ## Phases
 
@@ -58,14 +58,121 @@ Portless.NET delivers stable `.localhost` URLs for Windows .NET development thro
 
 </details>
 
-### 📋 v1.2 Platform Expansion (Planned)
+### 🚧 v1.2 HTTPS with Automatic Certificates (In Progress)
 
-**Milestone Goal:** HTTPS support con certificados automáticos y validación cross-platform
+**Milestone Goal:** HTTPS support con certificados TLS automáticos generados on-the-fly para desarrollo local seguro sin configuración manual
+
+#### Phase 13: Certificate Generation
+**Goal**: Automatic generation of local Certificate Authority and wildcard certificates for `.localhost` domains
+**Depends on**: Phase 12
+**Requirements**: CERT-01, CERT-02, CERT-03, CERT-04, CERT-05, CERT-06, CERT-07, CERT-08, CERT-09
+**Success Criteria** (what must be TRUE):
+  1. Local CA certificate is automatically generated on first proxy start with 10-year validity
+  2. Wildcard certificate for `*.localhost` is generated with SAN extensions (DNS names + IP addresses)
+  3. Certificates persist to `~/.portless/ca.pfx`, `cert.pfx`, and `cert-info.json`
+  4. Certificates use .NET native APIs only (no external dependencies like BouncyCastle or OpenSSL)
+  5. Private keys are stored with secure file permissions (600 on Unix, ACL on Windows)
+**Plans**: TBD
+
+Plans:
+- [ ] 13-01: [TBD during planning]
+
+#### Phase 14: Trust Installation
+**Goal**: Windows-based CA certificate trust installation with status verification
+**Depends on**: Phase 13
+**Requirements**: TRUST-01, TRUST-02, TRUST-03, TRUST-04, TRUST-05, TRUST-06, CLI-01, CLI-02, CLI-04
+**Success Criteria** (what must be TRUE):
+  1. User can install CA certificate to Windows Certificate Store via `portless cert install` command
+  2. User can verify trust status via `portless cert status` command (displays fingerprint, expiration, trust state)
+  3. Trust status check detects if CA is not trusted and displays platform-specific installation instructions
+  4. User can uninstall CA certificate from trust store via `portless cert uninstall` command
+  5. macOS/Linux trust installation is documented as known limitation (deferred to v1.3+)
+**Plans**: TBD
+
+Plans:
+- [ ] 14-01: [TBD during planning]
+
+#### Phase 15: HTTPS Endpoint
+**Goal**: Dual HTTP/HTTPS proxy endpoints with automatic certificate binding
+**Depends on**: Phase 13
+**Requirements**: HTTPS-01, HTTPS-02, HTTPS-03, HTTPS-04, HTTPS-05, CLI-05
+**Success Criteria** (what must be TRUE):
+  1. Proxy listens on dual endpoints: HTTP (1355) and HTTPS (1356, configurable via PORTLESS_HTTPS_PORT)
+  2. HTTPS endpoint serves valid wildcard certificate matching `*.localhost` domains
+  3. Browsers accept HTTPS connection without certificate warnings (after trust installation)
+  4. Kestrel enforces TLS 1.2+ minimum protocol version
+  5. User can start proxy with HTTPS enabled via `portless proxy start --https` command
+**Plans**: TBD
+
+Plans:
+- [ ] 15-01: [TBD during planning]
+
+#### Phase 16: Mixed Protocol Support
+**Goal**: Transparent protocol forwarding for mixed HTTP/HTTPS backend services
+**Depends on**: Phase 15
+**Requirements**: MIXED-01, MIXED-02, MIXED-03, MIXED-04, MIXED-05
+**Success Criteria** (what must be TRUE):
+  1. Backend HTTP services receive `X-Forwarded-Proto: http` header
+  2. Backend HTTPS services receive `X-Forwarded-Proto: https` header
+  3. Proxy supports mixed routing (some backends HTTP, others HTTPS) simultaneously
+  4. YARP backend SSL validation accepts self-signed certificates in development mode
+  5. Backend services can detect original protocol from forwarded headers
+**Plans**: TBD
+
+Plans:
+- [ ] 16-01: [TBD during planning]
+
+#### Phase 17: Certificate Lifecycle
+**Goal**: Automatic certificate expiration monitoring and renewal
+**Depends on**: Phase 13
+**Requirements**: LIFECYCLE-01, LIFECYCLE-02, LIFECYCLE-03, LIFECYCLE-04, LIFECYCLE-05, LIFECYCLE-06, LIFECYCLE-07, CLI-03, CLI-06
+**Success Criteria** (what must be TRUE):
+  1. Proxy checks certificate expiration on startup and displays warning within 30 days of expiry
+  2. Background hosted service checks certificate expiration every 6 hours
+  3. Certificate auto-renews when within 30 days of expiration
+  4. Certificate metadata stored in `~/.portless/cert-info.json` (creation timestamp, expiration, fingerprint)
+  5. User can manually renew certificate via `portless cert renew` command with colored Spectre.Console output
+  6. Certificate renewal requires proxy restart (documented limitation, hot-reload deferred to v1.3+)
+**Plans**: TBD
+
+Plans:
+- [ ] 17-01: [TBD during planning]
+
+#### Phase 18: Integration Tests
+**Goal**: Comprehensive test coverage for HTTPS features
+**Depends on**: Phase 15, Phase 16, Phase 17
+**Requirements**: TEST-01, TEST-02, TEST-03, TEST-04, TEST-05, TEST-06
+**Success Criteria** (what must be TRUE):
+  1. Integration tests verify certificate generation with correct SAN extensions
+  2. Integration tests verify HTTPS endpoint serves valid TLS certificate
+  3. Integration tests verify X-Forwarded-Proto header preservation (HTTP vs HTTPS backends)
+  4. Integration tests verify certificate renewal before expiration
+  5. Integration tests verify trust status detection on Windows
+  6. Integration tests cover mixed HTTP/HTTPS backend routing scenarios
+**Plans**: TBD
+
+Plans:
+- [ ] 18-01: [TBD during planning]
+
+#### Phase 19: Documentation
+**Goal**: Complete user-facing documentation for HTTPS certificate management
+**Depends on**: Phase 14, Phase 15, Phase 17
+**Requirements**: DOCS-01, DOCS-02, DOCS-03, DOCS-04, DOCS-05
+**Success Criteria** (what must be TRUE):
+  1. User guide for certificate management (install, verify, renew, uninstall)
+  2. Troubleshooting guide for common certificate issues (untrusted CA, expired cert, SAN mismatch)
+  3. Migration guide from v1.1 HTTP-only to v1.2 HTTPS
+  4. Platform-specific notes (Windows Certificate Store, macOS/Linux deferred to v1.3)
+  5. Security considerations for development certificates (private key protection, trust implications)
+**Plans**: TBD
+
+Plans:
+- [ ] 19-01: [TBD during planning]
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 9 → 10 → 11 → 12
+Phases execute in numeric order: 13 → 14 → 15 → 16 → 17 → 18 → 19
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -79,7 +186,14 @@ Phases execute in numeric order: 9 → 10 → 11 → 12
 | 9. HTTP/2 Baseline | v1.1 | 1/1 | Complete | 2026-02-22 |
 | 10. WebSocket Proxy | v1.1 | 1/1 | Complete | 2026-02-22 |
 | 11. SignalR Integration | v1.1 | 3/3 | Complete | 2026-02-22 |
-| 12. Documentation | 6/6 | Complete    | 2026-02-22 | 2026-02-22 |
+| 12. Documentation | v1.1 | 5/5 | Complete | 2026-02-22 |
+| 13. Certificate Generation | v1.2 | 0/0 | Not started | - |
+| 14. Trust Installation | v1.2 | 0/0 | Not started | - |
+| 15. HTTPS Endpoint | v1.2 | 0/0 | Not started | - |
+| 16. Mixed Protocol Support | v1.2 | 0/0 | Not started | - |
+| 17. Certificate Lifecycle | v1.2 | 0/0 | Not started | - |
+| 18. Integration Tests | v1.2 | 0/0 | Not started | - |
+| 19. Documentation | v1.2 | 0/0 | Not started | - |
 
 **For detailed milestone information, see:**
 - [milestones/v1.0-ROADMAP.md](.planning/milestones/v1.0-ROADMAP.md) - MVP (Phases 1-8)
