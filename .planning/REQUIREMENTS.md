@@ -10,10 +10,10 @@ Requirements for HTTPS with Automatic Certificates milestone. Each maps to roadm
 ### Certificate Generation (CERT)
 
 - [ ] **CERT-01**: User can generate local Certificate Authority (CA) automatically on first proxy start
-- [ ] **CERT-02**: CA certificate has 10-year validity period
+- [ ] **CERT-02**: CA certificate has 5-year validity period (per Phase 13 user context decision)
 - [ ] **CERT-03**: User can generate wildcard certificate for `*.localhost` domains
 - [ ] **CERT-04**: Wildcard certificate includes Subject Alternative Names (SAN) for DNS (`localhost`, `*.localhost`) and IP addresses (`127.0.0.1`, `::1`)
-- [ ] **CERT-05**: Server certificates have 1-year validity period
+- [ ] **CERT-05**: Server certificates have 5-year validity period (per Phase 13 user context decision)
 - [ ] **CERT-06**: Certificates are marked exportable during creation (X509KeyStorageFlags.Exportable)
 - [ ] **CERT-07**: Private keys are stored with secure file permissions (600 on Unix, ACL on Windows)
 - [ ] **CERT-08**: Certificates persist to `~/.portless/ca.pfx`, `cert.pfx`, `cert-info.json`
