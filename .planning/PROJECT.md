@@ -12,10 +12,11 @@ Es un port de [Portless](https://github.com/portless/portless) (Node.js) a .NET 
 
 ## Current State
 
-**Shipped:** v1.0 MVP — 2026-02-21
+**Shipped:** v1.1 Advanced Protocols — 2026-02-22
 
-Portless.NET v1.0 is a fully functional `dotnet tool` for Windows development that provides stable `.localhost` URLs. The tool includes:
+Portless.NET v1.1 adds advanced protocol support (HTTP/2 and WebSockets) to enable real-time applications and improved performance. Building on v1.0 MVP, v1.1 includes:
 
+**v1.0 Features (Foundation):**
 - HTTP proxy with YARP routing by hostname
 - CLI commands (proxy start/stop/status, list, run)
 - Automatic port allocation (4000-4999 range)
@@ -26,19 +27,28 @@ Portless.NET v1.0 is a fully functional `dotnet tool` for Windows development th
 - Comprehensive documentation (3,049 lines)
 - Integration test suite (45 tests)
 
-**Platform:** Windows 10+ (macOS/Linux validation deferred)
+**v1.1 Features (Advanced Protocols):**
+- HTTP/2 support con Kestrel (ALPN negotiation, protocol logging)
+- WebSocket transparent proxy (HTTP/1.1 upgrade + HTTP/2 Extended CONNECT)
+- SignalR chat example con browser y console clients
+- Integration tests para HTTP/2, WebSocket y SignalR (8 new tests)
+- X-Forwarded headers para backward compatibility
+- Protocol logging con silent downgrade detection
+- Documentación completa (troubleshooting, migration, protocol testing)
+- 3 nuevos ejemplos (WebSocketEchoServer, SignalRChat, HTTP/2 tests)
 
-**Codebase:** ~5,000 LOC C# across 4 projects (Core, Cli, Proxy, Tests)
+**Platform:** Windows 10+ (macOS/Linux validation deferred to v1.2+)
 
-## Current Milestone: v1.1 Advanced Protocols
+**Codebase:** ~6,500 LOC C# across 4 projects (Core, Cli, Proxy, Tests)
 
-**Goal:** Habilitar protocolos avanzados (HTTP/2 y WebSockets) para mejorar performance y permitir real-time communication.
+## Next Milestone Goals
 
-**Target features:**
-- HTTP/2 support en YARP (multiplexing, header compression)
-- WebSocket proxy bidireccional
-- Detección automática de upgrade HTTP/2
-- Ejemplos de uso (SignalR, real-time apps)
+**Future work for v1.2 or later:**
+- HTTPS support con certificados automáticos
+- Cross-platform validation (macOS, Linux)
+- Performance optimization
+- Advanced CLI features (profiles, configuration files)
+- HTTP/3 (QUIC) support para TCP head-of-line blocking elimination
 
 ## Next Milestone Goals
 
@@ -60,12 +70,22 @@ Portless.NET v1.0 is a fully functional `dotnet tool` for Windows development th
 - ✓ Integración con ecosistema .NET (dotnet tool, launchSettings.json) — Phase 06
 - ✓ Integration test automation — Phase 08
 
+### Validated (v1.1)
+
+- ✓ HTTP/2 support con Kestrel ALPN negotiation — Phase 09
+- ✓ Protocol logging con silent downgrade detection — Phase 09
+- ✓ X-Forwarded headers para backward compatibility — Phase 09
+- ✓ WebSocket transparent proxy (HTTP/1.1 + HTTP/2) — Phase 10
+- ✓ Long-lived WebSocket connections (10-min timeout) — Phase 10
+- ✓ SignalR integration con chat example — Phase 11
+- ✓ Integration tests para HTTP/2, WebSocket, SignalR — Phase 09-11
+- ✓ Documentación completa de protocolos avanzados — Phase 12
+
 ### Active
 
-- [ ] HTTP/2 support con YARP para protocolo avanzado — v1.1
-- [ ] WebSocket proxy para comunicación bidireccional — v1.1
-- [ ] Detección automática de upgrade HTTP/2 — v1.1
-- [ ] Ejemplos de uso (SignalR, real-time apps) — v1.1
+- [ ] HTTPS support con certificados automáticos — v1.2
+- [ ] Cross-platform validation (macOS, Linux) — v1.2
+- [ ] Performance optimization — v1.2+
 
 ### Out of Scope
 
@@ -73,8 +93,9 @@ Portless.NET v1.0 is a fully functional `dotnet tool` for Windows development th
 - **Soporte remoto** — Solo desarrollo local (localhost/127.0.0.1)
 - **Load balancing** — Single destination por hostname
 - **Auth/Z** — No expone servicios externamente, solo desarrollo local
-- **Cross-platform (macOS/Linux)** — Deferred to v1.1+, Windows prioritized
-- **HTTPS** — Deffered to v1.2+, HTTP/2/WebSockets prioritized
+- **Cross-platform (macOS/Linux)** — Validación prioritaria pero deferida a v1.2+ — Windows focus mantenido
+- **HTTPS** — Deffered a v1.2+, HTTP/2/WebSockets prioritized para v1.1
+- **HTTP/3 (QUIC)** — Deferred to v1.2+ o future
 
 ### Out of Scope
 
@@ -120,6 +141,10 @@ Evolutivo - empezar con MVP HTTP básico, agregar HTTP/2, HTTPS y WebSockets en 
 | Instalación cross-platform | Scripts bash/PowerShell con PATH automático | ✓ Good - Scripts siguiendo patrón Microsoft |
 | Ejemplos de integración | 4 proyectos ejemplares (WebApi, Blazor, Worker, Console) | ✓ Good - Patrones consistentes PORT variable |
 | Documentación progresiva | Tutorials (migration, new, microservices, E2E) + guías integration | ✓ Good - 3,049 líneas de documentación |
+| ForwardedHeaders vs YARP transforms | ASP.NET Core built-in middleware más simple que custom YARP transforms | ✓ Good - Phase 09 implementado exitosamente |
+| Kestrel timeout configuration (10-min) | Soporta long-lived WebSocket connections para real-time apps | ✓ Good - Phase 10 validado con integration tests |
+| SignalR sin YARP special config | SignalR WebSocket funciona automáticamente a través de proxy | ✓ Good - Phase 11 confirmó sin configuración adicional |
+| Echo server vs full chat app | Server simple más fácil de testear que chat completo con estado | ✓ Good - Phase 10, mejor para pruebas unitarias |
 
 ---
-*Last updated: 2026-02-21 starting v1.1 Advanced Protocols milestone*
+*Last updated: 2026-02-22 after v1.1 Advanced Protocols milestone*

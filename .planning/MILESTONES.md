@@ -26,3 +26,13 @@
 
 ---
 
+
+## v1.1 Advanced Protocols (Shipped: 2026-02-22)
+
+**Phases completed:** 11 phases, 32 plans, 18 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+
