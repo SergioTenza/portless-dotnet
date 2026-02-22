@@ -51,7 +51,8 @@ Portless.NET delivers stable `.localhost` URLs for Windows .NET development thro
   3. Silent protocol downgrades are detected and logged with warnings
   4. X-Forwarded headers correctly preserve original client information
   5. Integration test verifies HTTP/2 negotiation with curl --http2
-**Plans**: TBD
+**Plans**: 1 plan
+- [ ] 09-01-PLAN.md — Enable HTTP/2 in Kestrel, add protocol logging, configure X-Forwarded headers, create integration tests
 
 #### Phase 10: WebSocket Proxy
 **Goal**: Transparent WebSocket proxy support for both HTTP/1.1 and HTTP/2
@@ -101,7 +102,7 @@ Phases execute in numeric order: 9 → 10 → 11 → 12
 | 5. Process Management | v1.0 | 2/2 | Complete | 2026-02-21 |
 | 6. .NET Integration | v1.0 | 3/3 | Complete | 2026-02-21 |
 | 8. Integration Tests | v1.0 | 3/3 | Complete | 2026-02-21 |
-| 9. HTTP/2 Baseline | v1.1 | 0/0 | Not started | - |
+| 9. HTTP/2 Baseline | v1.1 | 0/1 | Not started | - |
 | 10. WebSocket Proxy | v1.1 | 0/0 | Not started | - |
 | 11. SignalR Integration | v1.1 | 0/0 | Not started | - |
 | 12. Documentation | v1.1 | 0/0 | Not started | - |
