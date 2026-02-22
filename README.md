@@ -5,6 +5,17 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![.NET](https://img.shields.io/badge/.NET-10-purple.svg)](https://dotnet.microsoft.com/download/dotnet/10.0)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://github.com/SergioTenza/portless-dotnet)
+[![HTTP/2](https://img.shields.io/badge/HTTP%2F2-supported-brightgreen.svg)](docs/http2-websocket-guide.md)
+[![WebSocket](https://img.shields.io/badge/WebSocket-supported-brightgreen.svg)](docs/http2-websocket-guide.md)
+
+> **🎉 What's New in v1.1**
+>
+> - HTTP/2 support for improved performance
+> - WebSocket proxying for real-time apps
+> - SignalR chat example
+> - Protocol testing and troubleshooting guides
+>
+> See [🌐 HTTP/2 and WebSocket Support](#-http2-and-websocket-support) below.
 
 ## 🎯 ¿Qué es Portless.NET?
 
@@ -14,12 +25,137 @@
 
 Portless.NET es un port a .NET 10 del excelente [Portless](https://github.com/portless/portless) (Node.js), usando [YARP](https://microsoft.github.io/reverse-proxy/) (Yet Another Reverse Proxy) de Microsoft como motor de proxy inverso.
 
+## 🌐 HTTP/2 and WebSocket Support
+
+**Portless.NET v1.1** now supports advanced protocols for improved performance and real-time communication.
+
+### HTTP/2 Benefits
+
+- **Multiplexing**: Multiple concurrent requests over a single connection
+- **Header compression**: Reduced bandwidth overhead
+- **Better performance**: Especially for services with many small requests
+- **Automatic negotiation**: HTTP/2 activates when supported by client
+
+### When to Use HTTP/2
+
+HTTP/2 is most beneficial for:
+- **Microservices**: Many small requests between services
+- **API gateways**: Multiple concurrent calls to backend services
+- **Modern browsers**: Automatically use HTTP/2 when available
+- **gRPC services**: HTTP/2 is required for gRPC
+
+**Note:** HTTP/2 is automatically enabled. No configuration needed.
+
+### Verifying HTTP/2 is Active
+
+```bash
+# Test HTTP/2 with curl
+curl -I --http2 http://miapi.localhost:1355
+
+# Response should include:
+# HTTP/2 200
+```
+
+In browser DevTools (F12 → Network tab), look for "h2" in the Protocol column.
+
+### WebSocket Support
+
+- **Real-time communication**: Chat apps, live updates, notifications
+- **SignalR integration**: Full support for ASP.NET Core SignalR
+- **Long-lived connections**: Stable connections for extended periods
+- **Transparent proxying**: Works seamlessly through the proxy
+
+**Works with:** HTTP/1.1 WebSocket upgrade (RFC 6455) and HTTP/2 WebSocket (RFC 8441)
+
+### WebSocket Examples
+
+Portless.NET supports WebSockets transparently. Your WebSocket apps work without modification.
+
+**Example: SignalR Chat**
+
+```bash
+# Start the proxy
+portless proxy start
+
+# Run the SignalR chat example (see Examples/ directory)
+portless run chat dotnet run --project Examples/SignalRChat
+
+# Connect multiple clients at:
+# http://chat.localhost:1355
+```
+
+**Example: WebSocket Echo Server**
+
+```bash
+# Run the echo server example
+portless run echo dotnet run --project Examples/WebSocketEchoServer
+
+# Test with a WebSocket client
+# Messages sent will be echoed back
+```
+
+**Long-lived Connections**
+
+WebSocket connections remain stable for extended periods. The proxy is configured with:
+- `KeepAliveTimeout`: 10 minutes (configurable)
+- `RequestHeadersTimeout`: 30 seconds
+- Proper upgrade handling for both HTTP/1.1 and HTTP/2
+
+### Quick Start: Testing HTTP/2 and WebSockets
+
+**1. Verify HTTP/2 is working**
+
+```bash
+# Terminal 1: Start proxy
+portless proxy start
+
+# Terminal 2: Run any app
+portless run testapi dotnet run --project Examples/WebApi
+
+# Terminal 3: Test with curl
+curl -I --http2 http://testapi.localhost:1355
+# Look for "HTTP/2 200" in response
+```
+
+**2. Test WebSocket echo server**
+
+```bash
+# Terminal 1: Start proxy (if not running)
+portless proxy start
+
+# Terminal 2: Run echo server
+portless run echo dotnet run --project Examples/WebSocketEchoServer
+
+# Browser: Open http://echo.localhost:1355
+# Use the test page to send WebSocket messages
+```
+
+**3. Try SignalR chat**
+
+```bash
+# Terminal 1: Start proxy
+portless proxy start
+
+# Terminal 2: Run chat server
+portless run chat dotnet run --project Examples/SignalRChat
+
+# Browser: Open http://chat.localhost:1355 in multiple tabs
+# Chat messages should appear in all tabs in real-time
+```
+
+For more details, see:
+- [HTTP/2 and WebSocket Testing Guide](docs/http2-websocket-guide.md)
+- [SignalR Troubleshooting Guide](docs/signalr-troubleshooting.md)
+- [Examples README](Examples/README.md)
+
 ### ✨ Ventajas
 
 - ✅ **Soporte Windows nativo** (a diferencia de Portless original)
-- ✅ **Mejor rendimiento** con .NET 10 + Kestrel
+- ✅ **Mejor rendimiento** con .NET 10 + Kestrel + HTTP/2
 - ✅ **Integración nativa** con ecosistema .NET
-- ✅ **HTTP/1.1** con rutas dinámicas
+- ✅ **HTTP/2** con multiplexing y header compression
+- ✅ **WebSocket** para comunicación en tiempo real
+- ✅ **SignalR** soporte completo para ASP.NET Core SignalR
 
 ## 🚀 Quick Start
 
@@ -235,6 +371,71 @@ portless proxy status
 portless list
 ```
 
+## 🔌 SignalR Support
+
+Portless.NET supports **SignalR real-time communication** through the proxy using WebSocket transport.
+
+### Features
+
+- **Automatic WebSocket negotiation** - SignalR negotiates WebSocket connections through proxy without special configuration
+- **Bidirectional messaging** - Server can push messages to clients instantly
+- **Broadcast patterns** - Hub broadcasts to all connected clients through proxy
+- **Multiple clients** - Concurrent connections supported (configurable limit)
+
+### Quick Start
+
+1. Start the proxy:
+   ```bash
+   portless proxy start
+   ```
+
+2. Run your SignalR app:
+   ```bash
+   portless mychat -- dotnet run --project MySignalRApp/
+   ```
+
+3. Connect clients to `http://mychat.localhost:1355`
+
+### Example
+
+See [SignalR Chat Example](Examples/SignalRChat/) for a working demonstration of real-time chat through the proxy.
+
+### Troubleshooting
+
+For common SignalR issues and solutions, see [SignalR Troubleshooting Guide](docs/signalr-troubleshooting.md).
+
+## 🔍 Troubleshooting
+
+### Protocol Issues
+
+**HTTP/2 not working?**
+- Check [Protocol Troubleshooting Guide](docs/protocol-troubleshooting.md#silent-http2-downgrade)
+- Try with prior knowledge: `curl --http2-prior-knowledge http://miapp.localhost:1355`
+
+**WebSocket connection dropping?**
+- See [WebSocket Timeout Issues](docs/protocol-troubleshooting.md#websocket-connection-timeout)
+- Check proxy logs: `portless proxy logs`
+
+### Common Issues
+
+**Port already in use:**
+```bash
+# Windows
+netstat -ano | findstr :PORT
+taskkill /PID <pid> /F
+
+# macOS/Linux
+lsof -ti:PORT | xargs kill -9
+```
+
+**Proxy not responding:**
+```bash
+portless proxy status
+portless proxy logs
+```
+
+For more troubleshooting, see the [Protocol Troubleshooting Guide](docs/protocol-troubleshooting.md).
+
 ## 🎯 Casos de Uso
 
 ### Desarrollo Full-Stack
@@ -282,11 +483,10 @@ Portless.NET funciona en:
 
 ### Roadmap
 
-- [x] v0.1.0 - MVP (HTTP/1.1, rutas dinámicas)
-- [ ] v0.2.0 - HTTP/2 + HTTPS
-- [ ] v0.3.0 - WebSockets
-- [ ] v0.4.0 - Native AOT
-- [ ] v1.0.0 - Stable release
+- [x] v1.0 - MVP (HTTP/1.1, routing, CLI, process management)
+- [x] v1.1 - Advanced Protocols (HTTP/2, WebSocket, SignalR)
+- [ ] v1.2 - Platform Expansion (HTTPS, cross-platform validation)
+- [ ] v2.0 - Production Features (TLS, authentication, monitoring)
 
 Ver [PRD.md](PRD.md) para roadmap completo.
 

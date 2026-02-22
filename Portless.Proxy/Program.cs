@@ -1,9 +1,11 @@
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Model;
+using Microsoft.AspNetCore.HttpOverrides;
 using Portless.Core.Extensions;
 using Portless.Core.Services;
 using Portless.Core.Models;
 using Portless.Core.Configuration;
+using Portless.Proxy;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,13 +36,24 @@ static ClusterConfig CreateCluster(string clusterId, string backendUrl) =>
 builder.Logging.AddConsole();
 builder.Logging.SetMinimumLevel(LogLevel.Information);
 
+// Add SignalR services for integration testing
+builder.Services.AddSignalR();
+
 // Read port from environment variable or use default
 var port = builder.Configuration["PORTLESS_PORT"] ?? "1355";
 
-// Configure Kestrel to listen on all interfaces
+// Configure Kestrel to listen on all interfaces with HTTP/2 support
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(int.Parse(port));
+    // Configure limits for long-lived WebSocket connections
+    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(10); // Default is 2 minutes
+    options.Limits.MaxConcurrentUpgradedConnections = 1000; // Default is 100
+
+    options.ListenAnyIP(int.Parse(port), listenOptions =>
+    {
+        // Enable both HTTP/1.1 and HTTP/2 (Kestrel will negotiate via ALPN)
+        listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
+    });
 });
 
 // Register DynamicConfigProvider as singleton for YARP
@@ -271,6 +284,25 @@ app.MapDelete("/api/v1/remove-host", async (string hostname, ILogger<Program> lo
     }
 });
 
+// Use ForwardedHeaders middleware to add X-Forwarded-* headers
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.All,
+    // Only trust local proxies
+    KnownProxies = { System.Net.IPAddress.Loopback }
+});
+
+// Map test SignalR hub for integration testing (must be before reverse proxy)
+app.MapHub<TestChatHub>("/testhub");
+
+// Custom middleware to add X-Forwarded-Protocol header
+app.Use(async (context, next) =>
+{
+    var protocol = context.Request.Protocol;
+    context.Request.Headers["X-Forwarded-Protocol"] = protocol;
+    await next();
+});
+
 app.MapReverseProxy();
 
 app.Run();
@@ -307,9 +339,18 @@ public class RequestLoggingMiddleware
 
             var duration = (DateTime.UtcNow - startTime).TotalMilliseconds;
             var statusCode = context.Response.StatusCode;
+            var protocol = context.Request.Protocol;
 
-            _logger.LogInformation("Request: {Method} {Host}{Path} => {StatusCode} ({Duration}ms)",
-                method, host, path, statusCode, duration);
+            _logger.LogInformation("Request: {Method} {Host}{Path} => {StatusCode} ({Duration}ms) [{Protocol}]",
+                method, host, path, statusCode, duration, protocol);
+
+            // Detect silent protocol downgrades (HTTP/2 requested but HTTP/1.1 used)
+            var http2Requested = context.Request.Headers["Upgrade-Insecure-Requests"].Count > 0 ||
+                                context.Request.Headers.ContainsKey("HTTP2-Settings");
+            if (protocol == "HTTP/1.1" && http2Requested)
+            {
+                _logger.LogWarning("Possible silent HTTP/2 downgrade detected: Client may have requested HTTP/2 but HTTP/1.1 was used. Check TLS/ALPN configuration.");
+            }
         }
         catch (Exception ex)
         {

@@ -147,6 +147,54 @@ Para que una app use el puerto asignado dinámicamente:
 - Coverage: coverlet.collector 6.0.4
 - Tests se organizan en `Portless.Tests/` (actualmente vacío - proyecto inicial)
 
+## Git Workflow
+
+El proyecto utiliza un flujo de trabajo con dos ramas principales para separar el código de producción del desarrollo activo.
+
+### Estructura de ramas
+
+- **main**: Rama de producción (v1.0 MVP estable)
+  - Protegida de commits directos durante el desarrollo
+  - Solo se actualiza mediante merges desde development cuando esté lista para release
+  - Representa código estable y liberado
+
+- **development**: Rama de desarrollo activo
+  - Todo el nuevo desarrollo de funcionalidades ocurre aquí
+  - Se fusiona en main cuando esté lista para release
+  - Permite experimentación sin afectar la producción
+
+### Reglas de flujo de trabajo
+
+1. **Desarrollo en rama development**: Todas las nuevas funcionalidades, correcciones de bugs y experimentos pasan por development
+2. **Merge a main para releases**: Cuando el código esté listo para producción, fusionar development en main
+3. **Main está protegida**: Sin commits directos a main durante ciclos de desarrollo activo
+4. **Ambas ramas rastreadas en remote**: Permite colaboración y code review
+
+### Comandos comunes
+
+```bash
+# Crear una rama de feature desde development
+git checkout development
+git pull origin development
+git checkout -b feature/nueva-funcionalidad
+
+# Sincronizar cambios de development a tu feature branch
+git checkout feature/nueva-funcionalidad
+git merge development
+
+# Fusionar development en main para un release
+git checkout main
+git pull origin main
+git merge development
+git push origin main
+
+# Mantener development actualizado con main (después de release)
+git checkout development
+git merge main
+```
+
+Para documentación detallada del flujo de trabajo, ver [STATE.md](.planning/STATE.md).
+
 ## Referencias
 
 - [PRD.md](PRD.md) - Product Requirements Document con roadmap completo

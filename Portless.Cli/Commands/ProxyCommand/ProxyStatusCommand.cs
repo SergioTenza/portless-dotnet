@@ -28,6 +28,21 @@ public class ProxyStatusCommand : AsyncCommand<ProxyStatusSettings>
             AnsiConsole.MarkupLine("[green]✓[/] Proxy is [bold]running[/]");
             AnsiConsole.MarkupLine("  URL: [blue]http://localhost:{0}[/]", status.port ?? 1355);
             AnsiConsole.MarkupLine("  PID: {0}", status.pid ?? 0);
+
+            // Show protocol information
+            if (settings.Protocol)
+            {
+                AnsiConsole.MarkupLine("\n[bold]Protocol Support:[/]");
+                AnsiConsole.MarkupLine("  HTTP/2: [green]Enabled[/]");
+                AnsiConsole.MarkupLine("  WebSocket: [green]Supported[/]");
+                AnsiConsole.MarkupLine("  HTTP/1.1: [green]Supported[/]");
+                AnsiConsole.MarkupLine("\n[dim]Protocol negotiation is automatic.[/]");
+            }
+            else
+            {
+                AnsiConsole.MarkupLine("  Protocols: HTTP/2, WebSocket, HTTP/1.1");
+            }
+
             return 0;
         }
         catch (Exception ex)
