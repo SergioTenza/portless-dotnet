@@ -67,15 +67,17 @@ Portless.NET delivers stable `.localhost` URLs for Windows .NET development thro
 **Depends on**: Phase 12
 **Requirements**: CERT-01, CERT-02, CERT-03, CERT-04, CERT-05, CERT-06, CERT-07, CERT-08, CERT-09
 **Success Criteria** (what must be TRUE):
-  1. Local CA certificate is automatically generated on first proxy start with 10-year validity
+  1. Local CA certificate is automatically generated on first proxy start with 5-year validity (per user context)
   2. Wildcard certificate for `*.localhost` is generated with SAN extensions (DNS names + IP addresses)
   3. Certificates persist to `~/.portless/ca.pfx`, `cert.pfx`, and `cert-info.json`
   4. Certificates use .NET native APIs only (no external dependencies like BouncyCastle or OpenSSL)
   5. Private keys are stored with secure file permissions (600 on Unix, ACL on Windows)
-**Plans**: TBD
+**Plans**: 3 plans in 3 waves
 
 Plans:
-- [ ] 13-01: [TBD during planning]
+- [ ] 13-01-PLAN.md — Certificate generation service (CA + wildcard certificates with .NET native APIs)
+- [ ] 13-02-PLAN.md — Certificate storage and secure file permissions (cross-platform PFX + JSON persistence)
+- [ ] 13-03-PLAN.md — Certificate manager orchestration (lifecycle, validation, auto-regeneration)
 
 #### Phase 14: Trust Installation
 **Goal**: Windows-based CA certificate trust installation with status verification
@@ -187,7 +189,7 @@ Phases execute in numeric order: 13 → 14 → 15 → 16 → 17 → 18 → 19
 | 10. WebSocket Proxy | v1.1 | 1/1 | Complete | 2026-02-22 |
 | 11. SignalR Integration | v1.1 | 3/3 | Complete | 2026-02-22 |
 | 12. Documentation | v1.1 | 5/5 | Complete | 2026-02-22 |
-| 13. Certificate Generation | v1.2 | 0/0 | Not started | - |
+| 13. Certificate Generation | v1.2 | 0/3 | Planning complete | - |
 | 14. Trust Installation | v1.2 | 0/0 | Not started | - |
 | 15. HTTPS Endpoint | v1.2 | 0/0 | Not started | - |
 | 16. Mixed Protocol Support | v1.2 | 0/0 | Not started | - |
