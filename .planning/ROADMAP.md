@@ -113,7 +113,7 @@ Phases execute in numeric order: 9 → 10 → 11 → 12
 | 8. Integration Tests | v1.0 | 3/3 | Complete | 2026-02-21 |
 | 9. HTTP/2 Baseline | v1.1 | 1/1 | Complete | 2026-02-22 |
 | 10. WebSocket Proxy | v1.1 | 1/1 | Complete    | 2026-02-22 | - |
-| 11. SignalR Integration | v1.1 | 3/3 | Complete    | 2026-02-22 | - |
+| 11. SignalR Integration | v1.1 | Complete    | 2026-02-22 | 2026-02-22 | - |
 | 12. Documentation | v1.1 | 0/5 | Not started | - |
 
 **For detailed v1.0 phase information, see:** [milestones/v1.0-ROADMAP.md](.planning/milestones/v1.0-ROADMAP.md)
