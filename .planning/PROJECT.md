@@ -41,6 +41,19 @@ Portless.NET v1.1 adds advanced protocol support (HTTP/2 and WebSockets) to enab
 
 **Codebase:** ~6,500 LOC C# across 4 projects (Core, Cli, Proxy, Tests)
 
+## Current Milestone: v1.2 HTTPS with Automatic Certificates
+
+**Goal:** Implement HTTPS support con certificados TLS automáticos generados on-the-fly para desarrollo local seguro sin configuración manual.
+
+**Target features:**
+- Certificate authority (CA) local para generar certificados automáticamente
+- Wildcard certificates para `*.localhost` (o `*.local.dev` según configuración)
+- Trust certificate installation en sistema operativo (Windows/macOS/Linux)
+- HTTPS endpoint en proxy (puerto 1356 por defecto, configurable)
+- Mixed HTTP/HTTPS support (mismo proxy, ambos protocolos)
+- Certificate renewal automática antes de expiración
+- CLI commands para gestión de certificados (`portless cert install`, `portless cert trust`, `portless cert status`)
+
 ## Next Milestone Goals
 
 **Future work for v1.2 or later:**
@@ -83,9 +96,16 @@ Portless.NET v1.1 adds advanced protocol support (HTTP/2 and WebSockets) to enab
 
 ### Active
 
-- [ ] HTTPS support con certificados automáticos — v1.2
-- [ ] Cross-platform validation (macOS, Linux) — v1.2
-- [ ] Performance optimization — v1.2+
+- [ ] HTTPS proxy con certificate authority local — v1.2
+- [ ] Automatic certificate generation para `*.localhost` — v1.2
+- [ ] Trust certificate installation (Windows/macOS/Linux) — v1.2
+- [ ] Certificate renewal automática — v1.2
+- [ ] HTTPS endpoint (puerto 1356) — v1.2
+- [ ] Mixed HTTP/HTTPS support — v1.2
+- [ ] CLI certificate management commands — v1.2
+- [ ] Integration tests para HTTPS — v1.2
+- [ ] Cross-platform validation (macOS, Linux) — v1.3+ (deferido para foco en HTTPS)
+- [ ] Performance optimization — v1.3+
 
 ### Out of Scope
 
@@ -93,16 +113,11 @@ Portless.NET v1.1 adds advanced protocol support (HTTP/2 and WebSockets) to enab
 - **Soporte remoto** — Solo desarrollo local (localhost/127.0.0.1)
 - **Load balancing** — Single destination por hostname
 - **Auth/Z** — No expone servicios externamente, solo desarrollo local
-- **Cross-platform (macOS/Linux)** — Validación prioritaria pero deferida a v1.2+ — Windows focus mantenido
-- **HTTPS** — Deffered a v1.2+, HTTP/2/WebSockets prioritized para v1.1
-- **HTTP/3 (QUIC)** — Deferred to v1.2+ o future
-
-### Out of Scope
-
-- **Interfaz gráfica** - Es una herramienta CLI para desarrolladores
-- **Soporte remoto** - Solo desarrollo local (localhost/127.0.0.1)
-- **Load balancing** - Single destination por hostname
-- **Auth/Z** - No expone servicios externamente, solo desarrollo local
+- **Cross-platform (macOS/Linux)** — Validación completa deferida a v1.3+ — Windows focus mantenido en v1.2, HTTPS trust implementation incluirá macOS/Linux
+- **HTTP/3 (QUIC)** — Deferred to v1.3+ o future — HTTP/2 con HTTPS es prioritario
+- **Certificate revocation** — Desarrollo local no requiere revocación compleja
+- **Multiple certificate authorities** — Single CA integrado es suficiente
+- **EV certificates / Organization validation** — Desarrollo local usa self-signed certs
 
 ## Context
 
@@ -147,4 +162,4 @@ Evolutivo - empezar con MVP HTTP básico, agregar HTTP/2, HTTPS y WebSockets en 
 | Echo server vs full chat app | Server simple más fácil de testear que chat completo con estado | ✓ Good - Phase 10, mejor para pruebas unitarias |
 
 ---
-*Last updated: 2026-02-22 after v1.1 Advanced Protocols milestone*
+*Last updated: 2026-02-22 after starting v1.2 HTTPS with Automatic Certificates milestone*
