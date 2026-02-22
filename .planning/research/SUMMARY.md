@@ -1,247 +1,213 @@
 # Project Research Summary
 
-**Project:** Portless.NET v1.1 - HTTP/2 and WebSocket Support
-**Domain:** Reverse Proxy with Advanced Protocol Support
+**Project:** Portless.NET v1.2 - HTTPS with Automatic Certificates
+**Domain:** Local Development Proxy with HTTPS Support
 **Researched:** 2026-02-22
 **Confidence:** HIGH
 
 ## Executive Summary
 
-Portless.NET v1.1 adds HTTP/2 and WebSocket support to the existing Portless.NET reverse proxy. This is a **configuration and validation task, not a major architectural rewrite**. YARP 2.3.0 already includes full support for both protocols—the existing stack requires no new packages. The research reveals that HTTP/2 multiplexing, header compression (HPACK), and WebSocket proxying work transparently through YARP with minimal code changes. The primary work involves configuring Kestrel to enable HTTP/2 on the proxy endpoint and ensuring proper timeout handling for long-lived WebSocket connections.
+Portless.NET v1.2 adds HTTPS support with automatic certificate generation to the local development proxy. This is a **well-understood domain** with established patterns: create a local Certificate Authority (CA), install it in the system trust store, and generate wildcard certificates signed by the CA. The research confirms that .NET 10's built-in `System.Security.Cryptography.X509Certificates` APIs are **sufficient for all certificate operations** - no external dependencies like BouncyCastle or OpenSSL required.
 
-The recommended approach is **minimal modification**: enable `HttpProtocols.Http1AndHttp2` in Kestrel configuration, add optional `ForwarderRequestConfig` for outbound HTTP/2 version policy, and rely on YARP's automatic protocol negotiation. WebSocket support requires zero code changes—YARP handles both HTTP/1.1 upgrade and HTTP/2 WebSocket (RFC 8441) transparently. The architecture remains protocol-agnostic in the core (RouteStore, ProcessManager), with protocol configuration isolated to the proxy layer.
-
-Key risks center on **silent protocol downgrades** (HTTP/2 falling back to HTTP/1.1 without logging) and **WebSocket timeout mismatches** (connections dropping after 60 seconds of inactivity). Mitigation involves adding protocol version logging, configuring Kestrel keep-alive timeouts, and testing with both HTTP/1.1 and HTTP/2 clients. Performance may actually degrade with HTTP/2 in local development scenarios due to CPU overhead from HPACK compression—benchmarking is required before declaring HTTP/2 "faster."
+The recommended approach follows the proven **mkcert pattern**: generate a root CA (10-year validity), install it to the OS trust store (platform-specific), then generate wildcard certificates for `*.localhost` domains (1-year validity, auto-renew). Key architectural changes include new certificate services in Portless.Core, dual HTTP/HTTPS endpoints in Portless.Proxy, and platform-specific trust installation (Windows/macOS/Linux). Critical risks are well-documented: missing SAN extensions cause browser warnings, trust installation requires platform-specific code, and certificate expiration must be monitored. All risks have proven mitigation strategies from the research.
 
 ## Key Findings
 
 ### Recommended Stack
 
-**No new packages required.** YARP 2.3.0 + .NET 10 + Kestrel already include full HTTP/2 and WebSocket support. This is a configuration change, not a dependency addition.
+**Zero external NuGet packages required.** .NET 10 includes complete certificate generation and HTTPS support via built-in APIs.
 
 **Core technologies:**
-- **YARP 2.3.0** — Reverse proxy engine with native HTTP/2 WebSocket support since .NET 7, automatic protocol negotiation, and transparent header adaptation between HTTP versions
-- **.NET 10 Kestrel** — Web server with `HttpProtocols.Http1AndHttp2` configuration, supporting both HTTP/2 Prior Knowledge (non-TLS) and ALPN negotiation (TLS)
-- **Existing CLI framework (Spectre.Console.Cli 0.53.1)** — No changes needed; protocol support is proxy-layer only
+- **System.Security.Cryptography** (.NET 10) — Certificate generation with `CertificateRequest` class, RSA key creation, CA signing
+- **System.Security.Cryptography.X509Certificates** (.NET 10) — Certificate manipulation, X509Store integration, PFX/PEM export
+- **SubjectAlternativeNameBuilder** (.NET 10) — SAN extension for wildcard certificates, required for modern browser trust
+- **Kestrel HTTPS Configuration** (.NET 10) — Dual HTTP/HTTPS endpoints with certificate binding, supports simultaneous listening
+- **System.Diagnostics.Process** (Built-in) — Platform-specific trust installation commands for macOS/Linux (Windows uses X509Store API directly)
 
-**Configuration changes only:**
-- Add `listenOptions.Protocols = HttpProtocols.Http1AndHttp2` to Kestrel configuration
-- Optional: Add `HttpRequest.Version = HttpVersion.Version2` to cluster config for outbound HTTP/2
+**Why this stack:** BouncyCastle and OpenSSL.NET are unnecessary dependencies. .NET 10's native APIs provide complete certificate lifecycle management, cross-platform support, and are maintained by Microsoft. The only platform-specific code needed is trust installation, which uses OS-native APIs (X509Store on Windows, `security` CLI on macOS, shell commands on Linux).
 
 ### Expected Features
 
 **Must have (table stakes):**
-- **HTTP/2 multiplexing** — Developers expect concurrent requests over single connection; YARP supports natively with Kestrel HTTP/2 configuration
-- **WebSocket upgrade handling** — Required for real-time apps (SignalR, chat, dashboards); YARP supports both HTTP/1.1 and HTTP/2 WebSocket automatically
-- **Protocol auto-negotiation** — Browsers automatically use HTTP/2 when available; YARP defaults to `RequestVersionOrLower` policy
-- **X-Forwarded headers** — Backend services need original client info; standard YARP transform
-- **Long-lived connection support** — WebSocket connections must not timeout; requires Kestrel timeout configuration
+- Automatic certificate generation — Developers expect HTTPS to "just work" without manual OpenSSL commands
+- Wildcard certificate support — Single cert for `*.localhost` covers all subdomains (api.localhost, app.localhost, etc.)
+- System trust store installation — Browsers warn about untrusted certificates; breaks OAuth, cookies, Service Workers
+- HTTPS endpoint on separate port — Standard practice: HTTP on 1355, HTTPS on 1356
+- Certificate expiration monitoring — Expired certs cause browser warnings and service interruptions
+- Certificate renewal automation — Developers shouldn't manually regenerate certificates
+- Mixed HTTP/HTTPS support — Different services need HTTP or HTTPS for testing
+- CLI commands for certificate management — `portless cert install`, `portless cert status`, `portless cert renew`
+- Private key security — Certificates contain private keys that must be protected with proper file permissions
 
 **Should have (competitive):**
-- **HTTP/3 (QUIC) support** — Future-proof with TCP head-of-line blocking elimination; YARP supports on .NET 8+, defer to v1.2+
-- **Per-route protocol configuration** — Flexibility to mix HTTP/1.1, HTTP/2, HTTP/3 per service; useful for gradual migration
-- **Protocol downgrade detection** — Warn developers when HTTP/2 falls back to HTTP/1.1; add logging
+- Zero-configuration HTTPS — Automate CA generation, trust installation, certificate creation; highest complexity but best DX
+- .NET-native certificate generation — No external dependencies (mkcert, OpenSSL); pure .NET implementation
+- Automatic certificate hot-reload — Other tools require proxy restart to renew certificates
+- Certificate trust verification — Detect when CA is not trusted and guide user through installation
+- Integration with .NET dev-certs — Reuse existing ASP.NET Core development certificates if available
 
 **Defer (v2+):**
-- **103 Early Hints support** — Limited browser adoption (Safari doesn't support); still emerging standard
-- **Automatic heartbeat for WebSockets** — Complex to implement correctly; applications can handle ping/pong themselves
-- **Connection pooling metrics** — Nice-to-have for observability; not critical for local development
+- Let's Encrypt integration for localhost — Let's Encrypt doesn't issue certificates for localhost/private IPs; unnecessary complexity
+- Certificate revocation infrastructure — Development environment doesn't need revocation; adds massive complexity
+- EV (Extended Validation) certificates — EV requires organization validation; meaningless for development
+- OCSP/CRL support simulation — Mock OCSP responder required; conflicts with zero-configuration goal
 
 ### Architecture Approach
 
-**Minimal architectural changes required.** The existing v1.0 architecture already separates protocol handling (proxy layer) from business logic (core layer). HTTP/2 and WebSocket support are configuration-only changes in `Portless.Proxy/Program.cs`. Core components (RouteStore, PortAllocator, ProcessManager) remain protocol-agnostic—no code changes needed.
+HTTPS support requires **moderate architecture extensions** to Portless.NET v1.1. The implementation follows a Certificate Authority (CA) hierarchy pattern similar to mkcert.
 
 **Major components:**
-1. **Portless.Proxy/Program.cs** — Add Kestrel HTTP/2 configuration (`HttpProtocols.Http1AndHttp2`), optional cluster `HttpRequest` config for outbound HTTP/2 version policy
-2. **YARP Reverse Proxy** — Handles HTTP/2/WebSocket proxying transparently: protocol negotiation, header adaptation, WebSocket upgrade (both HTTP/1.1 and HTTP/2)
-3. **Protocol-agnostic Core** — RouteStore, ProcessManager, RouteInfo remain unchanged; storage and process management don't care about HTTP version
+1. **CertificateStore** (Portless.Core, NEW) — Certificate and CA persistence to ~/.portless/ca.pfx, cert.pfx, cert-info.json; mirrors RouteStore pattern with file-based storage
+2. **CertificateGenerator** (Portless.Core, NEW) — CA creation (10-year validity) and wildcard certificate generation (1-year validity) using System.Security.Cryptography
+3. **TrustInstaller** (Portless.Core, NEW) — Platform-specific trust installation with abstract interface; Windows (X509Store API), macOS (security CLI), Linux (shell commands)
+4. **CertificateProvider** (Portless.Proxy, NEW) — Loads certificate for Kestrel HTTPS endpoint; provides cert at startup
+5. **CertificateRenewalService** (Portless.Core, NEW) — Background hosted service checking cert expiry every 6 hours; auto-renews before 30-day expiration
+6. **Certificate CLI Commands** (Portless.Cli, NEW) — User-facing management: install, status, renew, uninstall
+7. **Portless.Proxy/Program.cs** (MODIFIED) — Add HTTPS endpoint configuration with dual ListenAnyIP calls (HTTP + HTTPS)
 
-**YARP handles automatically:**
-- HTTP/2 ↔ HTTP/1.1 protocol adaptation
-- HTTP/1.1 WebSocket upgrade (101 Switching Protocols)
-- HTTP/2 WebSocket (RFC 8441 Extended CONNECT)
-- Header translation between pseudo-headers (`:authority`) and HTTP/1.1 headers (`Host`)
+**Integration points:**
+- Certificate generation triggered on proxy startup if certificates don't exist
+- Trust installation is manual CLI command (user action, not automatic)
+- Certificate renewal is automatic background process
+- YARP proxy works transparently on both HTTP and HTTPS (no route/cluster changes needed)
 
 ### Critical Pitfalls
 
-1. **HTTP/2 Protocol Negotiation Fallback** — YARP silently downgrades from HTTP/2 to HTTP/1.1 without logging when HTTP/2 negotiation fails. Developers believe they're getting HTTP/2 benefits but are actually running HTTP/1.1. **Avoid:** Add protocol version logging in middleware, verify with `curl -v --http2` and browser DevTools (look for "h2").
+1. **Certificate Subject Name Mismatch** — Modern browsers require Subject Alternative Names (SAN) to match exact hostname. Certificate with `CN=localhost` fails for `127.0.0.1` or IPv6 loopback. **Prevention:** Always include both DNS names AND IP addresses in SAN extension using `SubjectAlternativeNameBuilder`: `localhost`, `*.localhost`, `127.0.0.1`, `::1`.
 
-2. **WebSocket Connection Timeout Mismatch** — WebSocket connections unexpectedly close after 60 seconds (default proxy timeout) when no data flows. Clients with longer timeouts don't detect closure until next send. **Avoid:** Configure `Kestrel.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(2)`, set client heartbeat to 25-30 seconds with timeout at 1.5× interval.
+2. **Missing or Untrusted Root CA Certificate** — Self-signed certificates show "ERR_CERT_AUTHORITY_INVALID" warnings because CA isn't in system trust store. **Prevention:** Implement explicit trust installation for each platform: Windows (Import to `Cert:\LocalMachine\Root`), macOS (`security add-trusted-cert`), Linux (copy to `/usr/local/share/ca-certificates/` + run `update-ca-certificates`).
 
-3. **HTTP/2 WebSocket Method Mismatch** — WebSocket handshake fails because routes expect HTTP/1.1 `GET` with `Upgrade: websocket`, but HTTP/2 WebSockets use `CONNECT` method with `:protocol: websocket` pseudo-header (RFC 8441). **Avoid:** Don't restrict route methods (allow both GET and CONNECT), test with both HTTP/1.1 and HTTP/2 clients.
+3. **Kestrel Certificate Not Explicitly Configured** — ASP.NET Core 7+ removed default HTTPS binding. Kestrel requires explicit certificate configuration with absolute paths. **Prevention:** Configure HTTPS explicitly in code: `options.ListenAnyIP(httpsPort, listenOptions => { listenOptions.UseHttps(httpsOptions => { httpsOptions.ServerCertificate = cert; }); });`
 
-4. **Header Translation Breaking Application Logic** — Application code breaks after adding HTTP/2 because it depends on HTTP/1.1-specific headers that don't exist in HTTP/2 (e.g., `Host` → `:authority`). **Avoid:** Use ASP.NET Core abstractions (`request.Host`, `request.Scheme`) instead of raw header access (`request.Headers["Host"]`).
+4. **Private Key Export Not Marked Exportable** — Certificate can be created but cannot be exported to PFX file. Error: `CryptographicException: The specified network password is not correct` (misleading). **Prevention:** Always use `X509KeyStorageFlags.Exportable | X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet` when creating certificates.
 
-5. **HTTP/2 Performance Regression** — Performance degrades after enabling HTTP/2 instead of improving. HTTP/2 adds CPU overhead from HPACK compression and multiplexing state management. In local dev (low latency, few concurrent requests), HTTP/1.1's simplicity is faster. **Avoid:** Benchmark with realistic load before committing to HTTP/2, consider making HTTP/2 opt-in per route.
+5. **Certificate Expiration Without Renewal** — Certificates expire after 1-3 years, causing sudden HTTPS failures. Chrome limits certificates to 398 days max. **Prevention:** Implement expiration checking on proxy startup; renew automatically when <30 days from expiration; store creation timestamp in state directory.
 
 ## Implications for Roadmap
 
 Based on research, suggested phase structure:
 
-### Phase 1: HTTP/2 Baseline
-**Rationale:** HTTP/2 is foundational infrastructure. Must verify protocol negotiation works correctly before building features that depend on it (e.g., gRPC, SignalR over HTTP/2). This phase focuses on Kestrel configuration and protocol verification.
+### Phase 13-01: Certificate Generation Infrastructure
+**Rationale:** Foundation for all HTTPS features. Certificate generation must exist before trust installation or HTTPS endpoint configuration. No dependencies on existing code.
+**Delivers:** CertificateStore, CertificateGenerator, CertificateInfo model, CA and wildcard certificate files in ~/.portless/
+**Addresses:** Automatic certificate generation, Wildcard certificate support, Private key security, Cross-platform certificate paths
+**Avoids:** Pitfall 1 (SAN mismatch), Pitfall 4 (export not marked exportable), Pitfall 8 (file permission issues)
 
-**Delivers:**
-- Kestrel configured with `HttpProtocols.Http1AndHttp2`
-- HTTP/2 integration test verifying protocol negotiation
-- Protocol version logging middleware
-- Documentation for HTTP/2 testing (`curl --http2`, browser DevTools)
+### Phase 13-02: Trust Installation (Windows Focus)
+**Rationale:** Windows is v1.2 priority platform (per project focus). Trust installation is user-initiated manual step, independent of HTTPS endpoint. Must complete before HTTPS testing.
+**Delivers:** ITrustInstaller interface, WindowsTrustInstaller (X509Store API), `portless cert install` command, trust status verification
+**Addresses:** System trust store installation (Windows), Certificate trust verification, CLI commands for certificate management
+**Avoids:** Pitfall 2 (untrusted CA), Pitfall 5 (Windows security update breaking changes)
+**Research Flags:** Well-documented Windows X509Store API patterns (HIGH confidence - skip research-phase)
 
-**Addresses:**
-- HTTP/2 multiplexing (table stakes feature)
-- Protocol auto-negotiation (table stakes feature)
+### Phase 13-03: HTTPS Endpoint Configuration
+**Rationale:** Requires certificate from Phase 13-01. Enables actual HTTPS traffic. Platform-independent (same Kestrel configuration works on all OS).
+**Delivers:** CertificateProvider (Portless.Proxy), Modify Program.cs for dual HTTP/HTTPS endpoints, `PORTLESS_HTTPS_PORT` environment variable
+**Addresses:** HTTPS endpoint on separate port, Mixed HTTP/HTTPS support, TLS 1.2+ minimum
+**Avoids:** Pitfall 3 (Kestrel certificate not explicitly configured), Pitfall 9 (.localhost DNS resolution issues)
+**Research Flags:** Standard Kestrel HTTPS patterns (HIGH confidence - skip research-phase)
 
-**Avoids:**
-- Silent protocol downgrade (Pitfall 1) — adds logging
-- Header translation breaks (Pitfall 4) — audits header access before enabling HTTP/2
+### Phase 13-04: Mixed HTTP/HTTPS Support
+**Rationale:** Ensures proxy correctly forwards protocol information to backends. Required for OAuth, secure cookies, Service Worker testing.
+**Delivers:** X-Forwarded-Proto header configuration, ForwardedHeaders middleware, backend SSL validation for HTTPS backends (development mode)
+**Addresses:** Mixed HTTP/HTTPS support, Backend SSL/TLS verification with self-signed certificates
+**Avoids:** Pitfall 7 (HTTP/HTTPS protocol confusion), Pitfall 10 (backend SSL verification failures)
+**Research Flags:** Standard YARP forwarded headers patterns (MEDIUM confidence - may need quick research for YARP-specific details)
 
-**Uses:**
-- YARP 2.3.0 HTTP/2 support (no new packages)
-- Kestrel HTTP/2 configuration
+### Phase 13-05: Certificate Renewal Automation
+**Rationale:** Prevents certificate expiration interrupting development work. Can be implemented incrementally after HTTPS is working.
+**Delivers:** CertificateRenewalService hosted service, expiration monitoring on startup, auto-renewal before 30-day expiry, `portless cert renew` command
+**Addresses:** Certificate expiration monitoring, Certificate renewal automation
+**Avoids:** Pitfall 6 (certificate expiration without renewal)
+**Research Flags:** Standard ASP.NET Core BackgroundService pattern (HIGH confidence - skip research-phase)
 
-**Implements:**
-- Modified `Portless.Proxy/Program.cs` with Kestrel HTTP/2 config
-- Optional cluster `ForwarderRequestConfig` for outbound HTTP/2
-
-### Phase 2: WebSocket Proxy
-**Rationale:** WebSocket support is critical for real-time apps (SignalR, chat, dashboards). YARP handles WebSocket proxying automatically, but requires timeout configuration to prevent 60-second connection drops. This phase validates both HTTP/1.1 and HTTP/2 WebSocket scenarios.
-
-**Delivers:**
-- WebSocket echo server example
-- WebSocket integration test (bidirectional messaging)
-- Kestrel timeout configuration (`KeepAliveTimeout`, `MaxConcurrentUpgradedConnections`)
-- Documentation for WebSocket testing and troubleshooting
-
-**Addresses:**
-- WebSocket upgrade handling (table stakes feature)
-- Long-lived connection support (table stakes feature)
-
-**Avoids:**
-- WebSocket timeout mismatch (Pitfall 2) — configures keep-alive timeouts
-- HTTP/2 WebSocket method mismatch (Pitfall 3) — tests both protocols
-
-**Uses:**
-- YARP's built-in WebSocket support (zero code changes)
-- Kestrel timeout configuration
-
-**Implements:**
-- Timeout configuration in `Program.cs`
-- Example WebSocket backend for testing
-- Integration test for WebSocket proxying
-
-### Phase 3: Testing & Validation
-**Rationale:** HTTP/2 is not universally "faster"—local dev scenarios may see performance regression from HPACK compression overhead. This phase benchmarks actual performance and validates that HTTP/2 benefits outweigh costs. Also tests edge cases: protocol downgrades, concurrent connections, mixed HTTP/1.1 and HTTP/2 backends.
-
-**Delivers:**
-- BenchmarkDotNet tests comparing HTTP/1.1 vs HTTP/2 performance
-- Load test with 50+ concurrent requests
-- SignalR chat example demonstrating real-world WebSocket usage
-- Protocol validation middleware (fail-fast for HTTP/2-only features like gRPC)
-
-**Addresses:**
-- Performance validation (ensure HTTP/2 doesn't degrade performance)
-- Protocol downgrade detection (should-have feature)
-
-**Avoids:**
-- HTTP/2 performance regression (Pitfall 5) — benchmarks before declaring complete
-- Silent protocol downgrade breaking gRPC (Pitfall 6) — adds strict version policy for HTTP/2-only features
-- Connection pooling exhaustion (Pitfall 7) — load tests concurrent requests
-
-**Uses:**
-- BenchmarkDotNet for performance testing
-- SignalR client for integration testing
-
-**Implements:**
-- Performance benchmarks
-- Load test scenarios
-- SignalR example backend
-
-### Phase 4: Documentation & Examples
-**Rationale:** Developers need clear guidance on when to use HTTP/2, how to test protocol negotiation, and how to troubleshoot WebSocket issues. Examples demonstrate working HTTP/2 backend, WebSocket echo server, and SignalR chat.
-
-**Delivers:**
-- Updated README with HTTP/2 and WebSocket support documentation
-- Troubleshooting guide for protocol issues
-- Example projects: HTTP/2 backend, WebSocket echo, SignalR chat
-- CLI help text updates (`portless proxy start --protocols Http1AndHttp2`)
-
-**Addresses:**
-- Documentation gaps
-- User onboarding for new features
-
-**Uses:**
-- Existing Spectre.Console.Cli framework
-- Example backends for demonstration
+### Phase 13-06: Cross-Platform Trust Installation (macOS/Linux)
+**Rationale:** Complete v1.3 cross-platform support. Platform-specific implementations are independent. Can be developed in parallel if resources allow.
+**Delivers:** MacOsTrustInstaller (security CLI), LinuxTrustInstaller (distribution-specific commands), platform detection logic
+**Addresses:** System trust store installation (macOS/Linux), Cross-platform certificate paths
+**Avoids:** Platform-specific integration gotchas, Firefox NSS database configuration
+**Research Flags:** Platform-specific shell commands (MEDIUM confidence - need verification on each OS)
 
 ### Phase Ordering Rationale
 
-- **Phase 1 first** because HTTP/2 is infrastructure—WebSocket testing (Phase 2) needs HTTP/2 working correctly. Protocol negotiation must be verified before building features that depend on it.
-- **Phase 2 second** because WebSocket support is the primary user-facing feature. Timeouts must be configured before real-time apps work reliably.
-- **Phase 3 third** because performance validation prevents premature optimization. Must benchmark before assuming HTTP/2 is "faster."
-- **Phase 4 last** because documentation depends on working implementations. Examples only work after phases 1-3 are complete.
+**Why this order based on dependencies:**
+- Phase 13-01 (Certificate Generation) is foundation — all other phases depend on certificates existing
+- Phase 13-02 (Trust Installation) comes before 13-03 so HTTPS endpoint starts with trusted certificate from day one
+- Phase 13-03 (HTTPS Endpoint) requires certificates from 13-01 but is independent of trust installation (HTTPS works with warnings, trust eliminates warnings)
+- Phase 13-04 (Mixed HTTP/HTTPS) requires HTTPS endpoint from 13-03 to test protocol forwarding
+- Phase 13-05 (Renewal) requires working HTTPS proxy from 13-03 to validate renewal logic
+- Phase 13-06 (Cross-Platform) is independent of 13-02/13-03/13-04/13-05 but kept separate to focus on Windows quality first
 
-This ordering avoids critical pitfalls:
-- Silent protocol downgrades (Phase 1 adds logging)
-- WebSocket timeout drops (Phase 2 configures timeouts)
-- Performance regression (Phase 3 benchmarks before release)
+**Why this grouping based on architecture patterns:**
+- Phases 13-01/13-02/13-06 are certificate services layer (Portless.Core) — can be developed in parallel by different developers
+- Phases 13-03/13-04 are proxy layer (Portless.Proxy) — sequential dependencies (endpoint before mixed protocol support)
+- Phase 13-05 is background service layer — independent of proxy implementation, only needs CertificateStore
+
+**How this avoids pitfalls from research:**
+- Phase 13-01 addresses Pitfall 1 (SAN mismatch) and Pitfall 4 (export flags) during certificate creation — impossible to fix later without regeneration
+- Phase 13-02 addresses Pitfall 2 (untrusted CA) explicitly with platform-specific verification
+- Phase 13-03 addresses Pitfall 3 (Kestrel configuration) with explicit HTTPS endpoint code
+- Phase 13-04 addresses Pitfall 7 (protocol confusion) and Pitfall 10 (backend SSL) with forwarded headers
+- Phase 13-05 addresses Pitfall 6 (expiration) before users hit expiry issues
 
 ### Research Flags
 
 **Phases likely needing deeper research during planning:**
-- **Phase 2:** WebSocket timeout configuration is YARP-specific. Found general reverse proxy patterns, but may need YARP-specific documentation during implementation. Consider `/gsd:research-phase` if timeouts prove tricky.
-- **Phase 3:** Performance characteristics of HTTP/2 in local dev scenarios are poorly documented. Most benchmarks focus on high-latency networks. May need real-world testing during implementation.
+- **Phase 13-04:** YARP-specific X-Forwarded-Proto configuration may need verification — standard forwarded headers but YARP might have specific requirements
+- **Phase 13-06:** macOS `security` command syntax and Linux distribution differences (Debian/Ubuntu vs RHEL/Fedora) need platform testing
 
 **Phases with standard patterns (skip research-phase):**
-- **Phase 1:** HTTP/2 configuration is well-documented in Microsoft Learn docs. High-confidence patterns exist.
-- **Phase 4:** Documentation and examples follow standard patterns. No research needed.
+- **Phase 13-01:** Certificate generation is well-documented Microsoft API — CertificateRequest, SubjectAlternativeNameBuilder, X509Certificate2
+- **Phase 13-02:** Windows X509Store API is mature and stable — StoreName.Root, StoreLocation.CurrentUser patterns
+- **Phase 13-03:** Kestrel HTTPS endpoint configuration is standard ASP.NET Core pattern — ListenAnyIP with UseHttps
+- **Phase 13-05:** ASP.NET Core BackgroundService is established pattern for hosted services
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | All claims verified with official Microsoft documentation. YARP 2.3.0 confirmed to include HTTP/2 and WebSocket support. Current codebase inspected to verify upgrade path. |
-| Features | MEDIUM | Table stakes features verified via official docs. Differentiators based on competitive analysis—Portless (Node.js) capabilities inferred but not directly verified. Some LOW confidence sources (third-party blogs). |
-| Architecture | HIGH | Architecture based on YARP's documented behavior for HTTP/2 and WebSocket proxying. Verified current codebase structure. Minimal changes required—low risk. |
-| Pitfalls | MEDIUM | All pitfalls verified with official Microsoft docs or YARP GitHub issues. Prevention strategies based on documented patterns. Performance regression (Pitfall 5) inferred from HTTP/2 characteristics—needs benchmark validation. |
+| Stack | HIGH | All certificate generation APIs verified with official Microsoft documentation. System.Security.Cryptography.X509Certificates is complete and mature. |
+| Features | MEDIUM | Table stakes features are well-documented (mkcert, dotnet dev-certs reference). Differentiator features (hot-reload, zero-config) need implementation validation. |
+| Architecture | HIGH | Certificate Authority hierarchy pattern is proven (mkcert). Dual endpoint configuration is standard Kestrel pattern. Platform-specific trust installation is well-understood. |
+| Pitfalls | HIGH | All pitfalls verified with multiple sources (official docs, community issues, stack overflow). Mitigation strategies are proven. |
 
 **Overall confidence:** HIGH
 
-### Gaps to Address
+**Gaps to Address:**
 
-- **YARP-specific timeout configuration for WebSocket:** Found general reverse proxy patterns (Nginx, Envoy), but YARP-specific documentation is sparse. May need to test timeout values empirically during Phase 2 implementation.
-- **Performance characteristics of HTTP/2 in local dev:** Research indicates HTTP/2 may be slower than HTTP/1.1 for low-latency, low-concurrency scenarios (typical local dev). This needs benchmark validation in Phase 3 before declaring HTTP/2 "production-ready."
-- **Portless (Node.js) current capabilities:** Assumed limited HTTP/2/WebSocket support based on Node.js http-proxy limitations, but not directly verified. This gap doesn't affect implementation—only competitive positioning.
-- **Windows-specific HTTP/2 behavior:** Most documentation is Linux-focused. Portless.NET targets Windows as a differentiator, so Windows-specific testing is required during Phase 1.
+1. **Wildcard .localhost Certificate Browser Acceptance:** Research indicates Safari on macOS may not support `*.localhost` wildcard certificates. **Mitigation:** Test in Phase 13-03; add `*.dev.localhost` as additional SAN if needed (per .NET 10 docs).
+
+2. **YARP Certificate Hot-Reload:** Research shows Kestrel supports certificate reload but YARP-specific configuration is unclear. **Mitigation:** Defer hot-reload to v1.3; v1.2 uses proxy restart for renewal (acceptable for development tool).
+
+3. **Linux Firefox Certificate Trust:** Firefox uses NSS database, not system store. **Mitigation:** Document Firefox-specific trust installation steps in Phase 13-06; this is known limitation, not implementation gap.
+
+4. **Certificate Password Storage:** Research warns against hardcoding passwords but doesn't specify secure storage pattern for development tools. **Mitigation:** Use empty password for development certificates (documented security implication) or user-provided password via CLI.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- [YARP Proxying WebSockets and SPDY](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/servers/yarp/websockets?view=aspnetcore-10.0) — HTTP/2 WebSocket support, Kestrel as only server supporting HTTP/2 WebSocket, automatic header handling (verified 2026-01-23)
-- [YARP Proxying gRPC](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/servers/yarp/grpc?view=aspnetcore-10.0) — HTTP/2 configuration requirements, protocol negotiation, TLS vs Prior Knowledge (verified 2026-01-23)
-- [Configure Kestrel Endpoints](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel/endpoints?view=aspnetcore-10.0) — `HttpProtocols.Http1AndHttp2` configuration, ALPN negotiation (verified 2025)
-- [Microsoft YARP Diagnostics Guide](https://learn.microsoft.com/zh-cn/aspnet/core/fundamentals/servers/yarp/diagnosing-yarp-issues) — Published June 20, 2025
-- [Microsoft YARP Timeouts Documentation](https://learn.microsoft.com/zh-cn/aspnet/core/fundamentals/servers/yarp/timeouts) — Published January 22, 2026
-- [RFC 8441: Bootstrapping WebSockets with HTTP/2](https://datatracker.ietf.org/doc/html/rfc8441) — Extended CONNECT protocol specification
+
+- [CertificateRequest.CreateSelfSigned Method](https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.x509certificates.certificaterequest.createselfsigned?view=net-10.0) — Self-signed certificate creation in .NET 10, verified 2025-03-01
+- [CertificateRequest.Create Method](https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.x509certificates.certificaterequest.create?view=net-10.0) — CA-signed certificate creation, verified 2025-06-11
+- [SubjectAlternativeNameBuilder Class](https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.x509certificates.subjectalternativenamebuilder?view=net-9.0) — SAN extension generation, verified 2025-09-15
+- [dotnet dev-certs HTTPS Tool](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-dev-certs) — Reference implementation for certificate management, verified 2025-09-28
+- [Configure Kestrel HTTPS Endpoints](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel/endpoints?view=aspnetcore-10.0) — Kestrel HTTPS configuration, verified 2025-08-15
+- [ASP.NET Core 10.0 Release Notes](https://learn.microsoft.com/en-us/aspnet/core/release-notes/aspnetcore-10.0) — `.localhost` domain support in .NET 10 Preview 7+, verified 2025-11-01
+- [mkcert GitHub Repository](https://github.com/FiloSottile/mkcert) — Industry-standard local HTTPS tool (49.3k stars), verified 2026-02-22
 
 ### Secondary (MEDIUM confidence)
-- [YARP转发请求配置：ForwarderRequestConfig参数设置](https://m.blog.csdn.net/gitblog_01197/article/details/151086578) — `ForwarderRequestConfig` controls outbound HTTP version, defaults to HTTP/2 with `RequestVersionOrLower` (published 2025-09-01)
-- [Azure SignalR with Reverse Proxies](https://learn.microsoft.com/en-us/azure/azure-signalr/signalr-howto-work-with-reverse-proxy) — HOST header rewriting, `ClientEndpoint` configuration (updated 2025-05)
-- [ASP.NET Core Kestrel HTTP/2 Documentation](https://learn.microsoft.com/zh-cn/aspnet/core/fundamentals/servers/kestrel/endpoints?view=aspnetcore-10.0) — Protocol configuration, TLS requirements
-- [.NET HTTP/2 WebSocket Support Announcement](https://devblogs.microsoft.com/aspnet/asp-net-core-updates-in-net-7/) — .NET 7 HTTP/2 WebSocket support details
+
+- [Local HTTPS Certificate Generation Tutorial (CSDN, Jan 2026)](https://blog.csdn.net/weixin_46244623/article/details/156943289) — Cross-platform mkcert tutorial with practical examples
+- [SSL Certificate Renewal Practical Guide](https://m.blog.csdn.net/gitblog_01192/article/details/157240340) — Certificate renewal best practices, 30-day warning recommendation
+- [YARP HTTPS Configuration with Let's Encrypt (CSDN)](https://blog.csdn.net/2501_93329146/article/details/151364447) — YARP HTTPS certificate configuration example
+- [Cross-Platform Certificate Trust Installation](https://docs.redhat.com/zh-cn/documentation/red_hat_enterprise_linux/8/html/securing_networks/managing-trusted-system-certificates_using_shared-system-certificates) — Linux `trust` command reference
+- [macOS security Command Reference](https://ss64.com/osx/security.html) — macOS trust installation commands
 
 ### Tertiary (LOW confidence)
-- [HTTP/2 Multiplexing Request Bursts - Lucidchart Case Study](https://engineering.lucidsoftware.com/2016/06/02/http2-at-lucid/) — Real-world performance issues with HTTP/2 multiplexing (third-party blog, needs validation)
-- [HTTP/2 Protocol Conversion Vulnerabilities - USENIX Security 2022](https://www.usenix.org/conference/usenixsecurity22/presentation/merget) — Academic paper on HTTP/2 proxy conversion security issues (needs verification)
-- [103 Early Hints vs HTTP/2 Server Push](https://developer.chrome.com/blog/early-hints/) — Chrome documentation on Early Hints adoption (limited browser support)
-- [Envoy HTTP Upgrades Documentation](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/http/upgrades) — WebSocket over HTTP/2 transformation patterns (not YARP-specific)
-- [Nginx WebSocket Proxying Guide](https://nginx.org/en/docs/http/websocket.html) — HTTP/1.1 WebSocket proxy configuration (not YARP-specific)
 
-### Verification Methodology
-- Cross-referenced Microsoft Learn documentation (official, up-to-date)
-- Verified current codebase has YARP 2.3.0 installed
-- Confirmed .NET 10 includes all required HTTP/2 features
-- Checked existing Kestrel configuration for upgrade path
-- No conflicting information found across primary sources
+- [Free SSL Certificate Updates (3-month validity period)](https://m.blog.csdn.net/gitblog_01192/article/details/157240340) — Certificate validity reduction to 3 months (needs verification)
+- [Wildcard Certificate for .localhost TLD](https://blog.csdn.net/weixin_46244623/article/details/156943289) — Safari limitations with `*.localhost` (needs browser-specific testing)
+- [Certificate Revocation Process](https://m.blog.csdn.net/gitblog_01192/article/details/157240340) — Confuses renewal vs revocation (conflates production and development scenarios)
 
 ---
 *Research completed: 2026-02-22*
