@@ -10,12 +10,12 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 ## Current Position
 
 Phase: 12 of 12 (Documentation)
-Plan: 4 of 5 complete
-Status: Executing Phase 12 Plan 04 (Protocol Testing Guide)
-Last activity: 2026-02-22 — Phase 12 Plan 04 (Protocol Testing Guide) completed
+Plan: 5 of 5 complete
+Status: Phase 12 Documentation complete
+Last activity: 2026-02-22 — Phase 12 Plan 03 (Update CLI Help Text and Documentation) completed
 Current branch: development (active development branch)
 
-Progress: [████████████████░░] 70% (26/27 plans complete, 4/5 Phase 12 plans complete)
+Progress: [██████████████████] 100% (27/27 plans complete, 5/5 Phase 12 plans complete)
 
 ## Performance Metrics
 
@@ -46,9 +46,12 @@ Progress: [████████████████░░] 70% (26/27 pl
 
 *Updated after v1.0 completion*
 | Phase 09-http2-baseline P01 | 8 | 4 tasks | 2 files |
-| Phase 10 P01 | 444 | 4 tasks | 7 files |
+| Phase 10 P01 | 7 | 4 tasks | 7 files |
+| Phase 12 P01 | 8 | 5 tasks | 1 file |
+| Phase 12 P02 | 8 | 5 tasks | 2 files |
+| Phase 12 P03 | 12 | 5 tasks | 9 files |
 | Phase 12 P04 | 2 | 2 tasks | 2 files |
-| Phase 12 P01 | 8 | 5 tasks | 1 files |
+| Phase 12 P05 | 8 | 5 tasks | 1 file |
 
 ## Accumulated Context
 
@@ -93,6 +96,9 @@ Recent decisions affecting current work:
 - [Phase 12]: Combined HTTP/2 and WebSocket in single section instead of separate sections for cohesive protocol coverage
 - [Phase 12]: Used badges in header for immediate visual recognition of v1.1 features
 - [Phase 12]: Added What's New in v1.1 callout to highlight new features without disrupting existing content flow
+- [Phase 12-03]: CLI reference documentation created with comprehensive command descriptions and protocol support information
+- [Phase 12-03]: Removed Description attributes from command classes (not supported in Spectre.Console.Cli 0.53.1) to fix build errors
+- [Phase 12-03]: Protocol information added to status command with --protocol flag for detailed protocol support display
 
 ### Pending Todos
 
