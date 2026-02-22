@@ -77,9 +77,9 @@ Portless.NET delivers stable `.localhost` URLs for Windows .NET development thro
   3. Integration test verifies SignalR WebSocket connection
   4. Documentation covers SignalR troubleshooting and configuration
 **Plans**: 3 plans
-- [x] 11-01-PLAN.md — Create SignalR Chat Example (4 tasks: create SignalR chat server, create console client, test chat through proxy, document example usage) [PLANNED]
+- [x] 11-01-PLAN.md — Create SignalR Chat Example (4 tasks: create SignalR chat server, create console client, test chat through proxy, document example usage) [COMPLETED]
 - [x] 11-02-PLAN.md — Create SignalR Integration Test (4 tasks: create SignalR integration test, test connection through proxy, test bidirectional messaging, document test findings) [COMPLETED]
-- [ ] 11-03-PLAN.md — Create SignalR Troubleshooting Documentation (4 tasks: add SignalR section to main README, create troubleshooting guide, document best practices, update examples README) [PLANNED]
+- [x] 11-03-PLAN.md — Create SignalR Troubleshooting Documentation (4 tasks: add SignalR section to main README, create troubleshooting guide, document best practices, update examples README) [COMPLETED]
 
 #### Phase 12: Documentation
 **Goal**: Complete documentation for HTTP/2 and WebSocket features
@@ -113,7 +113,7 @@ Phases execute in numeric order: 9 → 10 → 11 → 12
 | 8. Integration Tests | v1.0 | 3/3 | Complete | 2026-02-21 |
 | 9. HTTP/2 Baseline | v1.1 | 1/1 | Complete | 2026-02-22 |
 | 10. WebSocket Proxy | v1.1 | 1/1 | Complete    | 2026-02-22 | - |
-| 11. SignalR Integration | v1.1 | 2/3 | In Progress|  | - |
+| 11. SignalR Integration | v1.1 | 3/3 | Complete    | 2026-02-22 | - |
 | 12. Documentation | v1.1 | 0/5 | Not started | - |
 
 **For detailed v1.0 phase information, see:** [milestones/v1.0-ROADMAP.md](.planning/milestones/v1.0-ROADMAP.md)

@@ -5,17 +5,17 @@
 See: .planning/PROJECT.md (updated 2026-02-22)
 
 **Core value:** URLs estables y predecibles para desarrollo local
-**Current focus:** Phase 11 - SignalR Integration
+**Current focus:** Phase 12 - Documentation
 
 ## Current Position
 
-Phase: 11 of 12 (SignalR Integration)
-Plan: 2 of 3 complete
-Status: In progress - Plan 11-03 (SignalR Documentation) remaining
-Last activity: 2026-02-22 — Plan 11-02 SignalR Integration Test completed
+Phase: 12 of 12 (Documentation)
+Plan: 0 of 5 complete
+Status: Ready for Phase 12
+Last activity: 2026-02-22 — Phase 11 SignalR Integration completed
 Current branch: development (active development branch)
 
-Progress: [██████████░░░░░░░] 56% (22/20 plans complete from v1.0, 2/3 plans complete in Phase 11)
+Progress: [██████████░░░░░░░] 58% (22/20 plans complete from v1.0, 3/3 plans complete in Phase 11)
 
 ## Performance Metrics
 
@@ -70,6 +70,12 @@ Recent decisions affecting current work:
 - [Phase 11]: Integration tests verify SignalR connection establishment and message flow through proxy
 - [Phase 11]: Troubleshooting guide documents common SignalR issues: SSE fallback, connection drops, "connection not started" errors, message delivery, and multi-client broadcasts
 - [Phase 11]: Best practices documented for connection management, error handling, retry logic, testing strategy, and development vs production considerations
+- [Phase 11-01]: SignalR chat example created with browser and console clients demonstrating real-time messaging through proxy
+- [Phase 11-01]: Used Microsoft.AspNetCore.SignalR.Client 8.0.0 for console client (latest stable, compatible with .NET 10)
+- [Phase 11-01]: Single HTML file browser client with embedded CSS/JS for simplicity (no build step required)
+- [Phase 11-01]: Simple broadcast pattern (Clients.All) for stateless demonstration of SignalR connectivity
+- [Phase 11-02]: SignalR integration tests verify connection through proxy and bidirectional messaging
+- [Phase 11-03]: SignalR troubleshooting guide covers SSE fallback, connection drops, message delivery, and best practices
 
 ### Pending Todos
 
@@ -89,6 +95,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-22 (Phase 11 completion)
-Stopped at: Phase 11 SignalR Integration completed, ready for Phase 12 Documentation
+Last session: 2026-02-22 (Phase 11 Plan 01 execution)
+Stopped at: Completed Phase 11 Plan 01 (SignalR Chat Example), all Phase 11 plans complete
 Resume file: None
