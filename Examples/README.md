@@ -630,6 +630,7 @@ portless proxy start
 ### Documentation
 
 - [Main README](../README.md) - Portless.NET overview and getting started
+- [HTTP/2 and WebSocket Testing Guide](../docs/http2-websocket-guide.md) - Protocol testing and verification procedures
 - [Migration Guide v1.0 to v1.1](../docs/migration-v1.0-to-v1.1.md) - Upgrading to HTTP/2 and WebSocket support
 - [SignalR Troubleshooting Guide](../docs/signalr-troubleshooting.md) - SignalR-specific issues and solutions
 
