@@ -1,5 +1,6 @@
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Model;
+using Microsoft.AspNetCore.HttpOverrides;
 using Portless.Core.Extensions;
 using Portless.Core.Services;
 using Portless.Core.Models;
@@ -273,6 +274,22 @@ app.MapDelete("/api/v1/remove-host", async (string hostname, ILogger<Program> lo
             title: "Remove Host Error"
         );
     }
+});
+
+// Use ForwardedHeaders middleware to add X-Forwarded-* headers
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.All,
+    // Only trust local proxies
+    KnownProxies = { System.Net.IPAddress.Loopback }
+});
+
+// Custom middleware to add X-Forwarded-Protocol header
+app.Use(async (context, next) =>
+{
+    var protocol = context.Request.Protocol;
+    context.Request.Headers["X-Forwarded-Protocol"] = protocol;
+    await next();
 });
 
 app.MapReverseProxy();
