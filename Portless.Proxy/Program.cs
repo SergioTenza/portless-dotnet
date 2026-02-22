@@ -35,6 +35,9 @@ static ClusterConfig CreateCluster(string clusterId, string backendUrl) =>
 builder.Logging.AddConsole();
 builder.Logging.SetMinimumLevel(LogLevel.Information);
 
+// Add SignalR services for integration testing
+builder.Services.AddSignalR();
+
 // Read port from environment variable or use default
 var port = builder.Configuration["PORTLESS_PORT"] ?? "1355";
 
@@ -287,6 +290,9 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
     // Only trust local proxies
     KnownProxies = { System.Net.IPAddress.Loopback }
 });
+
+// Map test SignalR hub for integration testing (must be before reverse proxy)
+app.MapHub<TestChatHub>("/testhub");
 
 // Custom middleware to add X-Forwarded-Protocol header
 app.Use(async (context, next) =>
