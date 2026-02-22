@@ -5,17 +5,17 @@
 See: .planning/PROJECT.md (updated 2026-02-22)
 
 **Core value:** URLs estables y predecibles para desarrollo local
-**Current focus:** Phase 10 - WebSocket Proxy
+**Current focus:** Phase 11 - SignalR Integration
 
 ## Current Position
 
-Phase: 10 of 12 (WebSocket Proxy)
-Plan: 1 of 1 complete
-Status: Ready for Phase 11
-Last activity: 2026-02-22 — Phase 10 WebSocket Proxy completed
+Phase: 11 of 12 (SignalR Integration)
+Plan: 3 of 3 complete
+Status: Ready for Phase 12
+Last activity: 2026-02-22 — Phase 11 SignalR Integration completed
 Current branch: development (active development branch)
 
-Progress: [██████████░░░░░░░] 54% (21/20 plans complete from v1.0, 1/1 plans complete in Phase 10)
+Progress: [██████████░░░░░░░] 58% (24/20 plans complete from v1.0, 3/3 plans complete in Phase 11)
 
 ## Performance Metrics
 
@@ -65,6 +65,11 @@ Recent decisions affecting current work:
 - [Phase 10]: Kestrel KeepAliveTimeout set to 10 minutes, MaxConcurrentUpgradedConnections to 1000 for long-lived WebSocket connections
 - [Phase 10]: Simple echo server example chosen over full chat app for easier testing and clearer WebSocket demonstration
 - [Phase 10]: Integration tests use direct WebSocket connections (not through proxy); end-to-end proxy testing deferred to Phase 11
+- [Phase 11]: SignalR works through Portless.NET proxy with WebSocket transport without special YARP configuration
+- [Phase 11]: SignalR chat example demonstrates real-time bidirectional messaging and broadcast patterns
+- [Phase 11]: Integration tests verify SignalR connection establishment and message flow through proxy
+- [Phase 11]: Troubleshooting guide documents common SignalR issues: SSE fallback, connection drops, "connection not started" errors, message delivery, and multi-client broadcasts
+- [Phase 11]: Best practices documented for connection management, error handling, retry logic, testing strategy, and development vs production considerations
 
 ### Pending Todos
 
@@ -72,17 +77,18 @@ None yet.
 
 ### Blockers/Concerns
 
-- [Phase 11]: SignalR integration may require additional configuration for WebSocket fallback to Server-Sent Events
-- [Phase 12]: Documentation updates needed for HTTP/2 and WebSocket features
+- [Phase 12]: Documentation updates needed for HTTP/2, WebSocket, and SignalR features
 
 ### Completed Mitigations
 
 - [Phase 9]: HTTP/2 protocol negotiation may silently downgrade to HTTP/1.1 without logging (mitigation: PROTO-02 protocol logging middleware) - **RESOLVED**
 - [Phase 10]: WebSocket connections may timeout after 60 seconds of inactivity (mitigation: WS-03 Kestrel timeout configuration) - **RESOLVED**
 - [Phase 10]: HTTP/2 WebSocket uses CONNECT method instead of GET with Upgrade header (mitigation: WS-02 test both HTTP/1.1 and HTTP/2 scenarios) - **RESOLVED**
+- [Phase 11]: SignalR may fall back to Server-Sent Events instead of WebSocket (mitigation: documented in troubleshooting guide with WebSocket transport configuration) - **RESOLVED**
+- [Phase 11]: SignalR connections may drop after 60 seconds of inactivity (mitigation: KeepAliveTimeout configuration documented in troubleshooting guide) - **RESOLVED**
 
 ## Session Continuity
 
-Last session: 2026-02-22 (Phase 10 completion)
-Stopped at: Phase 10 WebSocket Proxy completed, ready for Phase 11 SignalR Integration
+Last session: 2026-02-22 (Phase 11 completion)
+Stopped at: Phase 11 SignalR Integration completed, ready for Phase 12 Documentation
 Resume file: None
