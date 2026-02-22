@@ -5,6 +5,7 @@ using Portless.Core.Extensions;
 using Portless.Core.Services;
 using Portless.Core.Models;
 using Portless.Core.Configuration;
+using Portless.Proxy;
 
 var builder = WebApplication.CreateBuilder(args);
 

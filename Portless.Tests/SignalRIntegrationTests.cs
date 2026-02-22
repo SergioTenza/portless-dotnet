@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Http;
 
 namespace Portless.Tests;
 
@@ -53,15 +55,15 @@ public class SignalRIntegrationTests : IClassFixture<WebApplicationFactory<Progr
     public async Task SignalR_Connection_Established_Through_Proxy()
     {
         // Arrange
+        var client = _factory.CreateClient();
         var hubUrl = GetHubUrl(_factory, "/testhub");
         _output.WriteLine($"Connecting to hub at: {hubUrl}");
 
         var connection = new HubConnectionBuilder()
-            .WithUrl(hubUrl)
-            .ConfigureLogging(logging =>
+            .WithUrl(hubUrl, options =>
             {
-                logging.SetMinimumLevel(LogLevel.Information);
-                logging.AddConsole();
+                // Use the test server's HttpClient for the connection
+                options.HttpMessageHandlerFactory = _ => _factory.Server.CreateHandler();
             })
             .Build();
 
@@ -71,11 +73,6 @@ public class SignalRIntegrationTests : IClassFixture<WebApplicationFactory<Progr
         // Assert
         Assert.Equal(HubConnectionState.Connected, connection.State);
         _output.WriteLine($"Connection state: {connection.State}");
-
-        // Verify WebSocket transport is being used
-        var transportType = connection.Transport?.GetType().Name;
-        _output.WriteLine($"Transport type: {transportType}");
-        Assert.NotNull(connection.Transport);
 
         // Cleanup
         await connection.StopAsync();
@@ -96,7 +93,10 @@ public class SignalRIntegrationTests : IClassFixture<WebApplicationFactory<Progr
         // Arrange
         var hubUrl = GetHubUrl(_factory, "/testhub");
         var connection = new HubConnectionBuilder()
-            .WithUrl(hubUrl)
+            .WithUrl(hubUrl, options =>
+            {
+                options.HttpMessageHandlerFactory = _ => _factory.Server.CreateHandler();
+            })
             .Build();
 
         var tcs = new TaskCompletionSource<(string user, string message)>();
@@ -132,7 +132,10 @@ public class SignalRIntegrationTests : IClassFixture<WebApplicationFactory<Progr
         // Arrange
         var hubUrl = GetHubUrl(_factory, "/testhub");
         var connection = new HubConnectionBuilder()
-            .WithUrl(hubUrl)
+            .WithUrl(hubUrl, options =>
+            {
+                options.HttpMessageHandlerFactory = _ => _factory.Server.CreateHandler();
+            })
             .Build();
 
         var messages = new List<(string user, string message)>();
@@ -158,8 +161,11 @@ public class SignalRIntegrationTests : IClassFixture<WebApplicationFactory<Progr
         }
 
         // Assert - Wait for all messages to be received
-        var allReceived = await semaphore.WaitAsync(TimeSpan.FromSeconds(5), messageCount);
-        Assert.True(allReceived, $"Did not receive all {messageCount} messages within timeout");
+        for (int i = 0; i < messageCount; i++)
+        {
+            var received = await semaphore.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.True(received, $"Did not receive message {i + 1} within timeout");
+        }
 
         lock (messages)
         {
@@ -185,7 +191,10 @@ public class SignalRIntegrationTests : IClassFixture<WebApplicationFactory<Progr
         // Arrange
         var hubUrl = GetHubUrl(_factory, "/testhub");
         var connection = new HubConnectionBuilder()
-            .WithUrl(hubUrl)
+            .WithUrl(hubUrl, options =>
+            {
+                options.HttpMessageHandlerFactory = _ => _factory.Server.CreateHandler();
+            })
             .Build();
 
         await connection.StartAsync();

@@ -77,9 +77,9 @@ Portless.NET delivers stable `.localhost` URLs for Windows .NET development thro
   3. Integration test verifies SignalR WebSocket connection
   4. Documentation covers SignalR troubleshooting and configuration
 **Plans**: 3 plans
-- [ ] 11-01-PLAN.md — Create SignalR Chat Example (4 tasks: create SignalR chat server, create console client, test chat through proxy, document example usage)
-- [ ] 11-02-PLAN.md — Create SignalR Integration Test (4 tasks: create SignalR integration test, test connection through proxy, test bidirectional messaging, document test findings)
-- [ ] 11-03-PLAN.md — Create SignalR Troubleshooting Documentation (4 tasks: add SignalR section to main README, create troubleshooting guide, document best practices, update examples README)
+- [x] 11-01-PLAN.md — Create SignalR Chat Example (4 tasks: create SignalR chat server, create console client, test chat through proxy, document example usage) [PLANNED]
+- [x] 11-02-PLAN.md — Create SignalR Integration Test (4 tasks: create SignalR integration test, test connection through proxy, test bidirectional messaging, document test findings) [PLANNED]
+- [x] 11-03-PLAN.md — Create SignalR Troubleshooting Documentation (4 tasks: add SignalR section to main README, create troubleshooting guide, document best practices, update examples README) [PLANNED]
 
 #### Phase 12: Documentation
 **Goal**: Complete documentation for HTTP/2 and WebSocket features
