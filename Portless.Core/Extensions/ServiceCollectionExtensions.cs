@@ -37,4 +37,26 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
+
+    /// <summary>
+    /// Registers certificate-related services for HTTPS support.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <returns>The service collection for chaining.</returns>
+    public static IServiceCollection AddPortlessCertificates(this IServiceCollection services)
+    {
+        // Register certificate permission service as singleton
+        services.AddSingleton<ICertificatePermissionService, CertificatePermissionService>();
+
+        // Register certificate storage service as singleton
+        services.AddSingleton<ICertificateStorageService, CertificateStorageService>();
+
+        // Register certificate generation service as singleton
+        services.AddSingleton<ICertificateService, CertificateService>();
+
+        // Register certificate manager as singleton
+        services.AddSingleton<ICertificateManager, CertificateManager>();
+
+        return services;
+    }
 }
