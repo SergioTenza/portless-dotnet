@@ -9,15 +9,15 @@ Requirements for HTTPS with Automatic Certificates milestone. Each maps to roadm
 
 ### Certificate Generation (CERT)
 
-- [ ] **CERT-01**: User can generate local Certificate Authority (CA) automatically on first proxy start
-- [ ] **CERT-02**: CA certificate has 5-year validity period (per Phase 13 user context decision)
-- [ ] **CERT-03**: User can generate wildcard certificate for `*.localhost` domains
-- [ ] **CERT-04**: Wildcard certificate includes Subject Alternative Names (SAN) for DNS (`localhost`, `*.localhost`) and IP addresses (`127.0.0.1`, `::1`)
-- [ ] **CERT-05**: Server certificates have 5-year validity period (per Phase 13 user context decision)
-- [ ] **CERT-06**: Certificates are marked exportable during creation (X509KeyStorageFlags.Exportable)
+- [x] **CERT-01**: User can generate local Certificate Authority (CA) automatically on first proxy start
+- [x] **CERT-02**: CA certificate has 5-year validity period (per Phase 13 user context decision)
+- [x] **CERT-03**: User can generate wildcard certificate for `*.localhost` domains
+- [x] **CERT-04**: Wildcard certificate includes Subject Alternative Names (SAN) for DNS (`localhost`, `*.localhost`) and IP addresses (`127.0.0.1`, `::1`)
+- [x] **CERT-05**: Server certificates have 5-year validity period (per Phase 13 user context decision)
+- [x] **CERT-06**: Certificates are marked exportable during creation (X509KeyStorageFlags.Exportable)
 - [ ] **CERT-07**: Private keys are stored with secure file permissions (600 on Unix, ACL on Windows)
 - [ ] **CERT-08**: Certificates persist to `~/.portless/ca.pfx`, `cert.pfx`, `cert-info.json`
-- [ ] **CERT-09**: Certificate creation uses .NET native APIs only (no BouncyCastle, OpenSSL, or mkcert dependencies)
+- [x] **CERT-09**: Certificate creation uses .NET native APIs only (no BouncyCastle, OpenSSL, or mkcert dependencies)
 
 ### Trust Installation (TRUST)
 
@@ -119,15 +119,15 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CERT-01 | Phase 13 | Pending |
-| CERT-02 | Phase 13 | Pending |
-| CERT-03 | Phase 13 | Pending |
-| CERT-04 | Phase 13 | Pending |
-| CERT-05 | Phase 13 | Pending |
-| CERT-06 | Phase 13 | Pending |
+| CERT-01 | Phase 13 | Complete |
+| CERT-02 | Phase 13 | Complete |
+| CERT-03 | Phase 13 | Complete |
+| CERT-04 | Phase 13 | Complete |
+| CERT-05 | Phase 13 | Complete |
+| CERT-06 | Phase 13 | Complete |
 | CERT-07 | Phase 13 | Pending |
 | CERT-08 | Phase 13 | Pending |
-| CERT-09 | Phase 13 | Pending |
+| CERT-09 | Phase 13 | Complete |
 | TRUST-01 | Phase 14 | Pending |
 | TRUST-02 | Phase 14 | Pending |
 | TRUST-03 | Phase 14 | Pending |
