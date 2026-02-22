@@ -17,11 +17,11 @@ Requirements for HTTP/2 and WebSocket support. Each maps to roadmap phases.
 
 ### WebSocket Support
 
-- [ ] **WS-01**: WebSocket transparent proxy para HTTP/1.1 upgrade (101 Switching Protocols)
-- [ ] **WS-02**: WebSocket transparent proxy para HTTP/2 WebSocket (RFC 8441 Extended CONNECT)
-- [ ] **WS-03**: Kestrel timeout configuration (`KeepAliveTimeout`, `MaxConcurrentUpgradedConnections`)
-- [ ] **WS-04**: Integration test para WebSocket bidirectional messaging
-- [ ] **WS-05**: WebSocket echo server example para testing
+- [x] **WS-01**: WebSocket transparent proxy para HTTP/1.1 upgrade (101 Switching Protocols)
+- [x] **WS-02**: WebSocket transparent proxy para HTTP/2 WebSocket (RFC 8441 Extended CONNECT)
+- [x] **WS-03**: Kestrel timeout configuration (`KeepAliveTimeout`, `MaxConcurrentUpgradedConnections`)
+- [x] **WS-04**: Integration test para WebSocket bidirectional messaging
+- [x] **WS-05**: WebSocket echo server example para testing
 
 ### Real-Time Examples
 
@@ -71,11 +71,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PROTO-03 | Phase 9 | Complete |
 | PROTO-04 | Phase 9 | Complete |
 | PROTO-05 | Phase 9 | Complete |
-| WS-01 | Phase 10 | Pending |
-| WS-02 | Phase 10 | Pending |
-| WS-03 | Phase 10 | Pending |
-| WS-04 | Phase 10 | Pending |
-| WS-05 | Phase 10 | Pending |
+| WS-01 | Phase 10 | Complete |
+| WS-02 | Phase 10 | Complete |
+| WS-03 | Phase 10 | Complete |
+| WS-04 | Phase 10 | Complete |
+| WS-05 | Phase 10 | Complete |
 | REAL-01 | Phase 11 | Pending |
 | REAL-02 | Phase 11 | Pending |
 | REAL-03 | Phase 11 | Pending |

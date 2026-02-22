@@ -52,7 +52,7 @@ Portless.NET delivers stable `.localhost` URLs for Windows .NET development thro
   4. X-Forwarded headers correctly preserve original client information
   5. Integration test verifies HTTP/2 negotiation with curl --http2
 **Plans**: 1 plan
-- [ ] 09-01-PLAN.md — Enable HTTP/2 in Kestrel, add protocol logging, configure X-Forwarded headers, create integration tests
+- [x] 09-01-PLAN.md — Enable HTTP/2 in Kestrel, add protocol logging, configure X-Forwarded headers, create integration tests (COMPLETED)
 
 #### Phase 10: WebSocket Proxy
 **Goal**: Transparent WebSocket proxy support for both HTTP/1.1 and HTTP/2
@@ -64,7 +64,8 @@ Portless.NET delivers stable `.localhost` URLs for Windows .NET development thro
   3. Long-lived WebSocket connections remain stable beyond 60 seconds
   4. Bidirectional messaging works end-to-end through the proxy
   5. Echo server example demonstrates WebSocket functionality
-**Plans**: TBD
+**Plans**: 1 plan
+- [ ] 10-01-PLAN.md — Enable WebSocket Support in YARP and Configure Timeouts (4 tasks: verify YARP WebSocket support, configure Kestrel timeouts, create WebSocket echo server, create WebSocket integration test)
 
 #### Phase 11: SignalR Integration
 **Goal**: Real-time communication example with SignalR over WebSocket
@@ -75,7 +76,10 @@ Portless.NET delivers stable `.localhost` URLs for Windows .NET development thro
   2. Real-time messages flow bidirectionally between clients through the proxy
   3. Integration test verifies SignalR WebSocket connection
   4. Documentation covers SignalR troubleshooting and configuration
-**Plans**: TBD
+**Plans**: 3 plans
+- [ ] 11-01-PLAN.md — Create SignalR Chat Example (4 tasks: create SignalR chat server, create console client, test chat through proxy, document example usage)
+- [ ] 11-02-PLAN.md — Create SignalR Integration Test (4 tasks: create SignalR integration test, test connection through proxy, test bidirectional messaging, document test findings)
+- [ ] 11-03-PLAN.md — Create SignalR Troubleshooting Documentation (4 tasks: add SignalR section to main README, create troubleshooting guide, document best practices, update examples README)
 
 #### Phase 12: Documentation
 **Goal**: Complete documentation for HTTP/2 and WebSocket features
@@ -86,7 +90,12 @@ Portless.NET delivers stable `.localhost` URLs for Windows .NET development thro
   2. Troubleshooting guide covers protocol issues (silent downgrade, timeouts)
   3. CLI help text includes --protocols flag documentation
   4. Protocol testing guide provides curl commands and browser DevTools instructions
-**Plans**: TBD
+**Plans**: 5 plans
+- [ ] 12-01-PLAN.md — Update Main README with HTTP/2 and WebSocket Support (5 tasks: add HTTP/2 and WebSocket section, document HTTP/2 benefits, document WebSocket support, add quick start examples, reorganize README structure)
+- [ ] 12-02-PLAN.md — Create Protocol Troubleshooting Guide (5 tasks: create troubleshooting guide, document silent downgrade issue, document WebSocket timeout issues, document diagnostic commands, add troubleshooting section to README)
+- [ ] 12-03-PLAN.md — Update CLI Help Text and Documentation (5 tasks: review CLI commands, update help text, add protocol info to status command, create CLI documentation section, test CLI help output)
+- [ ] 12-04-PLAN.md — Create Protocol Testing Guide (5 tasks: create protocol testing guide, document HTTP/2 testing, document WebSocket testing, document protocol verification, add testing examples)
+- [ ] 12-05-PLAN.md — Create Migration Guide and Update Examples README (5 tasks: create migration guide, document new features, document breaking changes, update Examples README, add quick start for each example)
 
 ## Progress
 
@@ -102,9 +111,9 @@ Phases execute in numeric order: 9 → 10 → 11 → 12
 | 5. Process Management | v1.0 | 2/2 | Complete | 2026-02-21 |
 | 6. .NET Integration | v1.0 | 3/3 | Complete | 2026-02-21 |
 | 8. Integration Tests | v1.0 | 3/3 | Complete | 2026-02-21 |
-| 9. HTTP/2 Baseline | v1.1 | 0/1 | Not started | - |
-| 10. WebSocket Proxy | v1.1 | 0/0 | Not started | - |
-| 11. SignalR Integration | v1.1 | 0/0 | Not started | - |
-| 12. Documentation | v1.1 | 0/0 | Not started | - |
+| 9. HTTP/2 Baseline | v1.1 | 1/1 | Complete | 2026-02-22 |
+| 10. WebSocket Proxy | 1/1 | Complete   | 2026-02-22 | - |
+| 11. SignalR Integration | v1.1 | 0/3 | Not started | - |
+| 12. Documentation | v1.1 | 0/5 | Not started | - |
 
 **For detailed v1.0 phase information, see:** [milestones/v1.0-ROADMAP.md](.planning/milestones/v1.0-ROADMAP.md)
