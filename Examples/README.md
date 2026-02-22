@@ -393,3 +393,5 @@ portless proxy start
 - [Portless.NET Documentation](../../README.md)
 - [YARP Reverse Proxy Documentation](https://microsoft.github.io/reverse-proxy/)
 - [ASP.NET Core Kestrel Configuration](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel)
+- [ASP.NET Core SignalR Documentation](https://docs.microsoft.com/en-us/aspnet/core/signalr/)
+- [WebSocket API Documentation](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket)
