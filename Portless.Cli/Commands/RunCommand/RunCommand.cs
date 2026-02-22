@@ -12,6 +12,7 @@ using Spectre.Console.Cli;
 
 namespace Portless.Cli.Commands.RunCommand;
 
+[Description("Run an application with a named URL")]
 public class RunCommand : AsyncCommand<RunSettings>
 {
     private readonly IPortAllocator _portAllocator;

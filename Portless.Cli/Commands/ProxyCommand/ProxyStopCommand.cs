@@ -4,6 +4,7 @@ using Portless.Cli.Services;
 
 namespace Portless.Cli.Commands.ProxyCommand;
 
+[Description("Stop the running proxy")]
 public class ProxyStopCommand : AsyncCommand<ProxyStopSettings>
 {
     private readonly IProxyProcessManager _proxyManager;
