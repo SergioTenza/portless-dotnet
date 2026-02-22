@@ -235,6 +235,39 @@ portless proxy status
 portless list
 ```
 
+## 🔌 SignalR Support
+
+Portless.NET supports **SignalR real-time communication** through the proxy using WebSocket transport.
+
+### Features
+
+- **Automatic WebSocket negotiation** - SignalR negotiates WebSocket connections through proxy without special configuration
+- **Bidirectional messaging** - Server can push messages to clients instantly
+- **Broadcast patterns** - Hub broadcasts to all connected clients through proxy
+- **Multiple clients** - Concurrent connections supported (configurable limit)
+
+### Quick Start
+
+1. Start the proxy:
+   ```bash
+   portless proxy start
+   ```
+
+2. Run your SignalR app:
+   ```bash
+   portless mychat -- dotnet run --project MySignalRApp/
+   ```
+
+3. Connect clients to `http://mychat.localhost:1355`
+
+### Example
+
+See [SignalR Chat Example](Examples/SignalRChat/) for a working demonstration of real-time chat through the proxy.
+
+### Troubleshooting
+
+For common SignalR issues and solutions, see [SignalR Troubleshooting Guide](docs/signalr-troubleshooting.md).
+
 ## 🎯 Casos de Uso
 
 ### Desarrollo Full-Stack
