@@ -31,7 +31,7 @@ Requirements for HTTP/2 and WebSocket support. Each maps to roadmap phases.
 
 ### Documentation
 
-- [ ] **DOC-01**: README actualizado con HTTP/2 y WebSocket support section
+- [x] **DOC-01**: README actualizado con HTTP/2 y WebSocket support section
 - [ ] **DOC-02**: Troubleshooting guide para protocol issues (silent downgrade, timeouts)
 - [ ] **DOC-03**: CLI help text updates (`--protocols` flag documentation)
 - [ ] **DOC-04**: Protocol testing guide (curl commands, browser DevTools)
@@ -79,7 +79,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REAL-01 | Phase 11 | Pending |
 | REAL-02 | Phase 11 | Pending |
 | REAL-03 | Phase 11 | Pending |
-| DOC-01 | Phase 12 | Pending |
+| DOC-01 | Phase 12 | Complete |
 | DOC-02 | Phase 12 | Pending |
 | DOC-03 | Phase 12 | Pending |
 | DOC-04 | Phase 12 | Pending |
