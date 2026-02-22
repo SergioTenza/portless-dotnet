@@ -37,10 +37,14 @@ builder.Logging.SetMinimumLevel(LogLevel.Information);
 // Read port from environment variable or use default
 var port = builder.Configuration["PORTLESS_PORT"] ?? "1355";
 
-// Configure Kestrel to listen on all interfaces
+// Configure Kestrel to listen on all interfaces with HTTP/2 support
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(int.Parse(port));
+    options.ListenAnyIP(int.Parse(port), listenOptions =>
+    {
+        // Enable both HTTP/1.1 and HTTP/2 (Kestrel will negotiate via ALPN)
+        listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
+    });
 });
 
 // Register DynamicConfigProvider as singleton for YARP
