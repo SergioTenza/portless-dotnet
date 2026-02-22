@@ -7,7 +7,6 @@ using System.Text.Json;
 
 namespace Portless.Cli.Commands.ListCommand;
 
-[Description("List all active routes with their hostnames, ports, and process IDs")]
 public class ListCommand : AsyncCommand<ListSettings>
 {
     private readonly IRouteStore _routeStore;

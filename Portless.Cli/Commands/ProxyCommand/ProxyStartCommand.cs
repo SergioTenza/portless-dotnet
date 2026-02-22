@@ -4,7 +4,6 @@ using Portless.Cli.Services;
 
 namespace Portless.Cli.Commands.ProxyCommand;
 
-[Description("Starts the Portless.NET proxy (supports HTTP/2 and WebSocket)")]
 public class ProxyStartCommand : AsyncCommand<ProxyStartSettings>
 {
     private readonly IProxyProcessManager _proxyManager;

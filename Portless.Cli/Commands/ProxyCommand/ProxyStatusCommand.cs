@@ -4,7 +4,6 @@ using Portless.Cli.Services;
 
 namespace Portless.Cli.Commands.ProxyCommand;
 
-[Description("Show proxy status and active routes")]
 public class ProxyStatusCommand : AsyncCommand<ProxyStatusSettings>
 {
     private readonly IProxyProcessManager _proxyManager;
