@@ -91,11 +91,11 @@ Portless.NET delivers stable `.localhost` URLs for Windows .NET development thro
   3. CLI help text includes --protocols flag documentation
   4. Protocol testing guide provides curl commands and browser DevTools instructions
 **Plans**: 5 plans
-- [ ] 12-01-PLAN.md — Update Main README with HTTP/2 and WebSocket Support (5 tasks: add HTTP/2 and WebSocket section, document HTTP/2 benefits, document WebSocket support, add quick start examples, reorganize README structure)
-- [ ] 12-02-PLAN.md — Create Protocol Troubleshooting Guide (5 tasks: create troubleshooting guide, document silent downgrade issue, document WebSocket timeout issues, document diagnostic commands, add troubleshooting section to README)
-- [ ] 12-03-PLAN.md — Update CLI Help Text and Documentation (5 tasks: review CLI commands, update help text, add protocol info to status command, create CLI documentation section, test CLI help output)
-- [ ] 12-04-PLAN.md — Create Protocol Testing Guide (5 tasks: create protocol testing guide, document HTTP/2 testing, document WebSocket testing, document protocol verification, add testing examples)
-- [ ] 12-05-PLAN.md — Create Migration Guide and Update Examples README (5 tasks: create migration guide, document new features, document breaking changes, update Examples README, add quick start for each example)
+- [x] 12-01-PLAN.md — Update Main README with HTTP/2 and WebSocket Support (5 tasks: add HTTP/2 and WebSocket section, document HTTP/2 benefits, document WebSocket support, add quick start examples, reorganize README structure) [COMPLETED]
+- [x] 12-02-PLAN.md — Create Protocol Troubleshooting Guide (5 tasks: create troubleshooting guide, document silent downgrade issue, document WebSocket timeout issues, document diagnostic commands, add troubleshooting section to README) [COMPLETED]
+- [x] 12-03-PLAN.md — Update CLI Help Text and Documentation (5 tasks: review CLI commands, update help text, add protocol info to status command, create CLI documentation section, test CLI help output) [COMPLETED]
+- [x] 12-04-PLAN.md — Create Protocol Testing Guide (5 tasks: create protocol testing guide, document HTTP/2 testing, document WebSocket testing, document protocol verification, add testing examples) [COMPLETED]
+- [x] 12-05-PLAN.md — Create Migration Guide and Update Examples README (5 tasks: create migration guide, document new features, document breaking changes, update Examples README, add quick start for each example) [COMPLETED]
 
 ## Progress
 
@@ -112,8 +112,8 @@ Phases execute in numeric order: 9 → 10 → 11 → 12
 | 6. .NET Integration | v1.0 | 3/3 | Complete | 2026-02-21 |
 | 8. Integration Tests | v1.0 | 3/3 | Complete | 2026-02-21 |
 | 9. HTTP/2 Baseline | v1.1 | 1/1 | Complete | 2026-02-22 |
-| 10. WebSocket Proxy | v1.1 | 1/1 | Complete    | 2026-02-22 | - |
-| 11. SignalR Integration | v1.1 | Complete    | 2026-02-22 | 2026-02-22 | - |
-| 12. Documentation | 4/6 | In Progress|  | - |
+| 10. WebSocket Proxy | v1.1 | 1/1 | Complete | 2026-02-22 |
+| 11. SignalR Integration | v1.1 | 3/3 | Complete | 2026-02-22 |
+| 12. Documentation | v1.1 | 5/5 | Complete | 2026-02-22 |
 
 **For detailed v1.0 phase information, see:** [milestones/v1.0-ROADMAP.md](.planning/milestones/v1.0-ROADMAP.md)
