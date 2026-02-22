@@ -41,6 +41,7 @@ Progress: [████████░░░░░░░░░░] 50% (20/20 pl
 - Trend: Stable
 
 *Updated after v1.0 completion*
+| Phase 09-http2-baseline P01 | 8 | 4 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -53,6 +54,8 @@ Recent decisions affecting current work:
 - [Phase 6]: PackAsTool works with acceptable warnings for .NET 10 Native AOT
 - [Phase 1]: YARP selected as reverse proxy engine with built-in HTTP/2 and WebSocket support
 - [Research]: HTTP/2 and WebSocket support require configuration changes only, no new packages (YARP 2.3.0 already supports both)
+- [Phase 09]: Used ForwardedHeaders middleware instead of YARP transforms for X-Forwarded headers (simpler, built-in support)
+- [Phase 09]: HTTP/2 over HTTP requires prior knowledge (curl --http2-prior-knowledge), HTTPS requires TLS 1.2+ for ALPN
 
 ### Pending Todos
 

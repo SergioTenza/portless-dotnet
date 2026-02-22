@@ -9,11 +9,11 @@ Requirements for HTTP/2 and WebSocket support. Each maps to roadmap phases.
 
 ### Protocol Foundation
 
-- [ ] **PROTO-01**: Kestrel configurado con `HttpProtocols.Http1AndHttp2` para habilitar HTTP/2
-- [ ] **PROTO-02**: Protocol logging middleware para detectar silent downgrades (HTTP/2 → HTTP/1.1)
-- [ ] **PROTO-03**: Per-route protocol configuration (HTTP/1.1, HTTP/2, HTTP/3) en cluster metadata
-- [ ] **PROTO-04**: Integration test que verifique HTTP/2 negotiation con `curl -v --http2`
-- [ ] **PROTO-05**: X-Forwarded headers transform configurado para backward compatibility
+- [x] **PROTO-01**: Kestrel configurado con `HttpProtocols.Http1AndHttp2` para habilitar HTTP/2
+- [x] **PROTO-02**: Protocol logging middleware para detectar silent downgrades (HTTP/2 → HTTP/1.1)
+- [x] **PROTO-03**: Per-route protocol configuration (HTTP/1.1, HTTP/2, HTTP/3) en cluster metadata
+- [x] **PROTO-04**: Integration test que verifique HTTP/2 negotiation con `curl -v --http2`
+- [x] **PROTO-05**: X-Forwarded headers transform configurado para backward compatibility
 
 ### WebSocket Support
 
@@ -66,11 +66,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PROTO-01 | Phase 9 | Pending |
-| PROTO-02 | Phase 9 | Pending |
-| PROTO-03 | Phase 9 | Pending |
-| PROTO-04 | Phase 9 | Pending |
-| PROTO-05 | Phase 9 | Pending |
+| PROTO-01 | Phase 9 | Complete |
+| PROTO-02 | Phase 9 | Complete |
+| PROTO-03 | Phase 9 | Complete |
+| PROTO-04 | Phase 9 | Complete |
+| PROTO-05 | Phase 9 | Complete |
 | WS-01 | Phase 10 | Pending |
 | WS-02 | Phase 10 | Pending |
 | WS-03 | Phase 10 | Pending |
