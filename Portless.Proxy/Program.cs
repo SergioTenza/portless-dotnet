@@ -311,9 +311,18 @@ public class RequestLoggingMiddleware
 
             var duration = (DateTime.UtcNow - startTime).TotalMilliseconds;
             var statusCode = context.Response.StatusCode;
+            var protocol = context.Request.Protocol;
 
-            _logger.LogInformation("Request: {Method} {Host}{Path} => {StatusCode} ({Duration}ms)",
-                method, host, path, statusCode, duration);
+            _logger.LogInformation("Request: {Method} {Host}{Path} => {StatusCode} ({Duration}ms) [{Protocol}]",
+                method, host, path, statusCode, duration, protocol);
+
+            // Detect silent protocol downgrades (HTTP/2 requested but HTTP/1.1 used)
+            var http2Requested = context.Request.Headers["Upgrade-Insecure-Requests"].Count > 0 ||
+                                context.Request.Headers.ContainsKey("HTTP2-Settings");
+            if (protocol == "HTTP/1.1" && http2Requested)
+            {
+                _logger.LogWarning("Possible silent HTTP/2 downgrade detected: Client may have requested HTTP/2 but HTTP/1.1 was used. Check TLS/ALPN configuration.");
+            }
         }
         catch (Exception ex)
         {
