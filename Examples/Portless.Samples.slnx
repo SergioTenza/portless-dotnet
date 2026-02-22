@@ -1,6 +1,9 @@
 <Solution>
   <Project Path="BlazorApp/BlazorApp.csproj" />
   <Project Path="ConsoleApp/ConsoleApp.csproj" />
+  <Project Path="SignalRChat/SignalRChat.csproj" />
+  <Project Path="SignalRChat.Client/SignalRChat.Client.csproj" />
   <Project Path="WebApi/WebApi.csproj" />
   <Project Path="WorkerService/WorkerService.csproj" />
+  <Project Path="WebSocketEchoServer/WebSocketEchoServer.csproj" />
 </Solution>
