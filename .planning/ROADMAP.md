@@ -8,7 +8,7 @@ Portless.NET delivers stable `.localhost` URLs for Windows .NET development thro
 
 - ✅ **v1.0 MVP** - Phases 1-8 (shipped 2026-02-21)
 - ✅ **v1.1 Advanced Protocols** - Phases 9-12 (shipped 2026-02-22)
-- 🚧 **v1.2 HTTPS with Automatic Certificates** - Phases 13-19 (in progress)
+- 🚧 **v1.2 HTTPS with Automatic Certificates** - Phases 13-19 (Phase 13 complete, 1/7 phases done)
 
 ## Phases
 
@@ -38,6 +38,34 @@ Portless.NET delivers stable `.localhost` URLs for Windows .NET development thro
 </details>
 
 <details>
+<summary>✅ Phase 13: Certificate Generation - COMPLETE 2026-02-22</summary>
+
+**Goal**: Automatic generation of local Certificate Authority and wildcard certificates for `.localhost` domains
+**Depends on**: Phase 12
+**Requirements**: CERT-01, CERT-02, CERT-03, CERT-04, CERT-05, CERT-06, CERT-07, CERT-08, CERT-09
+
+**Plans:**
+- [x] 13-01-PLAN.md — Certificate generation service (CA + wildcard certificates with .NET native APIs)
+- [x] 13-02-PLAN.md — Certificate storage and secure file permissions (cross-platform PFX + JSON persistence)
+- [x] 13-03-PLAN.md — Certificate manager orchestration (lifecycle, validation, auto-regeneration)
+
+**Delivered:**
+- ICertificateService with CA and wildcard certificate generation using .NET 10 native APIs
+- CertificateAuthority (4096-bit RSA, 5-year validity, CA extensions)
+- Wildcard certificate (2048-bit RSA, SAN for localhost/*.localhost/127.0.0.1/::1, 5-year validity)
+- Three-file storage strategy (ca.pfx, cert.pfx, cert-info.json) with secure permissions
+- Cross-platform file permission service (chmod 600 on Unix, ACL on Windows)
+- ICertificateManager orchestration with automatic lifecycle management
+- First-time generation with user notification (logger prompt)
+- Existing certificate reuse without prompting
+- Automatic regeneration for corrupted certificates
+- 30-day expiration warning window
+- File permission verification with security warnings
+- DI registration via AddPortlessCertificates extension
+
+</details>
+
+<details>
 <summary>✅ v1.1 Advanced Protocols (Phases 9-12) - SHIPPED 2026-02-22</summary>
 
 **See:** [Full milestone details](.planning/milestones/v1.1-ROADMAP.md)
@@ -61,23 +89,6 @@ Portless.NET delivers stable `.localhost` URLs for Windows .NET development thro
 ### 🚧 v1.2 HTTPS with Automatic Certificates (In Progress)
 
 **Milestone Goal:** HTTPS support con certificados TLS automáticos generados on-the-fly para desarrollo local seguro sin configuración manual
-
-#### Phase 13: Certificate Generation
-**Goal**: Automatic generation of local Certificate Authority and wildcard certificates for `.localhost` domains
-**Depends on**: Phase 12
-**Requirements**: CERT-01, CERT-02, CERT-03, CERT-04, CERT-05, CERT-06, CERT-07, CERT-08, CERT-09
-**Success Criteria** (what must be TRUE):
-  1. Local CA certificate is automatically generated on first proxy start with 5-year validity (per user context)
-  2. Wildcard certificate for `*.localhost` is generated with SAN extensions (DNS names + IP addresses)
-  3. Certificates persist to `~/.portless/ca.pfx`, `cert.pfx`, and `cert-info.json`
-  4. Certificates use .NET native APIs only (no external dependencies like BouncyCastle or OpenSSL)
-  5. Private keys are stored with secure file permissions (600 on Unix, ACL on Windows)
-**Plans**: 3 plans in 3 waves
-
-Plans:
-- [ ] 13-01-PLAN.md — Certificate generation service (CA + wildcard certificates with .NET native APIs)
-- [ ] 13-02-PLAN.md — Certificate storage and secure file permissions (cross-platform PFX + JSON persistence)
-- [ ] 13-03-PLAN.md — Certificate manager orchestration (lifecycle, validation, auto-regeneration)
 
 #### Phase 14: Trust Installation
 **Goal**: Windows-based CA certificate trust installation with status verification
