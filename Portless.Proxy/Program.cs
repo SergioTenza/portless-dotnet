@@ -41,6 +41,10 @@ var port = builder.Configuration["PORTLESS_PORT"] ?? "1355";
 // Configure Kestrel to listen on all interfaces with HTTP/2 support
 builder.WebHost.ConfigureKestrel(options =>
 {
+    // Configure limits for long-lived WebSocket connections
+    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(10); // Default is 2 minutes
+    options.Limits.MaxConcurrentUpgradedConnections = 1000; // Default is 100
+
     options.ListenAnyIP(int.Parse(port), listenOptions =>
     {
         // Enable both HTTP/1.1 and HTTP/2 (Kestrel will negotiate via ALPN)
