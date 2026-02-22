@@ -3,49 +3,99 @@
 **Defined:** 2026-02-22
 **Core Value:** URLs estables y predecibles para desarrollo local
 
-## v1.1 Requirements
+## v1.2 Requirements
 
-Requirements for HTTP/2 and WebSocket support. Each maps to roadmap phases.
+Requirements for HTTPS with Automatic Certificates milestone. Each maps to roadmap phases.
 
-### Protocol Foundation
+### Certificate Generation (CERT)
 
-- [x] **PROTO-01**: Kestrel configurado con `HttpProtocols.Http1AndHttp2` para habilitar HTTP/2
-- [x] **PROTO-02**: Protocol logging middleware para detectar silent downgrades (HTTP/2 → HTTP/1.1)
-- [x] **PROTO-03**: Per-route protocol configuration (HTTP/1.1, HTTP/2, HTTP/3) en cluster metadata
-- [x] **PROTO-04**: Integration test que verifique HTTP/2 negotiation con `curl -v --http2`
-- [x] **PROTO-05**: X-Forwarded headers transform configurado para backward compatibility
+- [ ] **CERT-01**: User can generate local Certificate Authority (CA) automatically on first proxy start
+- [ ] **CERT-02**: CA certificate has 10-year validity period
+- [ ] **CERT-03**: User can generate wildcard certificate for `*.localhost` domains
+- [ ] **CERT-04**: Wildcard certificate includes Subject Alternative Names (SAN) for DNS (`localhost`, `*.localhost`) and IP addresses (`127.0.0.1`, `::1`)
+- [ ] **CERT-05**: Server certificates have 1-year validity period
+- [ ] **CERT-06**: Certificates are marked exportable during creation (X509KeyStorageFlags.Exportable)
+- [ ] **CERT-07**: Private keys are stored with secure file permissions (600 on Unix, ACL on Windows)
+- [ ] **CERT-08**: Certificates persist to `~/.portless/ca.pfx`, `cert.pfx`, `cert-info.json`
+- [ ] **CERT-09**: Certificate creation uses .NET native APIs only (no BouncyCastle, OpenSSL, or mkcert dependencies)
 
-### WebSocket Support
+### Trust Installation (TRUST)
 
-- [x] **WS-01**: WebSocket transparent proxy para HTTP/1.1 upgrade (101 Switching Protocols)
-- [x] **WS-02**: WebSocket transparent proxy para HTTP/2 WebSocket (RFC 8441 Extended CONNECT)
-- [x] **WS-03**: Kestrel timeout configuration (`KeepAliveTimeout`, `MaxConcurrentUpgradedConnections`)
-- [x] **WS-04**: Integration test para WebSocket bidirectional messaging
-- [x] **WS-05**: WebSocket echo server example para testing
+- [ ] **TRUST-01**: User can install CA certificate to Windows Certificate Store via `portless cert install` command
+- [ ] **TRUST-02**: Trust installation targets `Cert:\LocalMachine\Root` store using X509Store API
+- [ ] **TRUST-03**: User can verify trust status via `portless cert status` command
+- [ ] **TRUST-04**: Trust status check detects if CA is not trusted and displays platform-specific installation instructions
+- [ ] **TRUST-05**: User can uninstall CA certificate from trust store via `portless cert uninstall` command
+- [ ] **TRUST-06**: macOS/Linux trust installation deferred to v1.3+ (documented as known limitation)
 
-### Real-Time Examples
+### HTTPS Endpoint (HTTPS)
 
-- [ ] **REAL-01**: SignalR chat example demostrando real-time messaging a través del proxy
-- [ ] **REAL-02**: SignalR integration test verificando conexión WebSocket
-- [ ] **REAL-03**: Documentation para SignalR troubleshooting
+- [ ] **HTTPS-01**: Proxy listens on dual endpoints: HTTP (1355) and HTTPS (1356)
+- [ ] **HTTPS-02**: HTTPS port is configurable via `PORTLESS_HTTPS_PORT` environment variable
+- [ ] **HTTPS-03**: HTTPS endpoint uses generated wildcard certificate from `~/.portless/cert.pfx`
+- [ ] **HTTPS-04**: Kestrel enforces TLS 1.2+ minimum protocol version
+- [ ] **HTTPS-05**: HTTP endpoint remains functional for backward compatibility
 
-### Documentation
+### Mixed Protocol Support (MIXED)
 
-- [x] **DOC-01**: README actualizado con HTTP/2 y WebSocket support section
-- [ ] **DOC-02**: Troubleshooting guide para protocol issues (silent downgrade, timeouts)
-- [ ] **DOC-03**: CLI help text updates (`--protocols` flag documentation)
-- [ ] **DOC-04**: Protocol testing guide (curl commands, browser DevTools)
+- [ ] **MIXED-01**: Proxy preserves original protocol in X-Forwarded-Proto header
+- [ ] **MIXED-02**: Backend HTTP services receive `X-Forwarded-Proto: http`
+- [ ] **MIXED-03**: Backend HTTPS services receive `X-Forwarded-Proto: https`
+- [ ] **MIXED-04**: Proxy supports mixed routing (some backends HTTP, others HTTPS)
+- [ ] **MIXED-05**: YARP backend SSL validation configured for development mode (accepts self-signed certificates)
 
-## v2 Requirements
+### Certificate Lifecycle (LIFECYCLE)
+
+- [ ] **LIFECYCLE-01**: Proxy checks certificate expiration on startup
+- [ ] **LIFECYCLE-02**: System displays warning when certificate expires within 30 days
+- [ ] **LIFECYCLE-03**: Background hosted service checks certificate expiration every 6 hours
+- [ ] **LIFECYCLE-04**: Certificate auto-renews when within 30 days of expiration
+- [ ] **LIFECYCLE-05**: User can manually renew certificate via `portless cert renew` command
+- [ ] **LIFECYCLE-06**: Certificate renewal requires proxy restart (hot-reload deferred to v1.3+)
+- [ ] **LIFECYCLE-07**: Certificate metadata stored in `~/.portless/cert-info.json` (creation timestamp, expiration, fingerprint)
+
+### CLI Integration (CLI)
+
+- [ ] **CLI-01**: `portless cert install` — Install CA certificate to system trust store
+- [ ] **CLI-02**: `portless cert status` — Display certificate trust status, expiration date, fingerprint
+- [ ] **CLI-03**: `portless cert renew` — Manually trigger certificate renewal
+- [ ] **CLI-04**: `portless cert uninstall` — Remove CA certificate from system trust store
+- [ ] **CLI-05**: `portless proxy start --https` — Start proxy with HTTPS endpoint enabled
+- [ ] **CLI-06**: Certificate commands display colored output with Spectre.Console formatting
+
+### Testing (TEST)
+
+- [ ] **TEST-01**: Integration tests verify certificate generation with correct SAN extensions
+- [ ] **TEST-02**: Integration tests verify HTTPS endpoint serves valid TLS certificate
+- [ ] **TEST-03**: Integration tests verify X-Forwarded-Proto header preservation
+- [ ] **TEST-04**: Integration tests verify certificate renewal before expiration
+- [ ] **TEST-05**: Integration tests verify trust status detection on Windows
+- [ ] **TEST-06**: Integration tests cover mixed HTTP/HTTPS backend routing scenarios
+
+### Documentation (DOCS)
+
+- [ ] **DOCS-01**: User guide for certificate management (install, verify, renew, uninstall)
+- [ ] **DOCS-02**: Troubleshooting guide for common certificate issues (untrusted CA, expired cert, SAN mismatch)
+- [ ] **DOCS-03**: Migration guide from v1.1 HTTP-only to v1.2 HTTPS
+- [ ] **DOCS-04**: Platform-specific notes (Windows Certificate Store, macOS/Linux deferred to v1.3)
+- [ ] **DOCS-05**: Security considerations for development certificates (private key protection, trust implications)
+
+## v1.3+ Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
 
+### Cross-Platform Trust Installation
+
+- **TRUST-macOS-01**: macOS Keychain trust installation via `security add-trusted-cert` command
+- **TRUST-Linux-01**: Linux trust installation via distribution-specific commands (`update-ca-certificates`, `update-ca-trust`)
+- **TRUST-Firefox-01**: Firefox NSS database trust installation via `certutil` commands
+
 ### Advanced Features
 
-- **ADV-01**: HTTP/3 (QUIC) support para TCP head-of-line blocking elimination
-- **ADV-02**: 103 Early Hints support para preloading anticipado
-- **ADV-03**: Automatic heartbeat para WebSocket keep-alive
-- **ADV-04**: Connection pooling metrics para observability
+- **HTTPS-HotReload-01**: Certificate hot-reload without proxy restart (Kestrel certificate reload)
+- **HTTPS-SNI-01**: Server Name Indication (SNI) support for multiple certificates per IP
+- **HTTPS-CustomDomain-01**: Custom domain certificates beyond `.localhost` (e.g., `.local`, `.test`)
+- **HTTPS-DevCerts-01**: Integration with `dotnet dev-certs` to reuse existing ASP.NET Core certificates
 
 ## Out of Scope
 
@@ -53,12 +103,15 @@ Explicitly excluded. Documented to prevent scope creep.
 
 | Feature | Reason |
 |---------|--------|
-| HTTPS support | Requiere certificados SSL y configuración TLS — defer to v1.2+ |
-| Cross-platform macOS/Linux | Validación prioritaria pero deferida — Windows focus mantenido |
-| HTTP/2 Server Push | Siendo deprecado en favor de 103 Early Hints — poor browser support |
-| gRPC support | Depende de HTTP/2 pero requiere configuración adicional — defer to v1.2+ |
-| Load balancing | Single destination por hostname es suficiente para local dev |
-| Rate limiting | No necesario para desarrollo local |
+| Let's Encrypt integration | Let's Encrypt doesn't issue certificates for localhost/private IPs; unnecessary complexity for local development |
+| Certificate revocation infrastructure | Development environment doesn't need revocation; adds massive complexity |
+| EV (Extended Validation) certificates | EV requires organization validation; meaningless for localhost development |
+| Multiple certificate authorities | Managing multiple CAs complicates trust installation; single CA sufficient |
+| OCSP/CRL support simulation | Mock OCSP responder required; conflicts with zero-configuration goal |
+| Certificate sharing across network | Exposes private key; violates security model; `.localhost` doesn't resolve network-wide |
+| Certificate password protection | Private keys protected by file permissions; password adds friction for local dev |
+| HSTS force-enable | HSTS headers persist for weeks; can lock developer out of localhost |
+| Perfect Forward Secrecy (PFS) enforcement | PFS is default in .NET 10; manual cipher suite configuration is complex and error-prone |
 
 ## Traceability
 
@@ -66,29 +119,20 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PROTO-01 | Phase 9 | Complete |
-| PROTO-02 | Phase 9 | Complete |
-| PROTO-03 | Phase 9 | Complete |
-| PROTO-04 | Phase 9 | Complete |
-| PROTO-05 | Phase 9 | Complete |
-| WS-01 | Phase 10 | Complete |
-| WS-02 | Phase 10 | Complete |
-| WS-03 | Phase 10 | Complete |
-| WS-04 | Phase 10 | Complete |
-| WS-05 | Phase 10 | Complete |
-| REAL-01 | Phase 11 | Pending |
-| REAL-02 | Phase 11 | Pending |
-| REAL-03 | Phase 11 | Pending |
-| DOC-01 | Phase 12 | Complete |
-| DOC-02 | Phase 12 | Pending |
-| DOC-03 | Phase 12 | Pending |
-| DOC-04 | Phase 12 | Pending |
+| CERT-01 through CERT-09 | Phase 13-01 | Pending |
+| TRUST-01 through TRUST-06 | Phase 13-02 | Pending |
+| HTTPS-01 through HTTPS-05 | Phase 13-03 | Pending |
+| MIXED-01 through MIXED-05 | Phase 13-04 | Pending |
+| LIFECYCLE-01 through LIFECYCLE-07 | Phase 13-05 | Pending |
+| CLI-01 through CLI-06 | Phase 13-02, Phase 13-05 | Pending |
+| TEST-01 through TEST-06 | Phase 13-06 | Pending |
+| DOCS-01 through DOCS-05 | Phase 13-07 | Pending |
 
 **Coverage:**
-- v1.1 requirements: 16 total
-- Mapped to phases: 16
+- v1.2 requirements: 36 total
+- Mapped to phases: 36 (7 phases proposed)
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-02-22*
-*Last updated: 2026-02-22 after roadmap creation*
+*Last updated: 2026-02-22 after initial definition*
