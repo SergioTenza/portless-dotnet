@@ -5,28 +5,28 @@
 See: .planning/PROJECT.md (updated 2026-02-22)
 
 **Core value:** URLs estables y predecibles para desarrollo local
-**Current focus:** Phase 13: Certificate Generation
+**Current focus:** Phase 14: Trust Installation
 
 ## Current Position
 
-Phase: 13 of 19 (Certificate Generation)
-Plan: 3 of 3 in current phase
-Status: Certificate manager orchestration service implemented with automatic lifecycle management
-Last activity: 2026-02-22 — Certificate manager with automatic regeneration, corruption detection, and expiration warnings
+Phase: 14 of 19 (Trust Installation)
+Plan: 1 of 3 in current phase
+Status: Windows Certificate Store integration service implemented with X509Store API
+Last activity: 2026-02-23 — Certificate trust service with install, status, and uninstall operations
 Current branch: development (active development branch)
-Resume file: .planning/phases/13-certificate-generation/13-03-SUMMARY.md
+Resume file: .planning/phases/14-trust-installation/14-01-SUMMARY.md
 
-Progress: [██████████░░░░░░░░░░] 47%
+Progress: [██████████░░░░░░░░░░] 49%
 
 **Milestone completion:**
 - v1.0 MVP: Complete (2026-02-21) — 20 plans
 - v1.1 Advanced Protocols: Complete (2026-02-22) — 14 plans
-- v1.2 HTTPS with Automatic Certificates: 1/7 phases started (Phase 13: Certificate Generation complete)
+- v1.2 HTTPS with Automatic Certificates: 2/7 phases started (Phase 13: Certificate Generation complete, Phase 14-01: Trust Service complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 62 plans (v1.0 + v1.1 + Phase 13)
+- Total plans completed: 63 plans (v1.0 + v1.1 + Phase 13 + Phase 14-01)
 - Average duration: ~11 min per plan
 - Total execution time: ~11.5 hours across 2 milestones + Phase 13
 
@@ -53,6 +53,7 @@ Progress: [██████████░░░░░░░░░░] 47%
 
 *Updated: 2026-02-22*
 | Phase 13 P02 | 15 | 3 tasks | 6 files |
+| Phase 14 P01 | 4 | 4 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -76,6 +77,10 @@ Recent decisions affecting current work:
 - [Phase 11]: Integration tests verify SignalR connection establishment and message flow through proxy
 - [Phase 11]: Troubleshooting guide documents common SignalR issues: SSE fallback, connection drops, "connection not started" errors, message delivery, and multi-client broadcasts
 - [Phase 11]: Best practices documented for connection management, error handling, retry logic, testing strategy, and development vs production considerations
+- [Phase 14]: Windows Certificate Store integration uses LocalMachine Root store for system-wide trust (requires admin)
+- [Phase 14]: Trust operations are idempotent (install twice succeeds, uninstall non-existent cert succeeds)
+- [Phase 14]: Platform guards with [SupportedOSPlatform] and OperatingSystem.IsWindows() checks for Windows-only services
+- [Phase 14]: Trust status detection includes 30-day expiration warning via TrustStatus.ExpiringSoon
 
 ### Pending Todos
 
@@ -95,6 +100,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-22 (Phase 13 complete - Certificate Generation)
-Stopped at: Certificate manager orchestration service implemented with automatic lifecycle management
-Resume file: .planning/phases/13-certificate-generation/13-03-SUMMARY.md
+Last session: 2026-02-23 (Phase 14-01 complete - Certificate Trust Service)
+Stopped at: Windows Certificate Store integration service implemented with X509Store API
+Resume file: .planning/phases/14-trust-installation/14-01-SUMMARY.md
