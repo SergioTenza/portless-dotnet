@@ -56,6 +56,7 @@ Progress: [█████████░░░░░░░░░] 45% (Phases 1
 *Updated: 2026-02-23*
 | Phase 14 P03 | 4 | 4 tasks | 3 files |
 | Phase 14 P03 | 4 | 4 tasks | 3 files |
+| Phase 15 P01 | 7 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -94,6 +95,12 @@ Recent decisions affecting current work:
 - [Phase 15-01]: Certificate pre-startup validation exits with code 1 if certificate invalid, with clear error message to run 'portless cert install'
 - [Phase 15-01]: TLS 1.2+ minimum protocol enforced via ConfigureHttpsDefaults for secure HTTPS connections
 - [Phase 15-01]: Temporary BuildServiceProvider used to load certificate before Kestrel configuration (accepted ASP0000 warning for pre-configuration)
+- [Phase 15]: Fixed ports enforced (HTTP=1355, HTTPS=1356) with PORTLESS_PORT deprecation warning for simplified HTTPS configuration
+- [Phase 15]: 308 Permanent Redirect used instead of 301 to preserve HTTP methods during HTTP to HTTPS redirect
+- [Phase 15]: API endpoint exclusion from HTTPS redirect - /api/v1/* management endpoints remain HTTP for CLI add/remove operations
+- [Phase 15]: Certificate pre-startup validation exits with code 1 if invalid, with clear error message
+- [Phase 15]: TLS 1.2+ minimum protocol enforced via ConfigureHttpsDefaults for secure HTTPS connections
+- [Phase 15]: Temporary BuildServiceProvider used to load certificate before Kestrel configuration (accepted ASP0000 warning)
 
 ### Pending Todos
 

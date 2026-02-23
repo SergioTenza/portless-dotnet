@@ -208,7 +208,7 @@ Phases execute in numeric order: 13 → 14 → 15 → 16 → 17 → 18 → 19
 | 12. Documentation | v1.1 | 5/5 | Complete | 2026-02-22 |
 | 13. Certificate Generation | v1.2 | 3/3 | Complete | 2026-02-22 |
 | 14. Trust Installation | v1.2 | 3/3 | Complete | 2026-02-23 |
-| 15. HTTPS Endpoint | v1.2 | 1/1 | Complete | 2026-02-23 |
+| 15. HTTPS Endpoint | 1/1 | Complete   | 2026-02-23 | 2026-02-23 |
 | 16. Mixed Protocol Support | v1.2 | 0/0 | Not started | - |
 | 17. Certificate Lifecycle | v1.2 | 0/0 | Not started | - |
 | 18. Integration Tests | v1.2 | 0/0 | Not started | - |

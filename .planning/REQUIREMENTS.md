@@ -30,11 +30,11 @@ Requirements for HTTPS with Automatic Certificates milestone. Each maps to roadm
 
 ### HTTPS Endpoint (HTTPS)
 
-- [ ] **HTTPS-01**: Proxy listens on dual endpoints: HTTP (1355) and HTTPS (1356)
+- [x] **HTTPS-01**: Proxy listens on dual endpoints: HTTP (1355) and HTTPS (1356)
 - [ ] **HTTPS-02**: HTTPS port is configurable via `PORTLESS_HTTPS_PORT` environment variable
-- [ ] **HTTPS-03**: HTTPS endpoint uses generated wildcard certificate from `~/.portless/cert.pfx`
-- [ ] **HTTPS-04**: Kestrel enforces TLS 1.2+ minimum protocol version
-- [ ] **HTTPS-05**: HTTP endpoint remains functional for backward compatibility
+- [x] **HTTPS-03**: HTTPS endpoint uses generated wildcard certificate from `~/.portless/cert.pfx`
+- [x] **HTTPS-04**: Kestrel enforces TLS 1.2+ minimum protocol version
+- [x] **HTTPS-05**: HTTP endpoint remains functional for backward compatibility
 
 ### Mixed Protocol Support (MIXED)
 
@@ -60,7 +60,7 @@ Requirements for HTTPS with Automatic Certificates milestone. Each maps to roadm
 - [ ] **CLI-02**: `portless cert status` — Display certificate trust status, expiration date, fingerprint
 - [ ] **CLI-03**: `portless cert renew` — Manually trigger certificate renewal
 - [ ] **CLI-04**: `portless cert uninstall` — Remove CA certificate from system trust store
-- [ ] **CLI-05**: `portless proxy start --https` — Start proxy with HTTPS endpoint enabled
+- [x] **CLI-05**: `portless proxy start --https` — Start proxy with HTTPS endpoint enabled
 - [ ] **CLI-06**: Certificate commands display colored output with Spectre.Console formatting
 
 ### Testing (TEST)
@@ -134,11 +134,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TRUST-04 | Phase 14 | Complete |
 | TRUST-05 | Phase 14 | Complete |
 | TRUST-06 | Phase 14 | Complete |
-| HTTPS-01 | Phase 15 | Pending |
+| HTTPS-01 | Phase 15 | Complete |
 | HTTPS-02 | Phase 15 | Pending |
-| HTTPS-03 | Phase 15 | Pending |
-| HTTPS-04 | Phase 15 | Pending |
-| HTTPS-05 | Phase 15 | Pending |
+| HTTPS-03 | Phase 15 | Complete |
+| HTTPS-04 | Phase 15 | Complete |
+| HTTPS-05 | Phase 15 | Complete |
 | MIXED-01 | Phase 16 | Pending |
 | MIXED-02 | Phase 16 | Pending |
 | MIXED-03 | Phase 16 | Pending |
@@ -155,7 +155,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CLI-02 | Phase 14 | Pending |
 | CLI-03 | Phase 17 | Pending |
 | CLI-04 | Phase 14 | Pending |
-| CLI-05 | Phase 15 | Pending |
+| CLI-05 | Phase 15 | Complete |
 | CLI-06 | Phase 17 | Pending |
 | TEST-01 | Phase 18 | Pending |
 | TEST-02 | Phase 18 | Pending |
