@@ -152,13 +152,14 @@ Plans:
   4. Certificate metadata stored in `~/.portless/cert-info.json` (creation timestamp, expiration, fingerprint)
   5. User can manually renew certificate via `portless cert renew` command with colored Spectre.Console output
   6. Certificate renewal requires proxy restart (documented limitation, hot-reload deferred to v1.3+)
-**Plans**: 4 plans
+**Plans**: 5 plans (4 implementation + 1 gap closure)
 
 Plans:
 - [x] 17-01-PLAN.md — Background certificate monitoring service with IHostedService (LIFECYCLE-01, LIFECYCLE-02, LIFECYCLE-03, LIFECYCLE-04) ✅ Complete 2026-02-23
 - [x] 17-02-PLAN.md — CLI certificate renewal and check commands (CLI-03, CLI-06, LIFECYCLE-05) ✅ Complete 2026-02-23
 - [x] 17-03-PLAN.md — Proxy startup certificate check integration (LIFECYCLE-01, LIFECYCLE-02) ✅ Complete 2026-02-23
 - [x] 17-04-PLAN.md — Environment variable configuration and documentation (LIFECYCLE-06, DOCS-01, DOCS-05) ✅ Complete 2026-02-23
+- [ ] 17-05-PLAN.md — Fix namespace compilation errors in certificate monitoring service (gap closure) 🔄 Planning 2026-02-23
 
 #### Phase 18: Integration Tests
 **Goal**: Comprehensive test coverage for HTTPS features
