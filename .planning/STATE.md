@@ -5,30 +5,30 @@
 See: .planning/PROJECT.md (updated 2026-02-22)
 
 **Core value:** URLs estables y predecibles para desarrollo local
-**Current focus:** Phase 14: Trust Installation
+**Current focus:** Milestone v1.2 HTTPS - Certificate Management Complete (Phases 13-14), awaiting next milestone decision
 
 ## Current Position
 
 Phase: 14 of 19 (Trust Installation)
 Plan: 3 of 3 in current phase (COMPLETE)
-Status: Cross-platform certificate trust messaging implemented with manual instructions for macOS/Linux
-Last activity: 2026-02-23 — Cross-platform platform detection and manual trust instructions
+Status: Milestone v1.2 certificate management complete, awaiting decision on remaining phases (15-19)
+Last activity: 2026-02-23 — Phase 14 complete, milestone v1.2 partial completion archived
 Current branch: development (active development branch)
-Resume file: .planning/phases/14-trust-installation/14-03-SUMMARY.md
+Resume file: .planning/phases/14-trust-installation/.continue-here.md (phase complete)
 
-Progress: [████████████████████] 100%
+Progress: [████████░░░░░░░░░░] 40% (Phases 13-14 complete, Phases 15-19 deferred)
 
 **Milestone completion:**
 - v1.0 MVP: Complete (2026-02-21) — 20 plans
 - v1.1 Advanced Protocols: Complete (2026-02-22) — 14 plans
-- v1.2 HTTPS with Automatic Certificates: 2/7 phases complete (Phase 13: Certificate Generation complete, Phase 14: Trust Installation complete)
+- v1.2 HTTPS with Automatic Certificates: Partial (2026-02-23) — 2/7 phases complete (Phases 13-14: Certificate Management)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 66 plans (v1.0 + v1.1 + Phase 13 + Phase 14 complete)
-- Average duration: ~11 min per plan
-- Total execution time: ~11.5 hours across 2 milestones + Phase 13 + Phase 14
+- Total plans completed: 72 plans (v1.0 + v1.1 + Phase 13 + Phase 14 complete)
+- Average duration: ~10.5 min per plan
+- Total execution time: ~12.5 hours across 2 milestones + Phase 13 + Phase 14
 
 **By Phase:**
 
@@ -105,6 +105,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-23 (Phase 14 complete - Cross-Platform Trust Messaging)
-Stopped at: Cross-platform platform detection and manual trust instructions for macOS/Linux
-Resume file: .planning/phases/14-trust-installation/14-03-SUMMARY.md
+Last session: 2026-02-23 (Milestone v1.2 Partial Completion Archived)
+Stopped at: Phase 14 complete, milestone v1.2 certificate management archived, awaiting next milestone decision
+Resume file: .planning/phases/14-trust-installation/.continue-here.md (phase complete)

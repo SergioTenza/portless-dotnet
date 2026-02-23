@@ -8,7 +8,7 @@ Portless.NET delivers stable `.localhost` URLs for Windows .NET development thro
 
 - ✅ **v1.0 MVP** - Phases 1-8 (shipped 2026-02-21)
 - ✅ **v1.1 Advanced Protocols** - Phases 9-12 (shipped 2026-02-22)
-- 🚧 **v1.2 HTTPS with Automatic Certificates** - Phases 13-19 (Phase 13 complete, 1/7 phases done)
+- 🟡 **v1.2 HTTPS with Automatic Certificates** - Phases 13-19 (Phases 13-14 complete, 2/7 phases done, certificate management complete)
 
 ## Phases
 
@@ -86,9 +86,13 @@ Portless.NET delivers stable `.localhost` URLs for Windows .NET development thro
 
 </details>
 
-### 🚧 v1.2 HTTPS with Automatic Certificates (In Progress)
+### 🟡 v1.2 HTTPS with Automatic Certificates (Partial - Certificate Management Complete)
+
+**Milestone Status:** Phases 13-14 complete (certificate generation & trust management). Phases 15-19 deferred (HTTPS proxy integration, lifecycle, tests, docs).
 
 **Milestone Goal:** HTTPS support con certificados TLS automáticos generados on-the-fly para desarrollo local seguro sin configuración manual
+
+**See:** [Full milestone details](.planning/milestones/v1.2-ROADMAP.md)
 
 #### Phase 14: Trust Installation
 **Goal**: Windows-based CA certificate trust installation with status verification
@@ -202,8 +206,8 @@ Phases execute in numeric order: 13 → 14 → 15 → 16 → 17 → 18 → 19
 | 10. WebSocket Proxy | v1.1 | 1/1 | Complete | 2026-02-22 |
 | 11. SignalR Integration | v1.1 | 3/3 | Complete | 2026-02-22 |
 | 12. Documentation | v1.1 | 5/5 | Complete | 2026-02-22 |
-| 13. Certificate Generation | 2/3 | Complete    | 2026-02-22 | - |
-| 14. Trust Installation | 3/3 | Complete    | 2026-02-23 | - |
+| 13. Certificate Generation | v1.2 | 3/3 | Complete | 2026-02-22 |
+| 14. Trust Installation | v1.2 | 3/3 | Complete | 2026-02-23 |
 | 15. HTTPS Endpoint | v1.2 | 0/0 | Not started | - |
 | 16. Mixed Protocol Support | v1.2 | 0/0 | Not started | - |
 | 17. Certificate Lifecycle | v1.2 | 0/0 | Not started | - |

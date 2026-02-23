@@ -14,6 +14,8 @@ Es un port de [Portless](https://github.com/portless/portless) (Node.js) a .NET 
 
 **Shipped:** v1.1 Advanced Protocols — 2026-02-22
 
+**Current Development:** v1.2 HTTPS (Partial) — 2026-02-23
+
 Portless.NET v1.1 adds advanced protocol support (HTTP/2 and WebSockets) to enable real-time applications and improved performance. Building on v1.0 MVP, v1.1 includes:
 
 **v1.0 Features (Foundation):**
@@ -41,18 +43,28 @@ Portless.NET v1.1 adds advanced protocol support (HTTP/2 and WebSockets) to enab
 
 **Codebase:** ~6,500 LOC C# across 4 projects (Core, Cli, Proxy, Tests)
 
-## Current Milestone: v1.2 HTTPS with Automatic Certificates
+## Current Milestone: v1.2 HTTPS (Partial - Certificate Management Complete)
 
-**Goal:** Implement HTTPS support con certificados TLS automáticos generados on-the-fly para desarrollo local seguro sin configuración manual.
+**Status:** Phases 13-14 complete (certificate generation & trust management). Phases 15-19 deferred (HTTPS proxy integration, lifecycle, tests, docs).
 
-**Target features:**
-- Certificate authority (CA) local para generar certificados automáticamente
-- Wildcard certificates para `*.localhost` (o `*.local.dev` según configuración)
-- Trust certificate installation en sistema operativo (Windows/macOS/Linux)
-- HTTPS endpoint en proxy (puerto 1356 por defecto, configurable)
-- Mixed HTTP/HTTPS support (mismo proxy, ambos protocolos)
-- Certificate renewal automática antes de expiración
-- CLI commands para gestión de certificados (`portless cert install`, `portless cert trust`, `portless cert status`)
+**Delivered (v1.2 Partial):**
+- Certificate Authority (CA) local con 4096-bit RSA, 5-year validity
+- Wildcard certificates para `*.localhost` (2048-bit RSA, SAN extensions)
+- Secure certificate storage en `~/.portless/` con PFX + JSON metadata
+- Windows Certificate Store integration (LocalMachine Root store)
+- CLI commands: `portless cert install/status/uninstall`
+- Cross-platform messaging (manual instructions para macOS/Linux)
+- Auto-renewal detection (30-day warning)
+- Idempotent operations con proper exit codes
+
+**Deferred (Future Releases):**
+- HTTPS endpoint integration (proxy configuration)
+- Mixed HTTP/HTTPS protocol support
+- Background certificate lifecycle monitoring
+- Integration test coverage
+- User documentation
+
+**See:** [v1.2 Roadmap](.planning/milestones/v1.2-ROADMAP.md) | [v1.2 Requirements](.planning/milestones/v1.2-REQUIREMENTS.md)
 
 ## Next Milestone Goals
 
@@ -83,6 +95,16 @@ Portless.NET v1.1 adds advanced protocol support (HTTP/2 and WebSockets) to enab
 - ✓ Integración con ecosistema .NET (dotnet tool, launchSettings.json) — Phase 06
 - ✓ Integration test automation — Phase 08
 
+### Validated (v1.2 Partial)
+
+- ✅ Certificate Authority (CA) generation con .NET native APIs — Phase 13
+- ✅ Wildcard certificate generation para `*.localhost` — Phase 13
+- ✅ Secure certificate storage con cross-platform permissions — Phase 13
+- ✅ Windows Certificate Store integration (trust management) — Phase 14
+- ✅ CLI certificate commands (install/status/uninstall) — Phase 14
+- ✅ Cross-platform messaging (manual macOS/Linux instructions) — Phase 14
+- ✅ Auto-renewal detection (30-day expiration warning) — Phase 13
+
 ### Validated (v1.1)
 
 - ✓ HTTP/2 support con Kestrel ALPN negotiation — Phase 09
@@ -96,14 +118,11 @@ Portless.NET v1.1 adds advanced protocol support (HTTP/2 and WebSockets) to enab
 
 ### Active
 
-- [ ] HTTPS proxy con certificate authority local — v1.2
-- [ ] Automatic certificate generation para `*.localhost` — v1.2
-- [ ] Trust certificate installation (Windows/macOS/Linux) — v1.2
-- [ ] Certificate renewal automática — v1.2
-- [ ] HTTPS endpoint (puerto 1356) — v1.2
-- [ ] Mixed HTTP/HTTPS support — v1.2
-- [ ] CLI certificate management commands — v1.2
-- [ ] Integration tests para HTTPS — v1.2
+- [ ] HTTPS proxy endpoint integration — v1.2+ (deferred)
+- [ ] Mixed HTTP/HTTPS protocol support — v1.2+ (deferred)
+- [ ] Background certificate lifecycle monitoring — v1.2+ (deferred)
+- [ ] Integration tests para HTTPS — v1.2+ (deferred)
+- [ ] User documentation para certificate management — v1.2+ (deferred)
 - [ ] Cross-platform validation (macOS, Linux) — v1.3+ (deferido para foco en HTTPS)
 - [ ] Performance optimization — v1.3+
 
@@ -162,4 +181,4 @@ Evolutivo - empezar con MVP HTTP básico, agregar HTTP/2, HTTPS y WebSockets en 
 | Echo server vs full chat app | Server simple más fácil de testear que chat completo con estado | ✓ Good - Phase 10, mejor para pruebas unitarias |
 
 ---
-*Last updated: 2026-02-22 after starting v1.2 HTTPS with Automatic Certificates milestone*
+*Last updated: 2026-02-23 after completing milestone v1.2 (certificate management partial)*
