@@ -9,25 +9,25 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 
 ## Current Position
 
-Phase: 15 of 19 (HTTPS Endpoint)
+Phase: 17 of 19 (Certificate Lifecycle)
 Plan: 1 of 1 in current phase (COMPLETE)
-Status: Phase 15 HTTPS endpoint complete - dual HTTP/HTTPS endpoints with automatic certificate binding
-Last activity: 2026-02-23 — Phase 15-01 complete: dual HTTP/HTTPS endpoints configured
+Status: Phase 17 certificate lifecycle complete - automatic expiration monitoring and renewal with background service, CLI commands, and proxy startup integration
+Last activity: 2026-02-23 — Phase 17-01 complete: certificate lifecycle management implemented
 Current branch: development (active development branch)
-Resume file: .planning/phases/15-https-endpoint/15-01-SUMMARY.md (plan complete)
+Resume file: .planning/phases/17-certificate-lifecycle/17-01-SUMMARY.md (plan complete)
 
-Progress: [█████████░░░░░░░░░] 45% (Phases 13-15 complete, Phases 16-19 remaining)
+Progress: [████████████░░░░░░] 55% (Phases 13-17 complete, Phases 16, 18-19 remaining)
 
 **Milestone completion:**
 - v1.0 MVP: Complete (2026-02-21) — 20 plans
 - v1.1 Advanced Protocols: Complete (2026-02-22) — 14 plans
-- v1.2 HTTPS with Automatic Certificates: In Progress (2026-02-23) — 3/7 phases complete (Phases 13-15: Certificate Management + HTTPS Endpoint)
+- v1.2 HTTPS with Automatic Certificates: In Progress (2026-02-23) — 4/7 phases complete (Phases 13-15, 17: Certificate Management + HTTPS Endpoint + Certificate Lifecycle)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 73 plans (v1.0 + v1.1 + Phase 13 + Phase 14 + Phase 15-01)
-- Average duration: ~10.5 min per plan
+- Total plans completed: 77 plans (v1.0 + v1.1 + Phase 13 + Phase 14 + Phase 15 + Phase 17)
+- Average duration: ~10.3 min per plan
 - Total execution time: ~12.5 hours across 2 milestones + Phase 13-15
 
 **By Phase:**
@@ -101,6 +101,12 @@ Recent decisions affecting current work:
 - [Phase 15]: Certificate pre-startup validation exits with code 1 if invalid, with clear error message
 - [Phase 15]: TLS 1.2+ minimum protocol enforced via ConfigureHttpsDefaults for secure HTTPS connections
 - [Phase 15]: Temporary BuildServiceProvider used to load certificate before Kestrel configuration (accepted ASP0000 warning)
+- [Phase 17]: Background monitoring service implemented as IHostedService with 6-hour check interval (configurable via PORTLESS_CERT_CHECK_INTERVAL_HOURS)
+- [Phase 17]: Certificate auto-renewal enabled by default with opt-out via PORTLESS_AUTO_RENEW=false
+- [Phase 17]: CLI commands cert check and cert renew implemented with colored Spectre.Console output and proper exit codes (0, 1, 2, 3)
+- [Phase 17]: Proxy startup integration displays non-blocking warnings for expiring/expired certificates with red/yellow/green color coding
+- [Phase 17]: Certificate monitoring requires proxy restart after renewal (hot-reload deferred to v1.3+)
+- [Phase 17]: Environment variables for thresholds: PORTLESS_CERT_WARNING_DAYS (30), PORTLESS_CERT_CHECK_INTERVAL_HOURS (6), PORTLESS_AUTO_RENEW (true), PORTLESS_ENABLE_MONITORING (false)
 
 ### Pending Todos
 
@@ -120,6 +126,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-23 (Phase 15 HTTPS Endpoint Complete)
-Stopped at: Phase 15-01 complete, dual HTTP/HTTPS endpoints configured with automatic certificate binding
-Resume file: .planning/phases/15-https-endpoint/15-01-SUMMARY.md (plan complete)
+Last session: 2026-02-23 (Phase 17 Certificate Lifecycle Complete)
+Stopped at: Phase 17-01 complete, certificate lifecycle management with background monitoring and CLI commands
+Resume file: .planning/phases/17-certificate-lifecycle/17-01-SUMMARY.md (plan complete)
