@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Portless.Core.Models;
 
 namespace Portless.Core.Services;
 
@@ -123,7 +124,7 @@ public class CertificateMonitoringService : BackgroundService, ICertificateMonit
     }
 
     /// <inheritdoc/>
-    public async Task<Models.CertificateStatus?> GetCertificateStatusAsync(CancellationToken cancellationToken = default)
+    public async Task<CertificateStatus?> GetCertificateStatusAsync(CancellationToken cancellationToken = default)
     {
         try
         {
@@ -152,7 +153,7 @@ public class CertificateMonitoringService : BackgroundService, ICertificateMonit
                 message = $"Certificate valid until {cert.NotAfter:yyyy-MM-dd}";
             }
 
-            return new Models.CertificateStatus(
+            return new CertificateStatus(
                 IsValid: !isExpired,
                 IsExpired: isExpired,
                 IsExpiringSoon: isExpiringSoon,
