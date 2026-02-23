@@ -17,5 +17,5 @@ public interface ICertificateMonitoringService
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The certificate status or null if no certificate exists.</returns>
-    Task<Models.CertificateStatus?> GetCertificateStatusAsync(CancellationToken cancellationToken = default);
+    Task<CertificateStatus?> GetCertificateStatusAsync(CancellationToken cancellationToken = default);
 }
