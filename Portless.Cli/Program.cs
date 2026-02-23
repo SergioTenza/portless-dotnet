@@ -55,6 +55,10 @@ app.Configure(config =>
             .WithDescription("Display certificate trust status");
         cert.AddCommand<CertUninstallCommand>("uninstall")
             .WithDescription("Remove CA certificate from trust store");
+        cert.AddCommand<CertCheckCommand>("check")
+            .WithDescription("Check certificate expiration and validity");
+        cert.AddCommand<CertRenewCommand>("renew")
+            .WithDescription("Renew certificate (auto-renews if expiring soon)");
     });
 });
 
