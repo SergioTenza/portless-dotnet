@@ -9,26 +9,26 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 
 ## Current Position
 
-Phase: 14 of 19 (Trust Installation)
-Plan: 3 of 3 in current phase (COMPLETE)
-Status: Milestone v1.2 certificate management complete, awaiting decision on remaining phases (15-19)
-Last activity: 2026-02-23 — Phase 14 complete, milestone v1.2 partial completion archived
+Phase: 15 of 19 (HTTPS Endpoint)
+Plan: 1 of 1 in current phase (COMPLETE)
+Status: Phase 15 HTTPS endpoint complete - dual HTTP/HTTPS endpoints with automatic certificate binding
+Last activity: 2026-02-23 — Phase 15-01 complete: dual HTTP/HTTPS endpoints configured
 Current branch: development (active development branch)
-Resume file: .planning/phases/14-trust-installation/.continue-here.md (phase complete)
+Resume file: .planning/phases/15-https-endpoint/15-01-SUMMARY.md (plan complete)
 
-Progress: [████████░░░░░░░░░░] 40% (Phases 13-14 complete, Phases 15-19 deferred)
+Progress: [█████████░░░░░░░░░] 45% (Phases 13-15 complete, Phases 16-19 remaining)
 
 **Milestone completion:**
 - v1.0 MVP: Complete (2026-02-21) — 20 plans
 - v1.1 Advanced Protocols: Complete (2026-02-22) — 14 plans
-- v1.2 HTTPS with Automatic Certificates: Partial (2026-02-23) — 2/7 phases complete (Phases 13-14: Certificate Management)
+- v1.2 HTTPS with Automatic Certificates: In Progress (2026-02-23) — 3/7 phases complete (Phases 13-15: Certificate Management + HTTPS Endpoint)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 72 plans (v1.0 + v1.1 + Phase 13 + Phase 14 complete)
+- Total plans completed: 73 plans (v1.0 + v1.1 + Phase 13 + Phase 14 + Phase 15-01)
 - Average duration: ~10.5 min per plan
-- Total execution time: ~12.5 hours across 2 milestones + Phase 13 + Phase 14
+- Total execution time: ~12.5 hours across 2 milestones + Phase 13-15
 
 **By Phase:**
 
@@ -46,6 +46,8 @@ Progress: [████████░░░░░░░░░░] 40% (Phases 1
 | 11 | 3 | ~25 min | ~8 min |
 | 12 | 5 | ~35 min | ~7 min |
 | 13 | 3 | ~30 min | ~10 min |
+| 14 | 3 | ~20 min | ~7 min |
+| 15 | 1 | ~7 min | ~7 min |
 
 **Recent Trend:**
 - Last 5 plans: ~8 min avg
@@ -86,6 +88,12 @@ Recent decisions affecting current work:
 - [Phase 14]: Platform detection uses OperatingSystem.IsWindows() for cross-platform support
 - [Phase 14]: Manual installation instructions displayed inline on macOS/Linux (3-5 lines per CONTEXT.md)
 - [Phase 14]: Exit codes follow CONTEXT.md specification: 0=success, 1=generic/platform, 2=permissions, 3=missing, 5=store access
+- [Phase 15-01]: Fixed ports enforced (HTTP=1355, HTTPS=1356) with PORTLESS_PORT deprecation warning for simplified HTTPS configuration
+- [Phase 15-01]: 308 Permanent Redirect used instead of 301 to preserve HTTP methods during HTTP→HTTPS redirect
+- [Phase 15-01]: /api/v1/* management endpoints excluded from HTTPS redirect to allow CLI HTTP access for add/remove operations
+- [Phase 15-01]: Certificate pre-startup validation exits with code 1 if certificate invalid, with clear error message to run 'portless cert install'
+- [Phase 15-01]: TLS 1.2+ minimum protocol enforced via ConfigureHttpsDefaults for secure HTTPS connections
+- [Phase 15-01]: Temporary BuildServiceProvider used to load certificate before Kestrel configuration (accepted ASP0000 warning for pre-configuration)
 
 ### Pending Todos
 
@@ -105,6 +113,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-23 (Milestone v1.2 Partial Completion Archived)
-Stopped at: Phase 14 complete, milestone v1.2 certificate management archived, awaiting next milestone decision
-Resume file: .planning/phases/14-trust-installation/.continue-here.md (phase complete)
+Last session: 2026-02-23 (Phase 15 HTTPS Endpoint Complete)
+Stopped at: Phase 15-01 complete, dual HTTP/HTTPS endpoints configured with automatic certificate binding
+Resume file: .planning/phases/15-https-endpoint/15-01-SUMMARY.md (plan complete)
