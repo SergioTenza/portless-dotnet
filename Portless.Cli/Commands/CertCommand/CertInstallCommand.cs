@@ -26,6 +26,17 @@ public class CertInstallCommand : AsyncCommand<CertInstallSettings>
     {
         try
         {
+            // Platform detection: certificate trust installation is Windows-only in v1.2
+            if (!OperatingSystem.IsWindows())
+            {
+                AnsiConsole.MarkupLine("[yellow]Warning:[/] Certificate trust installation is Windows-only in v1.2.");
+                AnsiConsole.MarkupLine("\n[bold]Manual installation required for macOS/Linux:[/]");
+                AnsiConsole.MarkupLine("\n1. Locate CA certificate: ~/.portless/ca.pfx");
+                AnsiConsole.MarkupLine("2. macOS: Run 'sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain ~/.portless/ca.pfx'");
+                AnsiConsole.MarkupLine("3. Linux: Copy ca.pfx to /usr/local/share/ca-certificates/ and run 'sudo update-ca-certificates' (distribution-specific)");
+                return 1; // Exit code 1: Platform not supported
+            }
+
             // Check admin status
             var isAdmin = await _trustService.IsAdministratorAsync(cancellationToken);
             if (!isAdmin)
