@@ -25,6 +25,16 @@ public class CertUninstallCommand : AsyncCommand<CertUninstallSettings>
     {
         try
         {
+            // Platform detection: certificate trust uninstallation is Windows-only in v1.2
+            if (!OperatingSystem.IsWindows())
+            {
+                AnsiConsole.MarkupLine("[yellow]Warning:[/] Certificate trust uninstallation is Windows-only in v1.2.");
+                AnsiConsole.MarkupLine("\n[bold]Manual uninstallation required for macOS/Linux:[/]");
+                AnsiConsole.MarkupLine("\nmacOS: Run 'sudo security delete-certificate -c \"Portless Local CA\" /Library/Keychains/System.keychain'");
+                AnsiConsole.MarkupLine("Linux: Remove ca.pfx from /usr/local/share/ca-certificates/ and run 'sudo update-ca-certificates --fresh'");
+                return 1; // Exit code 1: Platform not supported
+            }
+
             // Load CA certificate
             var cert = await _certificateManager.GetCertificateAuthorityAsync(cancellationToken);
             if (cert == null)
