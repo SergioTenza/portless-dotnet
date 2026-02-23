@@ -30,10 +30,15 @@ public class ProxyStartCommand : AsyncCommand<ProxyStartSettings>
                 .Spinner(Spinner.Known.Dots)
                 .StartAsync("Starting proxy...", async _ =>
                 {
-                    await _proxyManager.StartAsync(settings.Port);
+                    await _proxyManager.StartAsync(settings.Port, settings.EnableHttps);
                 });
 
+            // Display success message with HTTP and/or HTTPS URLs
             AnsiConsole.MarkupLine("[green]✓[/] Proxy started on http://localhost:{0}", settings.Port);
+            if (settings.EnableHttps)
+            {
+                AnsiConsole.MarkupLine("      [green]✓[/] HTTPS endpoint: https://localhost:{0}", 1356);
+            }
             return 0;
         }
         catch (InvalidOperationException ex)

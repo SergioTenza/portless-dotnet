@@ -7,6 +7,7 @@ namespace Portless.Cli.Services;
 public class ProxyProcessManager : IProxyProcessManager
 {
     private const string DefaultPort = "1355";
+    private const string HttpsPort = "1356";
     private readonly string _stateDirectory;
     private readonly string _pidFilePath;
     private readonly string _managedPidsFilePath;
@@ -22,12 +23,19 @@ public class ProxyProcessManager : IProxyProcessManager
         Directory.CreateDirectory(_stateDirectory);
     }
 
-    public async Task StartAsync(int port)
+    public async Task StartAsync(int port, bool enableHttps = false)
     {
         // Check if already running
         if (await IsRunningAsync())
         {
             throw new InvalidOperationException("Proxy is already running. Use 'portless proxy stop' first");
+        }
+
+        // Log deprecation warning if PORTLESS_PORT is set
+        var portlessPort = Environment.GetEnvironmentVariable("PORTLESS_PORT");
+        if (!string.IsNullOrEmpty(portlessPort))
+        {
+            Console.WriteLine($"Warning: PORTLESS_PORT environment variable is deprecated. Fixed ports: HTTP=1355, HTTPS=1356");
         }
 
         // Build path to Portless.Proxy.csproj
@@ -46,7 +54,7 @@ public class ProxyProcessManager : IProxyProcessManager
         var startInfo = new ProcessStartInfo
         {
             FileName = "cmd.exe",
-            Arguments = $"/c set PORTLESS_PORT={port} && set DOTNET_MODIFIABLE_ASSEMBLIES=debug && dotnet run --project \"{proxyProjectPath}\" --urls http://*:{port}",
+            Arguments = $"/c set PORTLESS_PORT={DefaultPort} && set PORTLESS_HTTPS_ENABLED={enableHttps.ToString().ToLower()} && set DOTNET_MODIFIABLE_ASSEMBLIES=debug && dotnet run --project \"{proxyProjectPath}\" --urls http://*:{DefaultPort}",
             UseShellExecute = true,  // Required for detached execution on Windows
             CreateNoWindow = true,
             WindowStyle = ProcessWindowStyle.Hidden
