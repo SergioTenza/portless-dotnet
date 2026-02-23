@@ -10,25 +10,25 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 ## Current Position
 
 Phase: 14 of 19 (Trust Installation)
-Plan: 2 of 3 in current phase
-Status: CLI commands for certificate trust management implemented with colored output
-Last activity: 2026-02-23 — Certificate trust CLI commands (install, status, uninstall) with admin elevation
+Plan: 3 of 3 in current phase (COMPLETE)
+Status: Cross-platform certificate trust messaging implemented with manual instructions for macOS/Linux
+Last activity: 2026-02-23 — Cross-platform platform detection and manual trust instructions
 Current branch: development (active development branch)
-Resume file: .planning/phases/14-trust-installation/14-02-SUMMARY.md
+Resume file: .planning/phases/14-trust-installation/14-03-SUMMARY.md
 
-Progress: [███████████░░░░░░░░░] 50%
+Progress: [████████████████████] 100%
 
 **Milestone completion:**
 - v1.0 MVP: Complete (2026-02-21) — 20 plans
 - v1.1 Advanced Protocols: Complete (2026-02-22) — 14 plans
-- v1.2 HTTPS with Automatic Certificates: 2/7 phases started (Phase 13: Certificate Generation complete, Phase 14-02: CLI Commands complete)
+- v1.2 HTTPS with Automatic Certificates: 2/7 phases complete (Phase 13: Certificate Generation complete, Phase 14: Trust Installation complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 64 plans (v1.0 + v1.1 + Phase 13 + Phase 14-01, 14-02)
+- Total plans completed: 66 plans (v1.0 + v1.1 + Phase 13 + Phase 14 complete)
 - Average duration: ~11 min per plan
-- Total execution time: ~11.5 hours across 2 milestones + Phase 13
+- Total execution time: ~11.5 hours across 2 milestones + Phase 13 + Phase 14
 
 **By Phase:**
 
@@ -49,12 +49,11 @@ Progress: [███████████░░░░░░░░░] 50%
 
 **Recent Trend:**
 - Last 5 plans: ~8 min avg
-- Trend: Phase 13 certificate generation completed with orchestration, storage, and permission services
+- Trend: Phase 14 Trust Installation completed with Windows Certificate Store integration and cross-platform messaging
 
-*Updated: 2026-02-22*
-| Phase 13 P02 | 15 | 3 tasks | 6 files |
-| Phase 14 P01 | 4 | 4 tasks | 5 files |
-| Phase 14 P14-02 | 439 | 4 tasks | 7 files |
+*Updated: 2026-02-23*
+| Phase 14 P03 | 4 | 4 tasks | 3 files |
+| Phase 14 P03 | 4 | 4 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -82,6 +81,11 @@ Recent decisions affecting current work:
 - [Phase 14]: Trust operations are idempotent (install twice succeeds, uninstall non-existent cert succeeds)
 - [Phase 14]: Platform guards with [SupportedOSPlatform] and OperatingSystem.IsWindows() checks for Windows-only services
 - [Phase 14]: Trust status detection includes 30-day expiration warning via TrustStatus.ExpiringSoon
+- [Phase 14-03]: Cross-platform messaging with manual installation instructions for macOS/Linux (3-5 lines per CONTEXT.md)
+- [Phase 14-03]: Exit codes follow CONTEXT.md specification: 0=success, 1=generic/platform, 2=permissions, 3=missing, 5=store access
+- [Phase 14]: Platform detection uses OperatingSystem.IsWindows() for cross-platform support
+- [Phase 14]: Manual installation instructions displayed inline on macOS/Linux (3-5 lines per CONTEXT.md)
+- [Phase 14]: Exit codes follow CONTEXT.md specification: 0=success, 1=generic/platform, 2=permissions, 3=missing, 5=store access
 
 ### Pending Todos
 
@@ -101,6 +105,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-23 (Phase 14-02 complete - CLI Certificate Trust Commands)
-Stopped at: Certificate trust CLI commands implemented with admin elevation and colored output
-Resume file: .planning/phases/14-trust-installation/14-02-SUMMARY.md
+Last session: 2026-02-23 (Phase 14 complete - Cross-Platform Trust Messaging)
+Stopped at: Cross-platform platform detection and manual trust instructions for macOS/Linux
+Resume file: .planning/phases/14-trust-installation/14-03-SUMMARY.md

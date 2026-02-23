@@ -24,9 +24,9 @@ Requirements for HTTPS with Automatic Certificates milestone. Each maps to roadm
 - [x] **TRUST-01**: User can install CA certificate to Windows Certificate Store via `portless cert install` command
 - [x] **TRUST-02**: Trust installation targets `Cert:\LocalMachine\Root` store using X509Store API
 - [ ] **TRUST-03**: User can verify trust status via `portless cert status` command
-- [ ] **TRUST-04**: Trust status check detects if CA is not trusted and displays platform-specific installation instructions
+- [x] **TRUST-04**: Trust status check detects if CA is not trusted and displays platform-specific installation instructions
 - [x] **TRUST-05**: User can uninstall CA certificate from trust store via `portless cert uninstall` command
-- [ ] **TRUST-06**: macOS/Linux trust installation deferred to v1.3+ (documented as known limitation)
+- [x] **TRUST-06**: macOS/Linux trust installation deferred to v1.3+ (documented as known limitation)
 
 ### HTTPS Endpoint (HTTPS)
 
@@ -131,9 +131,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TRUST-01 | Phase 14 | Complete |
 | TRUST-02 | Phase 14 | Complete |
 | TRUST-03 | Phase 14 | Pending |
-| TRUST-04 | Phase 14 | Pending |
+| TRUST-04 | Phase 14 | Complete |
 | TRUST-05 | Phase 14 | Complete |
-| TRUST-06 | Phase 14 | Pending |
+| TRUST-06 | Phase 14 | Complete |
 | HTTPS-01 | Phase 15 | Pending |
 | HTTPS-02 | Phase 15 | Pending |
 | HTTPS-03 | Phase 15 | Pending |
