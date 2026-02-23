@@ -25,13 +25,34 @@ public class CertStatusCommand : AsyncCommand<CertStatusSettings>
     {
         try
         {
-            // Load CA certificate
-            var cert = await _certificateManager.GetCertificateAuthorityAsync(cancellationToken);
-            
-            // Load certificate metadata
+            // Load certificate metadata (works on all platforms)
             var metadata = await _certificateManager.GetCertificateStatusAsync(cancellationToken);
-            
-            if (cert == null || metadata == null)
+
+            if (metadata == null)
+            {
+                AnsiConsole.MarkupLine("[yellow]No certificate found.[/]");
+                return 0;
+            }
+
+            // Platform detection: certificate trust status is Windows-only in v1.2
+            if (!OperatingSystem.IsWindows())
+            {
+                // Display certificate file information (no trust status on non-Windows)
+                AnsiConsole.MarkupLine("Certificate: [green]Valid[/]");
+                AnsiConsole.MarkupLine("SHA-256: {0}", metadata.Sha256Thumbprint ?? "N/A");
+                AnsiConsole.MarkupLine("Expires: {0}", metadata.ExpiresAt ?? "N/A");
+                AnsiConsole.MarkupLine("\n[yellow]Trust Status: Manual installation required[/]");
+                AnsiConsole.MarkupLine("[dim]Certificate trust installation is Windows-only in v1.2.[/dim]");
+                AnsiConsole.MarkupLine("\n[bold]Manual trust required:[/]");
+                AnsiConsole.MarkupLine("macOS: sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain ~/.portless/ca.pfx");
+                AnsiConsole.MarkupLine("Linux: Copy ca.pfx to /usr/local/share/ca-certificates/ and run 'sudo update-ca-certificates'");
+                return 0; // Certificate is valid, trust is just manual
+            }
+
+            // Load CA certificate (Windows-specific trust status below)
+            var cert = await _certificateManager.GetCertificateAuthorityAsync(cancellationToken);
+
+            if (cert == null)
             {
                 AnsiConsole.MarkupLine("[yellow]No certificate found.[/]");
                 return 0;
