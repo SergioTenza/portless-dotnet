@@ -136,10 +136,10 @@ Plans:
   3. Proxy supports mixed routing (some backends HTTP, others HTTPS) simultaneously
   4. YARP backend SSL validation accepts self-signed certificates in development mode
   5. Backend services can detect original protocol from forwarded headers
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 16-01: [TBD during planning]
+- [ ] 16-01-PLAN.md — Add YARP HttpClient configuration for mixed HTTP/HTTPS backend support with development SSL validation (MIXED-01, MIXED-02, MIXED-03, MIXED-04, MIXED-05)
 
 #### Phase 17: Certificate Lifecycle
 **Goal**: Automatic certificate expiration monitoring and renewal
@@ -209,7 +209,7 @@ Phases execute in numeric order: 13 → 14 → 15 → 16 → 17 → 18 → 19
 | 13. Certificate Generation | v1.2 | 3/3 | Complete | 2026-02-22 |
 | 14. Trust Installation | v1.2 | 3/3 | Complete | 2026-02-23 |
 | 15. HTTPS Endpoint | 1/1 | Complete    | 2026-02-23 | 2026-02-23 |
-| 16. Mixed Protocol Support | v1.2 | 0/0 | Not started | - |
+| 16. Mixed Protocol Support | v1.2 | 1/1 | Not started | - |
 | 17. Certificate Lifecycle | v1.2 | 0/0 | Not started | - |
 | 18. Integration Tests | v1.2 | 0/0 | Not started | - |
 | 19. Documentation | v1.2 | 0/0 | Not started | - |
