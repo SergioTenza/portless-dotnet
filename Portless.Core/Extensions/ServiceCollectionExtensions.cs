@@ -57,6 +57,9 @@ public static class ServiceCollectionExtensions
         // Register certificate manager as singleton
         services.AddSingleton<ICertificateManager, CertificateManager>();
 
+        // Register certificate trust service (Windows-only)
+        services.AddSingleton<ICertificateTrustService, CertificateTrustService>();
+
         return services;
     }
 }
