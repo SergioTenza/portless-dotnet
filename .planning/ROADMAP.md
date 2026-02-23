@@ -116,15 +116,15 @@ Plans:
 **Depends on**: Phase 13
 **Requirements**: HTTPS-01, HTTPS-02, HTTPS-03, HTTPS-04, HTTPS-05, CLI-05
 **Success Criteria** (what must be TRUE):
-  1. Proxy listens on dual endpoints: HTTP (1355) and HTTPS (1356, configurable via PORTLESS_HTTPS_PORT)
+  1. Proxy listens on dual endpoints: HTTP (1355) and HTTPS (1356, fixed ports - breaking change)
   2. HTTPS endpoint serves valid wildcard certificate matching `*.localhost` domains
   3. Browsers accept HTTPS connection without certificate warnings (after trust installation)
   4. Kestrel enforces TLS 1.2+ minimum protocol version
   5. User can start proxy with HTTPS enabled via `portless proxy start --https` command
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 15-01: [TBD during planning]
+- [ ] 15-01-PLAN.md — Dual HTTP/HTTPS endpoints with certificate binding and CLI --https flag
 
 #### Phase 16: Mixed Protocol Support
 **Goal**: Transparent protocol forwarding for mixed HTTP/HTTPS backend services
