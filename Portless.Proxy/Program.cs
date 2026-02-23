@@ -6,6 +6,7 @@ using Portless.Core.Services;
 using Portless.Core.Models;
 using Portless.Core.Configuration;
 using Portless.Proxy;
+using System.Security.Cryptography.X509Certificates;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,21 +40,63 @@ builder.Logging.SetMinimumLevel(LogLevel.Information);
 // Add SignalR services for integration testing
 builder.Services.AddSignalR();
 
-// Read port from environment variable or use default
+// Read port and HTTPS configuration from environment variables
 var port = builder.Configuration["PORTLESS_PORT"] ?? "1355";
+var enableHttps = builder.Configuration["PORTLESS_HTTPS_ENABLED"] == "true";
+
+// Register certificate services for HTTPS support
+builder.Services.AddPortlessCertificates();
+
+// Build a temporary service provider to load certificate before Kestrel configuration
+X509Certificate2? certificate = null;
+if (enableHttps)
+{
+    var tempServices = builder.Services.BuildServiceProvider();
+    var certManager = tempServices.GetRequiredService<ICertificateManager>();
+    var status = await certManager.EnsureCertificatesAsync(
+        forceRegeneration: false,
+        CancellationToken.None
+    );
+
+    if (!status.IsValid || status.IsCorrupted)
+    {
+        Console.Error.WriteLine("Error: Certificate not found or invalid. Run: portless cert install");
+        Environment.Exit(1);
+        return;
+    }
+
+    certificate = await certManager.GetServerCertificateAsync();
+}
 
 // Configure Kestrel to listen on all interfaces with HTTP/2 support
-builder.WebHost.ConfigureKestrel(options =>
+builder.WebHost.ConfigureKestrel((context, options) =>
 {
+    // Enforce TLS 1.2+ globally for HTTPS
+    options.ConfigureHttpsDefaults(httpsOptions =>
+    {
+        httpsOptions.SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13;
+    });
+
     // Configure limits for long-lived WebSocket connections
     options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(10); // Default is 2 minutes
     options.Limits.MaxConcurrentUpgradedConnections = 1000; // Default is 100
 
-    options.ListenAnyIP(int.Parse(port), listenOptions =>
+    // HTTP endpoint (always active for backward compatibility)
+    options.ListenAnyIP(1355, listenOptions =>
     {
         // Enable both HTTP/1.1 and HTTP/2 (Kestrel will negotiate via ALPN)
         listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
     });
+
+    // HTTPS endpoint (conditional on --https flag)
+    if (enableHttps && certificate != null)
+    {
+        options.ListenAnyIP(1356, listenOptions =>
+        {
+            listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
+            listenOptions.UseHttps(certificate);
+        });
+    }
 });
 
 // Register DynamicConfigProvider as singleton for YARP
@@ -72,8 +115,12 @@ var app = builder.Build();
 
 // Add startup logging
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
-logger.LogInformation("Portless Proxy starting on port {Port}", port);
-logger.LogInformation("Proxy URL: http://localhost:{Port}", port);
+logger.LogInformation("Portless Proxy starting on port {Port}", 1355);
+logger.LogInformation("Proxy URL: http://localhost:{Port}", 1355);
+if (enableHttps)
+{
+    logger.LogInformation("Proxy URL (HTTPS): https://localhost:{Port}", 1356);
+}
 
 // Load existing routes on startup
 var routeStore = app.Services.GetRequiredService<IRouteStore>();
@@ -291,6 +338,37 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
     // Only trust local proxies
     KnownProxies = { System.Net.IPAddress.Loopback }
 });
+
+// Configure HTTP→HTTPS redirect only when HTTPS is enabled
+// Exclude /api/v1/* endpoints from HTTPS redirect (CLI needs HTTP access)
+if (enableHttps)
+{
+    app.Use(async (context, next) =>
+    {
+        // Exclude /api/v1/* endpoints from HTTPS redirect
+        if (context.Request.Path.StartsWithSegments("/api/v1"))
+        {
+            await next();
+        }
+        else if (context.Request.Protocol == "HTTP/1.1" || context.Request.Protocol == "HTTP/2")
+        {
+            // Apply HTTPS redirect for all other HTTP requests
+            var httpsPort = 1356;
+            var host = context.Request.Host.Host;
+            var originalPath = context.Request.Path.Value ?? "/";
+            var queryString = context.Request.QueryString.Value ?? "";
+
+            var redirectUrl = $"https://{host}:{httpsPort}{originalPath}{queryString}";
+            context.Response.StatusCode = 308; // Permanent Redirect
+            context.Response.Headers["Location"] = redirectUrl;
+            return;
+        }
+        else
+        {
+            await next();
+        }
+    });
+}
 
 // Map test SignalR hub for integration testing (must be before reverse proxy)
 app.MapHub<TestChatHub>("/testhub");
