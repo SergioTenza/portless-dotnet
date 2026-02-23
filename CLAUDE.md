@@ -105,9 +105,48 @@ CLI (Portless.Cli) → Proxy (Portless.Proxy) → Apps backend
 | Variable | Descripción | Default |
 |----------|-------------|---------|
 | `PORTLESS_PORT` | Puerto del proxy | `1355` |
-| `PORTLESS_HTTPS` | Habilitar HTTPS | `0` |
+| `PORTLESS_HTTPS_ENABLED` | Habilitar endpoint HTTPS | `false` |
 | `PORTLESS_STATE_DIR` | Directorio de estado | `~/.portless` |
 | `PORTLESS=0|skip` | Bypass proxy | - |
+| `PORTLESS_CERT_WARNING_DAYS` | Días antes de expiración para advertencia | `30` |
+| `PORTLESS_CERT_CHECK_INTERVAL_HOURS` | Horas entre verificaciones de certificado | `6` |
+| `PORTLESS_AUTO_RENEW` | Renovar certificado automáticamente | `true` |
+| `PORTLESS_ENABLE_MONITORING` | Habilitar monitoreo en segundo plano | `false` |
+
+### Gestión de Certificados
+
+Portless.NET genera certificados TLS automáticamente para desarrollo HTTPS local.
+
+**Comandos de certificados:**
+```bash
+# Verificar estado del certificado
+portless cert check
+
+# Renovar certificado (automático si expira pronto)
+portless cert renew
+
+# Renovar forzosamente
+portless cert renew --force
+
+# Instalar certificado CA en trust store
+portless cert install
+
+# Verificar estado de confianza
+portless cert status
+```
+
+**Monitoreo automático:**
+- El proxy verifica certificados al inicio
+- Monitoreo en segundo plano opcional (PORTLESS_ENABLE_MONITORING=true)
+- Renovación automática dentro de los 30 días de expiración
+- Configurable vía variables de entorno
+
+**Archivos de certificado:**
+- Ubicación: `~/.portless/ca.pfx`, `~/.portless/cert.pfx`
+- Validez: 5 años desde generación
+- Renovación requiere reinicio del proxy
+
+Para más detalles, ver [Certificate Lifecycle](docs/certificate-lifecycle.md) y [Certificate Security](docs/certificate-security.md).
 
 ## Integración ASP.NET Core
 

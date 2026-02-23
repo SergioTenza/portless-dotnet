@@ -476,6 +476,13 @@ Portless.NET funciona en:
 | Variable | Descripción | Default |
 |----------|-------------|---------|
 | `PORTLESS_PORT` | Puerto del proxy | `1355` |
+| `PORTLESS_HTTPS_ENABLED` | Habilitar endpoint HTTPS | `false` |
+| `PORTLESS_CERT_WARNING_DAYS` | Días antes de expiración para advertencia | `30` |
+| `PORTLESS_CERT_CHECK_INTERVAL_HOURS` | Horas entre verificaciones de certificado | `6` |
+| `PORTLESS_AUTO_RENEW` | Renovar certificado automáticamente | `true` |
+| `PORTLESS_ENABLE_MONITORING` | Habilitar monitoreo en segundo plano | `false` |
+
+Para más detalles sobre gestión de certificados, ver [Certificate Lifecycle](docs/certificate-lifecycle.md).
 
 ## 🤝 Contribuyendo
 
