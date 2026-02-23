@@ -7,6 +7,7 @@ using Portless.Core.Models;
 using Portless.Core.Configuration;
 using Portless.Proxy;
 using System.Security.Cryptography.X509Certificates;
+using System.Security.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +31,12 @@ static ClusterConfig CreateCluster(string clusterId, string backendUrl) =>
         Destinations = new Dictionary<string, DestinationConfig>
         {
             ["backend1"] = new DestinationConfig { Address = backendUrl }
+        },
+        // Add HttpClient configuration for SSL validation
+        HttpClient = new Yarp.ReverseProxy.Configuration.HttpClientConfig
+        {
+            DangerousAcceptAnyServerCertificate = true, // Development mode only
+            SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls13
         }
     };
 
@@ -120,6 +127,52 @@ logger.LogInformation("Proxy URL: http://localhost:{Port}", 1355);
 if (enableHttps)
 {
     logger.LogInformation("Proxy URL (HTTPS): https://localhost:{Port}", 1356);
+}
+
+// Certificate expiration check (non-blocking warning)
+if (enableHttps)
+{
+    try
+    {
+        var certManager = app.Services.GetRequiredService<ICertificateManager>();
+        var cert = await certManager.GetServerCertificateAsync();
+
+        if (cert != null)
+        {
+            var now = DateTimeOffset.UtcNow;
+            var daysUntilExpiration = (cert.NotAfter - now).Days;
+            var isExpired = now > cert.NotAfter;
+            var isExpiringSoon = now > cert.NotAfter.AddDays(-30);
+
+            if (isExpired)
+            {
+                // Red error for expired certificate
+                logger.LogError("Certificate has expired on {ExpirationDate}. Run: portless cert renew",
+                    cert.NotAfter.ToString("yyyy-MM-dd"));
+                Console.Error.WriteLine("ERROR: Certificate has expired. HTTPS connections may fail.");
+                Console.Error.WriteLine("Run: portless cert renew");
+            }
+            else if (isExpiringSoon)
+            {
+                // Yellow warning for certificate expiring soon
+                logger.LogWarning("Certificate expires in {Days} days ({ExpirationDate}). Run: portless cert renew",
+                    daysUntilExpiration, cert.NotAfter.ToString("yyyy-MM-dd"));
+                Console.WriteLine($"WARNING: Certificate expires in {daysUntilExpiration} days ({cert.NotAfter:yyyy-MM-dd})");
+                Console.WriteLine("Run: portless cert renew");
+            }
+            else
+            {
+                // Info message for valid certificate
+                logger.LogInformation("Certificate valid until {ExpirationDate} ({Days} days remaining)",
+                    cert.NotAfter.ToString("yyyy-MM-dd"), daysUntilExpiration);
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        // Non-blocking - log error but continue startup
+        logger.LogWarning(ex, "Failed to check certificate expiration status. Proxy will start anyway.");
+    }
 }
 
 // Load existing routes on startup
