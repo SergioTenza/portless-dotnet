@@ -48,7 +48,10 @@ public class CertRenewCommand : AsyncCommand<CertRenewSettings>
                 {
                     AnsiConsole.MarkupLine("[dim]New thumbprint: {0}[/]", newStatus.Thumbprint);
                 }
-                AnsiConsole.MarkupLine("[dim]Expires: {0}[/]", newStatus.ExpiresAt.ToString("yyyy-MM-dd"));
+                if (newStatus.ExpiresAt.HasValue)
+                {
+                    AnsiConsole.MarkupLine("[dim]Expires: {0}[/]", newStatus.ExpiresAt.Value.ToString("yyyy-MM-dd"));
+                }
 
                 // Display restart warning
                 AnsiConsole.MarkupLine("\n[yellow]⚠ Restart required:[/] The proxy must be restarted to use the new certificate");
@@ -61,8 +64,11 @@ public class CertRenewCommand : AsyncCommand<CertRenewSettings>
             if (!status.NeedsRegeneration)
             {
                 AnsiConsole.MarkupLine("[green]✓ Certificate is valid and does not need renewal[/]");
-                AnsiConsole.MarkupLine("[dim]Status: {0}[/]", status.Message);
-                AnsiConsole.MarkupLine("[dim]Expires: {0}[/]", status.ExpiresAt.ToString("yyyy-MM-dd"));
+                AnsiConsole.MarkupLine("[dim]Status: {0}[/]", status.Message ?? "No message");
+                if (status.ExpiresAt.HasValue)
+                {
+                    AnsiConsole.MarkupLine("[dim]Expires: {0}[/]", status.ExpiresAt.Value.ToString("yyyy-MM-dd"));
+                }
 
                 if (status.Thumbprint != null)
                 {
@@ -76,7 +82,7 @@ public class CertRenewCommand : AsyncCommand<CertRenewSettings>
 
             // Certificate needs renewal
             AnsiConsole.MarkupLine("[yellow]Certificate needs renewal:[/]");
-            AnsiConsole.MarkupLine("[dim]{0}[/]", status.Message);
+            AnsiConsole.MarkupLine("[dim]{0}[/]", status.Message ?? "No message");
 
             // Check if auto-renewal is disabled
             if (settings.DisableAutoRenew)
@@ -92,17 +98,20 @@ public class CertRenewCommand : AsyncCommand<CertRenewSettings>
             await _certificateManager.RegenerateCertificatesAsync(cancellationToken);
 
             // Get new certificate status
-            var newStatus = await _certificateManager.EnsureCertificatesAsync(
+            var renewedStatus = await _certificateManager.EnsureCertificatesAsync(
                 forceRegeneration: false,
                 cancellationToken
             );
 
             AnsiConsole.MarkupLine("[green]✓ Certificate renewed successfully[/]");
-            if (newStatus.Thumbprint != null)
+            if (renewedStatus.Thumbprint != null)
             {
-                AnsiConsole.MarkupLine("[dim]New thumbprint: {0}[/]", newStatus.Thumbprint);
+                AnsiConsole.MarkupLine("[dim]New thumbprint: {0}[/]", renewedStatus.Thumbprint);
             }
-            AnsiConsole.MarkupLine("[dim]Expires: {0}[/]", newStatus.ExpiresAt.ToString("yyyy-MM-dd"));
+            if (renewedStatus.ExpiresAt.HasValue)
+            {
+                AnsiConsole.MarkupLine("[dim]Expires: {0}[/]", renewedStatus.ExpiresAt.Value.ToString("yyyy-MM-dd"));
+            }
 
             // Display restart warning
             AnsiConsole.MarkupLine("\n[yellow]⚠ Restart required:[/] The proxy must be restarted to use the new certificate");

@@ -123,7 +123,7 @@ public class CertCheckCommand : AsyncCommand<CertCheckSettings>
                 // Check file permissions
                 try
                 {
-                    var stateDir = Portless.Core.Configuration.StateDirectoryProvider.GetStateDirectory();
+                    var stateDir = Portless.Core.Services.StateDirectoryProvider.GetStateDirectory();
                     var certFile = System.IO.Path.Combine(stateDir, "cert.pfx");
                     var caFile = System.IO.Path.Combine(stateDir, "ca.pfx");
 
