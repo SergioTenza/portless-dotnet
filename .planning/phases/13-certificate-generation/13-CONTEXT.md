@@ -11,6 +11,8 @@ Automatic generation of local Certificate Authority (CA) and wildcard TLS certif
 
 ### Estrategia de generación
 - **Primera generación**: Preguntar al usuario la primera vez si desea generar certificados automáticamente o manualmente
+  - **Phase 13 scope**: Logger notification message (user consent via CLI interaction deferred to Phase 14)
+  - **Phase 14 scope**: Interactive CLI prompt for user consent before first-time generation
 - **Certificados existentes**: Reutilizar siempre si existen, sin preguntar
 - **Período de validez**: 5 años (1825 días) para tanto CA como certificado wildcard
 - **Almacenamiento**: A criterio de Claude (tres archivos separados vs CA incrustado en JSON)

@@ -7,4 +7,5 @@ public class RouteInfo
     public int Pid { get; init; }
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
     public DateTime? LastSeen { get; set; }
+    public string BackendProtocol { get; init; } = "http"; // "http" or "https"
 }
