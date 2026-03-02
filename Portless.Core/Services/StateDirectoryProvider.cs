@@ -4,6 +4,14 @@ public static class StateDirectoryProvider
 {
     public static string GetStateDirectory()
     {
+        // Check for PORTLESS_STATE_DIR environment variable first
+        var stateDir = Environment.GetEnvironmentVariable("PORTLESS_STATE_DIR");
+        if (!string.IsNullOrEmpty(stateDir))
+        {
+            return stateDir;
+        }
+
+        // Fall back to default locations
         if (OperatingSystem.IsWindows())
         {
             var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);

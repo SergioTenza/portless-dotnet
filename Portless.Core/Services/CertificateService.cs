@@ -104,7 +104,7 @@ public class CertificateService : ICertificateService
                 options.ServerKeySize,
                 options.ValidityYears);
 
-            using var rsa = RSA.Create(options.ServerKeySize);
+            var rsa = RSA.Create(options.ServerKeySize);
 
             var request = new CertificateRequest(
                 new X500DistinguishedName("CN=*.localhost"),
@@ -151,6 +151,12 @@ public class CertificateService : ICertificateService
             var notBefore = DateTimeOffset.UtcNow.AddDays(-1); // Handle clock skew
             var notAfter = DateTimeOffset.UtcNow.AddDays(options.ValidityYears * 365);
 
+            // Ensure server certificate doesn't outlive CA certificate
+            if (notAfter > caCertificate.NotAfter)
+            {
+                notAfter = caCertificate.NotAfter.AddSeconds(-1); // Ensure it's strictly before
+            }
+
             // Load CA private key for signing
             using var caRsa = caCertificate.GetRSAPrivateKey();
             if (caRsa == null)
@@ -166,9 +172,11 @@ public class CertificateService : ICertificateService
             // Create certificate signed by CA
             var certificate = request.Create(caCertificate, notBefore, notAfter, serialNumber);
 
-            // Export and reload with exportable private key
-            byte[] pfxBytes = certificate.Export(X509ContentType.Pkcs12, "");
-            var exportable = X509CertificateLoader.LoadPkcs12(pfxBytes, "", X509KeyStorageFlags.Exportable);
+            // Create X509Certificate2 with private key
+            var exportable = new X509Certificate2(certificate.CopyWithPrivateKey(rsa));
+
+            // Dispose RSA key now that certificate is created
+            rsa.Dispose();
 
             _logger.LogInformation(
                 "Wildcard certificate generated successfully. Thumbprint: {Thumbprint}, Expires: {Expires}",
