@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: HTTPS with Automatic Certificates
 status: unknown
-last_updated: "2026-03-02T12:53:23.797Z"
+last_updated: "2026-03-02T12:55:21.844Z"
 progress:
   total_phases: 18
   completed_phases: 17
