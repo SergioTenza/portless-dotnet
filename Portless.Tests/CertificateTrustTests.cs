@@ -11,7 +11,12 @@ namespace Portless.Tests;
 
 /// <summary>
 /// Certificate trust status integration tests (Windows-only).
-/// Tests verify Windows Certificate Store trust detection and status reporting.
+/// <para>Tests verify Windows Certificate Store trust detection and status reporting.</para>
+/// <para><strong>Platform Requirements:</strong> These tests require Windows OS to execute fully.
+/// On Linux/macOS, tests skip gracefully with clear messages indicating the Windows Certificate Store
+/// is not available on those platforms.</para>
+/// <para><strong>Cross-Platform Note:</strong> On Linux/macOS, trust installation requires manual commands
+/// (see Phase 14 documentation for platform-specific trust installation instructions).</para>
 /// </summary>
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 public class CertificateTrustTests : IClassFixture<WebApplicationFactory<Program>>
@@ -25,15 +30,30 @@ public class CertificateTrustTests : IClassFixture<WebApplicationFactory<Program
         _output = output;
     }
 
+    /// <summary>
+    /// Helper method to skip tests on non-Windows platforms with clear logging.
+    /// Returns true if test should be skipped, false otherwise.
+    /// </summary>
+    private bool SkipIfNotWindows()
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            _output.WriteLine("Test skipped: Windows Certificate Store not available on this platform");
+            _output.WriteLine("On Linux/macOS, trust installation requires manual commands (see Phase 14 documentation)");
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Tests trust status detection on Windows.
+    /// Skips gracefully on Linux/macOS with clear message.
+    /// </summary>
     [Fact]
     public async Task Trust_Status_Detection_Returns_Valid_Result_On_Windows()
     {
         // Skip if not running on Windows
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            _output.WriteLine("Test skipped: Windows Certificate Store not available on this platform");
-            return;
-        }
+        if (SkipIfNotWindows()) return;
 
         // Arrange
         var scope = _factory.Services.CreateScope();
@@ -60,6 +80,10 @@ public class CertificateTrustTests : IClassFixture<WebApplicationFactory<Program
         _output.WriteLine($"Trust Status: {status}");
     }
 
+    /// <summary>
+    /// Tests behavior on non-Windows platforms.
+    /// Verifies that GetTrustStatusAsync returns TrustStatus.Unknown on Linux/macOS.
+    /// </summary>
     [Fact]
     public async Task Trust_Status_Detection_Throws_On_Unsupported_Platform()
     {
@@ -88,15 +112,16 @@ public class CertificateTrustTests : IClassFixture<WebApplicationFactory<Program
         }
     }
 
+    /// <summary>
+    /// Tests certificate installation on Windows.
+    /// Skips gracefully on Linux/macOS with clear message.
+    /// Requires administrator privileges on Windows.
+    /// </summary>
     [Fact]
     public async Task Certificate_Installation_Works_On_Windows()
     {
         // Skip if not running on Windows
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            _output.WriteLine("Test skipped: Windows Certificate Store not available on this platform");
-            return;
-        }
+        if (SkipIfNotWindows()) return;
 
         // Arrange
         var scope = _factory.Services.CreateScope();
@@ -141,15 +166,16 @@ public class CertificateTrustTests : IClassFixture<WebApplicationFactory<Program
         }
     }
 
+    /// <summary>
+    /// Tests idempotent certificate installation behavior.
+    /// Verifies that installing an already-trusted certificate succeeds with AlreadyInstalled=true.
+    /// Skips gracefully on Linux/macOS with clear message.
+    /// </summary>
     [Fact]
     public async Task Trust_Status_Idempotent_Install()
     {
         // Skip if not running on Windows
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            _output.WriteLine("Test skipped: Windows Certificate Store not available on this platform");
-            return;
-        }
+        if (SkipIfNotWindows()) return;
 
         // Arrange
         var scope = _factory.Services.CreateScope();
@@ -185,15 +211,16 @@ public class CertificateTrustTests : IClassFixture<WebApplicationFactory<Program
         await trustService.UninstallCertificateAuthorityAsync(cert.Thumbprint);
     }
 
+    /// <summary>
+    /// Tests idempotent certificate uninstallation behavior.
+    /// Verifies that uninstalling a non-existent certificate succeeds without error.
+    /// Skips gracefully on Linux/macOS with clear message.
+    /// </summary>
     [Fact]
     public async Task Trust_Status_Idempotent_Uninstall()
     {
         // Skip if not running on Windows
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            _output.WriteLine("Test skipped: Windows Certificate Store not available on this platform");
-            return;
-        }
+        if (SkipIfNotWindows()) return;
 
         // Arrange
         var scope = _factory.Services.CreateScope();
@@ -222,6 +249,11 @@ public class CertificateTrustTests : IClassFixture<WebApplicationFactory<Program
         _output.WriteLine("Idempotent uninstall verified: Second uninstall succeeded");
     }
 
+    /// <summary>
+    /// Tests certificate expiration detection logic.
+    /// Verifies that ExpiringSoon status is returned for certificates within 30 days of expiration.
+    /// This test works on all platforms (no skip needed).
+    /// </summary>
     [Fact]
     public async Task Trust_Status_Detects_Expiring_Certificate()
     {
@@ -266,6 +298,11 @@ public class CertificateTrustTests : IClassFixture<WebApplicationFactory<Program
         _output.WriteLine($"Certificate expires in {daysUntilExpiration} days ({cert.NotAfter:yyyy-MM-dd})");
     }
 
+    /// <summary>
+    /// Tests permission denied handling during certificate installation.
+    /// Verifies StoreAccessDenied flag when installation fails without admin privileges.
+    /// Skips gracefully on Linux/macOS with clear message.
+    /// </summary>
     [Fact]
     public async Task Trust_Status_Permission_Denied_Handled()
     {
@@ -273,11 +310,7 @@ public class CertificateTrustTests : IClassFixture<WebApplicationFactory<Program
         // On Windows, installing to LocalMachine Root store requires administrator privileges
 
         // Skip if not running on Windows
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            _output.WriteLine("Test skipped: Windows Certificate Store not available on this platform");
-            return;
-        }
+        if (SkipIfNotWindows()) return;
 
         // Arrange
         var scope = _factory.Services.CreateScope();
