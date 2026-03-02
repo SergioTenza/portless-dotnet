@@ -172,10 +172,13 @@ Plans:
   4. Integration tests verify certificate renewal before expiration
   5. Integration tests verify trust status detection on Windows
   6. Integration tests cover mixed HTTP/HTTPS backend routing scenarios
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 18-01: [TBD during planning]
+- [x] 18-01-PLAN.md — Certificate generation and renewal integration tests (TEST-01, TEST-04) ✅ Complete 2026-03-02
+- [x] 18-02-PLAN.md — HTTPS endpoint integration tests (TEST-02) ✅ Complete 2026-03-02
+- [ ] 18-03-PLAN.md — X-Forwarded-Proto header preservation tests (TEST-03)
+- [ ] 18-04-PLAN.md — Certificate trust status integration tests (TEST-05)
 
 #### Phase 19: Documentation
 **Goal**: Complete user-facing documentation for HTTPS certificate management
@@ -215,7 +218,7 @@ Phases execute in numeric order: 13 → 14 → 15 → 16 → 17 → 18 → 19
 | 15. HTTPS Endpoint | v1.2 | 1/1 | Complete | 2026-02-23 |
 | 16. Mixed Protocol Support | v1.2 | 1/1 | Not started | - |
 | 17. Certificate Lifecycle | 2/2 | Complete    | 2026-02-23 | 2026-02-23 |
-| 18. Integration Tests | 4/4 | Complete   | 2026-03-02 | - |
+| 18. Integration Tests | 2/4 | In Progress | 2026-03-02 | - |
 | 19. Documentation | v1.2 | 0/0 | Not started | - |
 
 **For detailed milestone information, see:**

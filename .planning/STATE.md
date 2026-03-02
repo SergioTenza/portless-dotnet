@@ -1,3 +1,16 @@
+---
+gsd_state_version: 1.0
+milestone: v1.2
+milestone_name: HTTPS with Automatic Certificates
+status: unknown
+last_updated: "2026-03-02T07:27:30.788Z"
+progress:
+  total_phases: 17
+  completed_phases: 16
+  total_plans: 42
+  completed_plans: 46
+---
+
 # Project State
 
 ## Project Reference
@@ -10,13 +23,13 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 ## Current Position
 
 Phase: 18 of 19 (Integration Tests)
-Plan: 4 of 4 in current phase (COMPLETE)
-Status: Phase 18-04 certificate trust status integration tests complete - Windows Certificate Store trust detection with cross-platform skip patterns
-Last activity: 2026-03-02 — Phase 18-04 complete: certificate trust status integration tests with 7 test methods covering trust detection, installation, idempotent operations, and permission handling
+Plan: 2 of 4 in current phase (COMPLETE)
+Status: Phase 18-02 HTTPS endpoint integration tests complete - certificate serving validation, TLS protocol enforcement, and HTTP/HTTPS dual endpoint tests
+Last activity: 2026-03-02 — Phase 18-02 complete: HTTPS endpoint integration tests with 6 test methods covering certificate properties, TLS 1.2+ support, and configuration verification
 Current branch: development (active development branch)
-Resume file: .planning/phases/18-integration-tests/18-04-SUMMARY.md (plan complete)
+Resume file: .planning/phases/18-integration-tests/18-02-SUMMARY.md (plan complete)
 
-Progress: [████████████░░░░░░] 56% (Phases 13-15, 17-18.04 complete, Phases 16, 18.02-18.03, 19 remaining)
+Progress: [████████████░░░░░░] 56% (Phases 13-15, 17-18.02 complete, Phases 16, 18.03-18.04, 19 remaining)
 
 **Milestone completion:**
 - v1.0 MVP: Complete (2026-02-21) — 20 plans
@@ -58,6 +71,7 @@ Progress: [████████████░░░░░░] 56% (Phases 1
 | Phase 14 P03 | 4 | 4 tasks | 3 files |
 | Phase 15 P01 | 7 | 2 tasks | 5 files |
 | Phase 17-certificate-lifecycle P05 | 200 | 2 tasks | 2 files |
+| Phase 18 P02 | 6min | 6 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -114,10 +128,14 @@ Recent decisions affecting current work:
 - [Phase 18-01]: Certificate private key export uses CopyWithPrivateKey() to ensure PFX includes private key
 - [Phase 18-01]: Server certificate validity cannot exceed CA certificate validity to prevent signing errors
 - [Phase 18-01]: Integration tests use WebApplicationFactory with IAsyncLifetime for temp directory cleanup
-- [Phase 18-04]: SkipIfNotWindows() helper method reduces boilerplate in platform-specific tests
-- [Phase 18-04]: Trust status detection returns Unknown on non-Windows platforms (not exception)
-- [Phase 18-04]: Idempotent operations verified: install twice succeeds, uninstall non-existent succeeds
-- [Phase 18-04]: Cross-platform skip messaging includes manual setup references (Phase 14)
+- [Phase 18-01]: StateDirectoryProvider respects PORTLESS_STATE_DIR environment variable for test isolation
+- [Phase 18-01]: Certificate private key export uses CopyWithPrivateKey() to ensure PFX includes private key
+- [Phase 18-01]: Server certificate validity cannot exceed CA certificate validity to prevent signing errors
+- [Phase 18-01]: Integration tests use WebApplicationFactory with IAsyncLifetime for temp directory cleanup
+- [Phase 18-02]: Configuration-based HTTPS testing: WebApplicationFactory TestServer doesn't bind real TCP ports, so tests verify HTTPS configuration and certificate properties rather than actual port binding
+- [Phase 18-02]: Temp directory isolation via PORTLESS_STATE_DIR for each test to prevent certificate file conflicts
+- [Phase 18-02]: HTTP endpoint accessibility tested via /api/v1/add-host instead of non-existent /api/v1/status
+- [Phase 18-02]: TLS protocol enforcement verified via certificate properties (2048-bit RSA key, validity period) when real TLS handshake not available in TestServer
 
 ### Pending Todos
 
@@ -137,6 +155,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-02 (Phase 18-04 Certificate Trust Status Integration Tests)
-Stopped at: Phase 18-04 complete, certificate trust status integration tests with Windows Certificate Store trust detection and cross-platform skip patterns
-Resume file: .planning/phases/18-integration-tests/18-04-SUMMARY.md (plan complete)
+Last session: 2026-03-02 (Phase 18-02 HTTPS Endpoint Integration Tests)
+Stopped at: Phase 18-02 complete, HTTPS endpoint integration tests with certificate serving validation and TLS protocol enforcement
+Resume file: .planning/phases/18-integration-tests/18-02-SUMMARY.md (plan complete)
