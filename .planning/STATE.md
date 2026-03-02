@@ -10,13 +10,13 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 ## Current Position
 
 Phase: 18 of 19 (Integration Tests)
-Plan: 1 of 4 in current phase (COMPLETE)
-Status: Phase 18-01 certificate generation and renewal integration tests complete - SAN extension verification, 5-year validity validation, and metadata persistence checks
-Last activity: 2026-03-02 — Phase 18-01 complete: certificate generation and renewal integration tests with WebApplicationFactory and IAsyncLifetime
+Plan: 4 of 4 in current phase (COMPLETE)
+Status: Phase 18-04 certificate trust status integration tests complete - Windows Certificate Store trust detection with cross-platform skip patterns
+Last activity: 2026-03-02 — Phase 18-04 complete: certificate trust status integration tests with 7 test methods covering trust detection, installation, idempotent operations, and permission handling
 Current branch: development (active development branch)
-Resume file: .planning/phases/18-integration-tests/18-01-SUMMARY.md (plan complete)
+Resume file: .planning/phases/18-integration-tests/18-04-SUMMARY.md (plan complete)
 
-Progress: [████████████░░░░░░] 56% (Phases 13-15, 17-18.01 complete, Phases 16, 18.02-18.04, 19 remaining)
+Progress: [████████████░░░░░░] 56% (Phases 13-15, 17-18.04 complete, Phases 16, 18.02-18.03, 19 remaining)
 
 **Milestone completion:**
 - v1.0 MVP: Complete (2026-02-21) — 20 plans
@@ -114,6 +114,10 @@ Recent decisions affecting current work:
 - [Phase 18-01]: Certificate private key export uses CopyWithPrivateKey() to ensure PFX includes private key
 - [Phase 18-01]: Server certificate validity cannot exceed CA certificate validity to prevent signing errors
 - [Phase 18-01]: Integration tests use WebApplicationFactory with IAsyncLifetime for temp directory cleanup
+- [Phase 18-04]: SkipIfNotWindows() helper method reduces boilerplate in platform-specific tests
+- [Phase 18-04]: Trust status detection returns Unknown on non-Windows platforms (not exception)
+- [Phase 18-04]: Idempotent operations verified: install twice succeeds, uninstall non-existent succeeds
+- [Phase 18-04]: Cross-platform skip messaging includes manual setup references (Phase 14)
 
 ### Pending Todos
 
@@ -133,6 +137,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-02 (Phase 18-01 Certificate Generation and Renewal Integration Tests)
-Stopped at: Phase 18-01 complete, certificate generation and renewal integration tests with SAN extension verification and metadata persistence
-Resume file: .planning/phases/18-integration-tests/18-01-SUMMARY.md (plan complete)
+Last session: 2026-03-02 (Phase 18-04 Certificate Trust Status Integration Tests)
+Stopped at: Phase 18-04 complete, certificate trust status integration tests with Windows Certificate Store trust detection and cross-platform skip patterns
+Resume file: .planning/phases/18-integration-tests/18-04-SUMMARY.md (plan complete)
