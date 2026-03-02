@@ -131,8 +131,10 @@ public class CertificateRenewalTests : IClassFixture<WebApplicationFactory<Progr
         Assert.NotEqual(initialThumbprint, newMetadata.Sha256Thumbprint);
         _output.WriteLine($"New metadata thumbprint: {newMetadata.Sha256Thumbprint}");
 
-        // Assert - New expiration date in metadata
-        Assert.NotEqual(initialMetadata.ExpiresAt, newMetadata.ExpiresAt);
+        // Assert - Expiration date is approximately 5 years from now
+        var expectedExpiration = DateTimeOffset.UtcNow.AddYears(5);
+        var daysDiff = (newMetadata.ExpiresAt - expectedExpiration).TotalDays;
+        Assert.InRange(Math.Abs(daysDiff), 0, 2); // Within 2 days of 5 years
 
         // Verify the new thumbprint matches the actual certificate
         var newCert = await _certManager.GetServerCertificateAsync();
