@@ -65,10 +65,10 @@ Requirements for HTTPS with Automatic Certificates milestone. Each maps to roadm
 
 ### Testing (TEST)
 
-- [ ] **TEST-01**: Integration tests verify certificate generation with correct SAN extensions
+- [x] **TEST-01**: Integration tests verify certificate generation with correct SAN extensions
 - [ ] **TEST-02**: Integration tests verify HTTPS endpoint serves valid TLS certificate
 - [ ] **TEST-03**: Integration tests verify X-Forwarded-Proto header preservation
-- [ ] **TEST-04**: Integration tests verify certificate renewal before expiration
+- [x] **TEST-04**: Integration tests verify certificate renewal before expiration
 - [ ] **TEST-05**: Integration tests verify trust status detection on Windows
 - [ ] **TEST-06**: Integration tests cover mixed HTTP/HTTPS backend routing scenarios
 
@@ -157,10 +157,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CLI-04 | Phase 14 | Pending |
 | CLI-05 | Phase 15 | Complete |
 | CLI-06 | Phase 17 | Pending |
-| TEST-01 | Phase 18 | Pending |
+| TEST-01 | Phase 18 | Complete |
 | TEST-02 | Phase 18 | Pending |
 | TEST-03 | Phase 18 | Pending |
-| TEST-04 | Phase 18 | Pending |
+| TEST-04 | Phase 18 | Complete |
 | TEST-05 | Phase 18 | Pending |
 | TEST-06 | Phase 18 | Pending |
 | DOCS-01 | Phase 19 | Pending |

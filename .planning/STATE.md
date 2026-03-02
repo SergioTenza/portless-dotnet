@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 
 ## Current Position
 
-Phase: 17 of 19 (Certificate Lifecycle)
-Plan: 5 of 5 in current phase (COMPLETE)
-Status: Phase 17 certificate lifecycle complete - automatic expiration monitoring and renewal with background service, CLI commands, and proxy startup integration; namespace compilation errors fixed
-Last activity: 2026-02-23 — Phase 17-05 complete: fixed namespace compilation errors in certificate monitoring services
+Phase: 18 of 19 (Integration Tests)
+Plan: 1 of 4 in current phase (COMPLETE)
+Status: Phase 18-01 certificate generation and renewal integration tests complete - SAN extension verification, 5-year validity validation, and metadata persistence checks
+Last activity: 2026-03-02 — Phase 18-01 complete: certificate generation and renewal integration tests with WebApplicationFactory and IAsyncLifetime
 Current branch: development (active development branch)
-Resume file: .planning/phases/17-certificate-lifecycle/17-05-SUMMARY.md (plan complete)
+Resume file: .planning/phases/18-integration-tests/18-01-SUMMARY.md (plan complete)
 
-Progress: [████████████░░░░░░] 55% (Phases 13-17 complete, Phases 16, 18-19 remaining)
+Progress: [████████████░░░░░░] 56% (Phases 13-15, 17-18.01 complete, Phases 16, 18.02-18.04, 19 remaining)
 
 **Milestone completion:**
 - v1.0 MVP: Complete (2026-02-21) — 20 plans
 - v1.1 Advanced Protocols: Complete (2026-02-22) — 14 plans
-- v1.2 HTTPS with Automatic Certificates: In Progress (2026-02-23) — 4/7 phases complete (Phases 13-15, 17: Certificate Management + HTTPS Endpoint + Certificate Lifecycle)
+- v1.2 HTTPS with Automatic Certificates: In Progress (2026-03-02) — 5/7 phases complete (Phases 13-15, 17-18.01: Certificate Management + HTTPS Endpoint + Certificate Lifecycle + Integration Tests)
 
 ## Performance Metrics
 
@@ -110,6 +110,10 @@ Recent decisions affecting current work:
 - [Phase 17]: Environment variables for thresholds: PORTLESS_CERT_WARNING_DAYS (30), PORTLESS_CERT_CHECK_INTERVAL_HOURS (6), PORTLESS_AUTO_RENEW (true), PORTLESS_ENABLE_MONITORING (false)
 - [Phase 17-05]: CertificateStatus kept in Services namespace (not Models) as it represents service contract/result type, not persistent data model
 - [Phase 17-certificate-lifecycle]: CertificateStatus kept in Services namespace (not Models) as it represents service contract/result type, not persistent data model
+- [Phase 18-01]: StateDirectoryProvider respects PORTLESS_STATE_DIR environment variable for test isolation
+- [Phase 18-01]: Certificate private key export uses CopyWithPrivateKey() to ensure PFX includes private key
+- [Phase 18-01]: Server certificate validity cannot exceed CA certificate validity to prevent signing errors
+- [Phase 18-01]: Integration tests use WebApplicationFactory with IAsyncLifetime for temp directory cleanup
 
 ### Pending Todos
 
@@ -129,6 +133,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-23 (Phase 17 Certificate Lifecycle Complete - Gap Closure)
-Stopped at: Phase 17-05 complete, fixed namespace compilation errors in certificate monitoring services
-Resume file: .planning/phases/17-certificate-lifecycle/17-05-SUMMARY.md (plan complete)
+Last session: 2026-03-02 (Phase 18-01 Certificate Generation and Renewal Integration Tests)
+Stopped at: Phase 18-01 complete, certificate generation and renewal integration tests with SAN extension verification and metadata persistence
+Resume file: .planning/phases/18-integration-tests/18-01-SUMMARY.md (plan complete)
