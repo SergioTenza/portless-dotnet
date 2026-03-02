@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: HTTPS with Automatic Certificates
 status: unknown
-last_updated: "2026-03-02T07:27:30.788Z"
+last_updated: "2026-03-02T07:41:36.032Z"
 progress:
   total_phases: 17
   completed_phases: 16
   total_plans: 42
-  completed_plans: 46
+  completed_plans: 47
 ---
 
 # Project State
@@ -23,13 +23,13 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 ## Current Position
 
 Phase: 18 of 19 (Integration Tests)
-Plan: 2 of 4 in current phase (COMPLETE)
-Status: Phase 18-02 HTTPS endpoint integration tests complete - certificate serving validation, TLS protocol enforcement, and HTTP/HTTPS dual endpoint tests
-Last activity: 2026-03-02 — Phase 18-02 complete: HTTPS endpoint integration tests with 6 test methods covering certificate properties, TLS 1.2+ support, and configuration verification
+Plan: 3 of 4 in current phase (COMPLETE)
+Status: Phase 18-03 protocol header and mixed routing integration tests complete - X-Forwarded-Proto header preservation and mixed HTTP/HTTPS backend routing tests
+Last activity: 2026-03-02 — Phase 18-03 complete: X-Forwarded-Proto and mixed protocol routing tests with 7 test methods covering header preservation and mixed backend configurations
 Current branch: development (active development branch)
-Resume file: .planning/phases/18-integration-tests/18-02-SUMMARY.md (plan complete)
+Resume file: .planning/phases/18-integration-tests/18-03-SUMMARY.md (plan complete)
 
-Progress: [████████████░░░░░░] 56% (Phases 13-15, 17-18.02 complete, Phases 16, 18.03-18.04, 19 remaining)
+Progress: [████████████░░░░░░] 57% (Phases 13-15, 17-18.03 complete, Phases 16, 18.04, 19 remaining)
 
 **Milestone completion:**
 - v1.0 MVP: Complete (2026-02-21) — 20 plans
@@ -72,6 +72,7 @@ Progress: [████████████░░░░░░] 56% (Phases 1
 | Phase 15 P01 | 7 | 2 tasks | 5 files |
 | Phase 17-certificate-lifecycle P05 | 200 | 2 tasks | 2 files |
 | Phase 18 P02 | 6min | 6 tasks | 1 files |
+| Phase 18 P03 | 572 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -136,6 +137,8 @@ Recent decisions affecting current work:
 - [Phase 18-02]: Temp directory isolation via PORTLESS_STATE_DIR for each test to prevent certificate file conflicts
 - [Phase 18-02]: HTTP endpoint accessibility tested via /api/v1/add-host instead of non-existent /api/v1/status
 - [Phase 18-02]: TLS protocol enforcement verified via certificate properties (2048-bit RSA key, validity period) when real TLS handshake not available in TestServer
+- [Phase 18]: HTTPS testing with TestServer requires configuration verification rather than actual TLS handshake
+- [Phase 18]: X-Forwarded-Proto tests disabled HTTPS redirect to avoid 308 responses
 
 ### Pending Todos
 
