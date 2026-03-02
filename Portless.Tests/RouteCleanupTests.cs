@@ -17,12 +17,12 @@ public class RouteCleanupTests
             Hostname = "test.localhost",
             Port = 4001,
             Pid = currentProcess.Id,
-            CreatedAt = DateTime.UtcNow.AddSeconds(-10) // Created 10s ago
+            CreatedAt = currentProcess.StartTime.AddSeconds(1) // Created after process started
         };
 
         // Act - Access IsProcessAlive via reflection or extract to separate class
         // For now, we'll test the logic inline
-        var isAlive = TestIsProcessAlive(route);
+        var isAlive = TestIsProcessAlive(route, currentProcess.StartTime);
 
         // Assert
         Assert.True(isAlive);
@@ -76,12 +76,12 @@ public class RouteCleanupTests
             Hostname = "test.localhost",
             Port = 4001,
             Pid = currentProcess.Id,
-            CreatedAt = DateTime.UtcNow.AddSeconds(-10),
+            CreatedAt = currentProcess.StartTime.AddSeconds(1),
             LastSeen = null
         };
 
         // Act
-        TestIsProcessAlive(route);
+        TestIsProcessAlive(route, currentProcess.StartTime);
 
         // Assert
         Assert.NotNull(route.LastSeen);
@@ -90,7 +90,7 @@ public class RouteCleanupTests
 
     // Helper method to test IsProcessAlive logic
     // In production, this would be a separate testable class or use reflection
-    private static bool TestIsProcessAlive(RouteInfo route)
+    private static bool TestIsProcessAlive(RouteInfo route, DateTime? processStartTime = null)
     {
         try
         {
@@ -100,7 +100,8 @@ public class RouteCleanupTests
                 return false;
 
             // Validate PID hasn't been recycled
-            if (process.StartTime > route.CreatedAt + TimeSpan.FromSeconds(1))
+            var startTime = processStartTime ?? process.StartTime;
+            if (startTime > route.CreatedAt + TimeSpan.FromSeconds(1))
             {
                 return false; // PID recycled
             }

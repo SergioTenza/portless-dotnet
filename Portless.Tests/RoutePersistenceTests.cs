@@ -3,14 +3,24 @@ using System.Text.Json;
 using Portless.Core.Services;
 using Portless.Core.Models;
 using System.Diagnostics;
+using System.Text.Json.Serialization;
 
 namespace Portless.Tests;
 
+[Collection("RouteStore Tests")]
 public class RoutePersistenceTests : IAsyncLifetime
 {
     private readonly string _testDirectory;
     private readonly string _testRoutesFile;
     private IRouteStore? _routeStore;
+    private static readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = false,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        ReadCommentHandling = JsonCommentHandling.Skip,
+        AllowTrailingCommas = true
+    };
 
     public RoutePersistenceTests()
     {
@@ -21,8 +31,17 @@ public class RoutePersistenceTests : IAsyncLifetime
 
     public Task InitializeAsync()
     {
-        // Initialize store with test directory
-        // (Need to modify StateDirectoryProvider to support test path injection)
+        // Clean up any existing test file from previous runs
+        if (File.Exists(_testRoutesFile))
+        {
+            File.Delete(_testRoutesFile);
+        }
+
+        // Set environment variable for RouteStore to use test directory
+        Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", _testDirectory);
+
+        // Initialize RouteStore which will use PORTLESS_STATE_DIR
+        _routeStore = new RouteStore();
         return Task.CompletedTask;
     }
 
@@ -76,7 +95,7 @@ public class RoutePersistenceTests : IAsyncLifetime
         // Act
         await _routeStore!.SaveRoutesAsync(routes);
         var json = await File.ReadAllTextAsync(_testRoutesFile);
-        var deserialized = JsonSerializer.Deserialize<RouteInfo[]>(json);
+        var deserialized = JsonSerializer.Deserialize<RouteInfo[]>(json, _jsonOptions);
 
         // Assert
         Assert.NotNull(deserialized);

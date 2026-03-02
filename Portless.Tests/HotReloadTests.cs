@@ -1,5 +1,6 @@
 using Xunit;
 using System.IO;
+using System;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -7,15 +8,26 @@ using Portless.Core.Services;
 using Portless.Core.Models;
 using Portless.Core.Configuration;
 using Yarp.ReverseProxy.Configuration;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Portless.Tests;
 
+[Collection("RouteStore Tests")]
 public class HotReloadTests : IAsyncLifetime
 {
     private readonly string _testDirectory;
     private readonly string _testRoutesFile;
     private IRouteStore? _routeStore;
     private IHost? _testHost;
+    private static readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = false,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        ReadCommentHandling = JsonCommentHandling.Skip,
+        AllowTrailingCommas = true
+    };
 
     public HotReloadTests()
     {
@@ -26,6 +38,17 @@ public class HotReloadTests : IAsyncLifetime
 
     public Task InitializeAsync()
     {
+        // Clean up any existing test file from previous runs
+        if (File.Exists(_testRoutesFile))
+        {
+            File.Delete(_testRoutesFile);
+        }
+
+        // Set environment variable for RouteStore to use test directory
+        Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", _testDirectory);
+
+        // Initialize RouteStore which will use PORTLESS_STATE_DIR
+        _routeStore = new RouteStore();
         return Task.CompletedTask;
     }
 
@@ -83,7 +106,6 @@ public class HotReloadTests : IAsyncLifetime
     public async Task DebounceTimer_PreventsMultipleRapidReloads()
     {
         // Arrange
-        var reloadCount = 0;
         var configProvider = new DynamicConfigProvider();
 
         // Act - Simulate rapid file changes
@@ -116,12 +138,14 @@ public class HotReloadTests : IAsyncLifetime
             }
         };
 
-        var json = System.Text.Json.JsonSerializer.Serialize(testRoutes);
+        var json = JsonSerializer.Serialize(testRoutes, _jsonOptions);
         await File.WriteAllTextAsync(_testRoutesFile, json);
 
-        // Act - Load routes via RouteStore
-        _routeStore = new RouteStore(); // Would need test DI setup
-        var loadedRoutes = await _routeStore.LoadRoutesAsync();
+        // Verify file was written
+        Assert.True(File.Exists(_testRoutesFile), $"Test routes file should exist: {_testRoutesFile}");
+
+        // Act - Load routes via RouteStore (using the one from InitializeAsync)
+        var loadedRoutes = await _routeStore!.LoadRoutesAsync();
 
         // Assert
         Assert.NotNull(loadedRoutes);
