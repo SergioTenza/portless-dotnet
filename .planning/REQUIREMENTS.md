@@ -38,11 +38,11 @@ Requirements for HTTPS with Automatic Certificates milestone. Each maps to roadm
 
 ### Mixed Protocol Support (MIXED)
 
-- [ ] **MIXED-01**: Proxy preserves original protocol in X-Forwarded-Proto header
-- [ ] **MIXED-02**: Backend HTTP services receive `X-Forwarded-Proto: http`
-- [ ] **MIXED-03**: Backend HTTPS services receive `X-Forwarded-Proto: https`
-- [ ] **MIXED-04**: Proxy supports mixed routing (some backends HTTP, others HTTPS)
-- [ ] **MIXED-05**: YARP backend SSL validation configured for development mode (accepts self-signed certificates)
+- [x] **MIXED-01**: Proxy preserves original protocol in X-Forwarded-Proto header
+- [x] **MIXED-02**: Backend HTTP services receive `X-Forwarded-Proto: http`
+- [x] **MIXED-03**: Backend HTTPS services receive `X-Forwarded-Proto: https`
+- [x] **MIXED-04**: Proxy supports mixed routing (some backends HTTP, others HTTPS)
+- [x] **MIXED-05**: YARP backend SSL validation configured for development mode (accepts self-signed certificates)
 
 ### Certificate Lifecycle (LIFECYCLE)
 
@@ -139,11 +139,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HTTPS-03 | Phase 15 | Complete |
 | HTTPS-04 | Phase 15 | Complete |
 | HTTPS-05 | Phase 15 | Complete |
-| MIXED-01 | Phase 16 | Pending |
-| MIXED-02 | Phase 16 | Pending |
-| MIXED-03 | Phase 16 | Pending |
-| MIXED-04 | Phase 16 | Pending |
-| MIXED-05 | Phase 16 | Pending |
+| MIXED-01 | Phase 16 | Complete |
+| MIXED-02 | Phase 16 | Complete |
+| MIXED-03 | Phase 16 | Complete |
+| MIXED-04 | Phase 16 | Complete |
+| MIXED-05 | Phase 16 | Complete |
 | LIFECYCLE-01 | Phase 17 | Pending |
 | LIFECYCLE-02 | Phase 17 | Pending |
 | LIFECYCLE-03 | Phase 17 | Pending |
