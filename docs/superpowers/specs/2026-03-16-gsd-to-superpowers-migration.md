@@ -45,11 +45,13 @@ Migrate Portless.NET project from GSD (Get Stuff Done) framework to Superpowers 
 > "URLs estables y predecibles para desarrollo local"
 
 **Validated Requirements:**
+
 - **v1.0 (20 requirements):** HTTP proxy, CLI commands, port allocation, route persistence, process management, .NET integration, integration tests
 - **v1.1 (15 requirements):** HTTP/2 support, protocol logging, X-Forwarded headers, WebSocket proxy, long-lived connections, SignalR integration, integration tests, documentation
 - **v1.2 Partial (7 requirements):** Certificate generation, wildcard certificates, secure storage, Windows Certificate Store, CLI commands, cross-platform messaging, auto-renewal detection
 
 **Key Decisions Table (13 decisions):**
+
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
 | YARP en lugar de proxy custom | Production-ready de Microsoft, soporta HTTP/2/WebSockets | ✓ Good |
@@ -67,6 +69,7 @@ Migrate Portless.NET project from GSD (Get Stuff Done) framework to Superpowers 
 | Windows Certificate Store integration | LocalMachine Root store para system-wide trust | ✓ Good |
 
 **Constraints:**
+
 - Tech Stack: .NET 10, C# 14, YARP 2.3.0
 - Platform: Windows 10+ (primary), macOS 12+, Linux (validation deferred to v1.3+)
 - Distribution: dotnet tool global con Native AOT
@@ -74,6 +77,7 @@ Migrate Portless.NET project from GSD (Get Stuff Done) framework to Superpowers 
 - Compatibility: Idéntico comportamiento en Windows, macOS, Linux
 
 **Out of Scope:**
+
 - Interfaz gráfica (CLI tool para desarrolladores)
 - Soporte remoto (solo desarrollo local)
 - Load balancing (single destination por hostname)
@@ -88,6 +92,7 @@ Migrate Portless.NET project from GSD (Get Stuff Done) framework to Superpowers 
 
 **Accumulated Context → Decisions (80+ decisions):**
 Extract 80+ phase-level decisions covering:
+
 - Certificate generation (Phase 13): .NET native APIs, PFX storage, secure permissions
 - Trust installation (Phase 14): Windows X509Store API, platform guards, idempotent operations
 - HTTPS endpoint (Phase 15): Fixed ports (HTTP=1355, HTTPS=1356), TLS 1.2+ enforcement
@@ -97,6 +102,7 @@ Extract 80+ phase-level decisions covering:
 - Documentation (Phase 19): Migration guide structure, troubleshooting format
 
 **Recent Decisions Affecting Current Work:**
+
 - Fixed ports enforced with PORTLESS_PORT deprecation warning
 - 308 Permanent Redirect used instead of 301 for HTTP→HTTPS
 - /api/v1/* management endpoints excluded from HTTPS redirect
@@ -109,11 +115,13 @@ Extract 80+ phase-level decisions covering:
 #### From `.planning/ROADMAP.md`
 
 **Phase Summaries:**
+
 - v1.0 MVP (Phases 1-8): HTTP proxy, CLI, port management, process management, .NET integration, integration tests
 - v1.1 Advanced Protocols (Phases 9-12): HTTP/2, WebSocket, SignalR, documentation
 - v1.2 HTTPS (Phases 13-19): Certificate generation, trust installation, HTTPS endpoint, mixed protocol, certificate lifecycle, integration tests, documentation
 
 **Dependencies:**
+
 - Phase 14 depends on Phase 13 (certificate generation → trust installation)
 - Phase 15 depends on Phase 13 (certificate generation → HTTPS endpoint)
 - Phase 16 depends on Phase 15 (HTTPS endpoint → mixed protocol)
@@ -124,11 +132,13 @@ Extract 80+ phase-level decisions covering:
 #### From `.planning/v1.2-MILESTONE-AUDIT.md`
 
 **Critical Blockers Identified:**
+
 1. **Missing VERIFICATION.md files** (7 phases) - All phases technically unverified
 2. **Phase 17 Certificate Lifecycle** - 9 requirements unchecked (LIFECYCLE-01 through 07, CLI-03, CLI-06)
 3. **Integration Test Gaps** - TEST-03 (X-Forwarded-Proto), TEST-06 (mixed routing) unchecked
 
 **18 Unsatisfied Requirements:**
+
 - CERT-07, CERT-08 (certificate security, persistence)
 - TRUST-03, CLI-01, CLI-02, CLI-04 (trust commands)
 - HTTPS-02 (configurable HTTPS port)
@@ -177,6 +187,7 @@ docs/superpowers/
 #### Phase 1: Extract and Archive (1-2 hours)
 
 **Step 1.1: Extract Key Decisions**
+
 1. Read `.planning/PROJECT.md` Key Decisions table (13 decisions)
 2. Read `.planning/STATE.md` Accumulated Context → Decisions section (80+ decisions)
 3. Consolidate into `docs/superpowers/decisions.md` with categories:
@@ -188,13 +199,16 @@ docs/superpowers/
    - CLI decisions (Spectre.Console.Cli, colored output, exit codes)
 
 **Step 1.2: Extract Validated Requirements**
+
 1. Copy validated requirements from PROJECT.md
 2. Organize by milestone (v1.0: 20 requirements, v1.1: 15 requirements, v1.2 partial: 7 requirements)
 3. Create `docs/superpowers/validated-requirements.md`
 
 **Step 1.3: Archive GSD Structure**
+
 1. Rename `.planning/` → `.planning.archived/`
 2. Add `.planning.archived/README.md`:
+
    ```markdown
    # GSD Framework Archive
 
@@ -214,8 +228,10 @@ docs/superpowers/
    ```
 
 **Step 1.4: Update CLAUDE.md**
+
 1. Remove GSD workflow references
 2. Add Superpowers workflow reference:
+
    ```markdown
    ## Development Workflow
 
@@ -224,12 +240,16 @@ docs/superpowers/
    ```
 
 **Step 1.5: Validate Extraction Completeness**
+
 1. Count extracted decisions:
+
    ```bash
    grep -c "^|" docs/superpowers/decisions.md
    # Expected: 93+ decisions (13 from PROJECT.md + 80+ from STATE.md)
    ```
+
 2. Cross-check against original files:
+
    ```bash
    # Count PROJECT.md key decisions (should be 13)
    grep -A 20 "## Key Decisions" .planning.archived/PROJECT.md | grep -c "^|"
@@ -237,21 +257,26 @@ docs/superpowers/
    # Count STATE.md accumulated decisions (should be 80+)
    grep -c "→ Decisions:" .planning.archived/STATE.md
    ```
+
 3. Verify requirement count:
+
    ```bash
    # Should have 42 total requirements
    grep -c "✅\|✓" docs/superpowers/validated-requirements.md
    ```
+
 4. If counts mismatch, re-extract before proceeding
 
 #### Phase 2: Create Migration Spec (30 min)
 
 **Step 2.1: Write Migration Spec**
+
 1. Create this file: `docs/superpowers/specs/2026-03-16-gsd-to-superpowers-migration.md`
 2. Document migration approach, directory structure, workflow
 3. Commit to git with message: "docs: add GSD to Superpowers migration spec"
 
 **Step 2.2: Create v1.2 Completion Spec**
+
 1. Create `docs/superpowers/specs/2026-03-16-v1.2-completion-verification.md`
 2. Document VERIFICATION.md file creation workflow
 3. Document Phase 17 gap closure approach
@@ -290,6 +315,7 @@ docs/superpowers/
    - TEST-06: Mixed HTTP/HTTPS backend routing tests
 
 **Not in Scope:**
+
 - Re-doing completed phases 13-16, 19 (already implemented and tested)
 - New features beyond v1.2
 - Cross-platform validation (deferred to v1.3+)
@@ -301,33 +327,44 @@ docs/superpowers/
 #### Phase 3: Investigation (30 min)
 
 **Step 3.1: Investigate Phase 17 Features**
+
 1. Check if certificate lifecycle features exist in code:
+
    ```bash
    grep -r "CertificateMonitor" Portless.Core/
    grep -r "IHostedService" Portless.Proxy/
    ls -la ~/.portless/cert-info.json  # check if metadata file exists
    ```
+
 2. Test `portless cert renew` command:
+
    ```bash
    dotnet run --project Portless.Cli/ cert renew --help
    ```
+
 3. Verify background monitoring service code
 4. Determine if implementation needed or just verification
 
 **Step 3.2: Check Integration Test Coverage**
+
 1. Verify TEST-03 coverage:
+
    ```bash
    grep -r "X-Forwarded-Proto" Portless.IntegrationTests/
    ```
+
 2. Verify TEST-06 coverage:
+
    ```bash
    grep -r "mixed.*HTTP.*HTTPS" Portless.IntegrationTests/
    ```
+
 3. Identify test gaps
 
 #### Phase 4: Implementation (if needed, 1-2 hours)
 
 **Step 4.1: Implement Phase 17 Lifecycle Features (if missing)**
+
 1. Background monitoring service:
    - Create `CertificateMonitor.cs` inheriting `IHostedService`
    - Check certificate expiration every 6 hours (configurable via PORTLESS_CERT_CHECK_INTERVAL_HOURS)
@@ -345,6 +382,7 @@ docs/superpowers/
    - Exit codes: 0=success, 1=error, 2=permissions, 3=missing
 
 **Step 4.2: Implement Integration Tests**
+
 1. TEST-03: X-Forwarded-Proto header preservation
    - Test HTTP backend receives `X-Forwarded-Proto: http`
    - Test HTTPS backend receives `X-Forwarded-Proto: https`
@@ -367,6 +405,7 @@ creating verification records in `docs/superpowers/verifications/` instead.
 These VERIFICATION.md files serve as the bridge between GSD and Superpowers workflows.
 
 **Format:**
+
 ```markdown
 # Phase XX: [Phase Name] - Verification
 
@@ -410,6 +449,7 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 ```
 
 **Verification Approach:**
+
 - Use conversational UAT (ask user to test features)
 - Document test results per phase
 - Confirm requirements satisfaction
@@ -419,6 +459,7 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 #### Phase 6: Final Verification (30 min)
 
 **Step 6.1: Verify All 18 Requirements Addressed**
+
 1. Check VERIFICATION.md files created (7 files)
 2. Verify Phase 17 lifecycle features work (manual testing)
 3. Verify integration tests pass (TEST-03, TEST-06)
@@ -426,6 +467,7 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 5. Verify no regressions
 
 **Step 6.2: Update v1.2 Milestone Status**
+
 1. Update `.planning.archived/milestones/v1.2-ROADMAP.md`
 2. Mark all phases 13-19 as "Complete - Verified"
 3. Update milestone status to "Complete"
@@ -438,6 +480,7 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 ### Migration Risks
 
 **Risk 1: Lost Context During Migration**
+
 - **Probability:** Low (10%)
 - **Impact:** High
 - **Mitigation:**
@@ -447,6 +490,7 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 - **Recovery:** Restore from `.planning.archived/` if needed
 
 **Risk 2: Incomplete Requirements Understanding**
+
 - **Probability:** Medium (30%)
 - **Impact:** Medium
 - **Mitigation:**
@@ -456,6 +500,7 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 - **Recovery:** Re-extract from GSD archive if gaps found
 
 **Risk 3: Superpowers Workflow Learning Curve**
+
 - **Probability:** Medium (40%)
 - **Impact:** Low
 - **Mitigation:**
@@ -467,6 +512,7 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 ### v1.2 Completion Risks
 
 **Risk 1: VERIFICATION.md Reveals Missing Features**
+
 - **Probability:** High (60%)
 - **Impact:** Medium
 - **Mitigation:**
@@ -476,6 +522,7 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 - **Recovery:** Implement missing features, update timeline
 
 **Risk 2: Phase 17 Features May Already Exist**
+
 - **Probability:** Medium (50%)
 - **Impact:** Low (wasted investigation time)
 - **Mitigation:**
@@ -485,6 +532,7 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 - **Recovery:** Skip implementation if features exist
 
 **Risk 3: Certificate Lifecycle Features Complex to Test**
+
 - **Probability:** Medium (40%)
 - **Impact:** Medium
 - **Mitigation:**
@@ -494,6 +542,7 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 - **Recovery:** Accept manual testing if automated tests too complex
 
 **Risk 4: Test Environment May Not Support HTTPS**
+
 - **Probability:** Low (20%)
 - **Impact:** Low
 - **Mitigation:**
@@ -509,6 +558,7 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 ### Migration Testing
 
 **Pre-Migration Checks:**
+
 - [ ] `.planning/` directory exists and is readable
 - [ ] PROJECT.md has 13 key decisions
 - [ ] STATE.md has 80+ accumulated decisions
@@ -516,6 +566,7 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 - [ ] All phase directories (13-19) exist
 
 **Post-Migration Checks:**
+
 - [ ] `.planning.archived/` directory exists
 - [ ] `docs/superpowers/decisions.md` has 93+ decisions extracted
 - [ ] `docs/superpowers/validated-requirements.md` has all validated requirements
@@ -524,6 +575,7 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 - [ ] Git history preserved
 
 **Extraction Completeness:**
+
 - Verify decision count: 13 (PROJECT.md) + 80+ (STATE.md) = 93+ decisions
 - Verify requirement count: v1.0 (20) + v1.1 (15) + v1.2 partial (7) = 42 requirements
 - Verify archive accessibility: all original files still readable
@@ -531,6 +583,7 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 ### v1.2 Completion Testing
 
 **VERIFICATION.md Creation:**
+
 - [ ] 7 VERIFICATION.md files created (phases 13-19)
 - [ ] Each file has UAT section with test cases
 - [ ] Each file has requirements verification table
@@ -538,6 +591,7 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 - [ ] Each file has sign-off section
 
 **Phase 17 Lifecycle Features:**
+
 - [ ] Background monitoring service exists (`CertificateMonitor.cs`)
 - [ ] `~/.portless/cert-info.json` created with metadata
 - [ ] `portless cert renew` command works
@@ -546,12 +600,14 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 - [ ] Restart warning displayed
 
 **Integration Tests:**
+
 - [ ] TEST-03: X-Forwarded-Proto header tests pass
 - [ ] TEST-06: Mixed HTTP/HTTPS backend routing tests pass
 - [ ] All integration tests pass (`dotnet test Portless.IntegrationTests`)
 - [ ] No test regressions
 
 **Final Verification:**
+
 - [ ] All 18 unsatisfied requirements satisfied
 - [ ] All tests pass (`dotnet test`)
 - [ ] Manual testing confirms features work
@@ -564,6 +620,7 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 ### Migration Success
 
 **Must Have:**
+
 - ✅ `.planning.archived/` contains all original GSD content
 - ✅ `docs/superpowers/decisions.md` has 93+ decisions extracted
 - ✅ `docs/superpowers/validated-requirements.md` has all validated requirements
@@ -572,11 +629,13 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 - ✅ No data loss (all GSD content preserved)
 
 **Should Have:**
+
 - ✅ Clear mapping from GSD concepts to Superpowers workflow
 - ✅ Superpowers README.md explaining new workflow
 - ✅ Git commit history shows clean migration
 
 **Nice to Have:**
+
 - ✅ Migration script for automated extraction
 - ✅ Decision categories well-organized
 - ✅ Cross-references between archive and new structure
@@ -584,6 +643,7 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 ### v1.2 Completion Success
 
 **Must Have:**
+
 - ✅ 7 VERIFICATION.md files created (phases 13-19)
 - ✅ 18 unsatisfied requirements satisfied
 - ✅ Phase 17 lifecycle features implemented and tested
@@ -592,12 +652,14 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 - ✅ v1.2 milestone can be marked complete
 
 **Should Have:**
+
 - ✅ No regressions in existing features
 - ✅ Documentation updated (README.md, migration guide)
 - ✅ Manual testing confirms certificate lifecycle works
 - ✅ Integration tests cover edge cases
 
 **Nice to Have:**
+
 - ✅ Performance benchmarks for certificate operations
 - ✅ Troubleshooting guide for certificate issues
 - ✅ Automated tests for background monitoring service
@@ -609,6 +671,7 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 **Session Breakdown:**
 
 **Session 1: Migration Complete (1-2 hours)**
+
 - Extract decisions (30 min)
 - Extract requirements (15 min)
 - Archive GSD structure (15 min)
@@ -617,6 +680,7 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 - Commit changes (15 min)
 
 **Session 2: v1.2 VERIFICATION Files (2 hours)**
+
 - Phase 13 VERIFICATION (15 min)
 - Phase 14 VERIFICATION (15 min)
 - Phase 15 VERIFICATION (15 min)
@@ -627,6 +691,7 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 - Commit VERIFICATION files (15 min)
 
 **Session 3: Phase 17 Implementation (1-2 hours)**
+
 - Investigate existing code (30 min)
 - Implement missing features (30-60 min)
 - Write integration tests (30 min)
@@ -634,6 +699,7 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 - Commit changes (15 min)
 
 **Session 4: Tests and Final Verification (1-2 hours)**
+
 - Implement TEST-03 (30 min)
 - Implement TEST-06 (30 min)
 - Run full test suite (15 min)
@@ -648,14 +714,17 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 ## Dependencies and Blocking Items
 
 **Migration Dependencies:**
+
 - None (can start immediately)
 
 **v1.2 Completion Dependencies:**
+
 - Migration must complete first
 - Phase 17 implementation depends on investigation results
 - VERIFICATION files may reveal additional dependencies
 
 **External Dependencies:**
+
 - None (all work is internal to codebase)
 
 ---
@@ -663,11 +732,13 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 ## Open Questions
 
 **For User:**
+
 1. Should VERIFICATION.md files be created in `.planning.archived/phases/*/` or new location?
 2. Should v1.2 completion be done in single session or split across sessions?
 3. Are there any v1.2 requirements you consider "out of scope" despite audit findings?
 
 **For Investigation:**
+
 1. Do Phase 17 lifecycle features already exist in code?
 2. Are TEST-03 and TEST-06 already covered by existing tests?
 3. What is the actual state of certificate lifecycle implementation?
@@ -705,6 +776,7 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 ### Files to Create
 
 **Migration:**
+
 - `docs/superpowers/specs/2026-03-16-gsd-to-superpowers-migration.md` (this file)
 - `docs/superpowers/specs/2026-03-16-v1.2-completion-verification.md`
 - `docs/superpowers/decisions.md`
@@ -713,6 +785,7 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 - `.planning.archived/README.md`
 
 **v1.2 Completion:**
+
 - `.planning.archived/phases/13-certificate-generation/VERIFICATION.md`
 - `.planning.archived/phases/14-trust-installation/VERIFICATION.md`
 - `.planning.archived/phases/15-https-endpoint/VERIFICATION.md`
@@ -722,6 +795,7 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 - `.planning.archived/phases/19-documentation/VERIFICATION.md`
 
 **Potential Implementation (if gaps found):**
+
 - `Portless.Core/Services/CertificateMonitor.cs` (if missing)
 - `Portless.IntegrationTests/Certificate/ForwardedProtoTests.cs` (TEST-03)
 - `Portless.IntegrationTests/Certificate/MixedBackendRoutingTests.cs` (TEST-06)
@@ -753,6 +827,7 @@ These VERIFICATION.md files serve as the bridge between GSD and Superpowers work
 **Stakeholders:** [User name]
 
 **Approval:**
+
 - [ ] Spec reviewed
 - [ ] Approach confirmed
 - [ ] Ready for writing-plans skill

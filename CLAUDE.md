@@ -232,7 +232,12 @@ git checkout development
 git merge main
 ```
 
-Para documentación detallada del flujo de trabajo, ver [STATE.md](.planning/STATE.md).
+Para documentación detallada del flujo de trabajo Git, ver [STATE.md](.planning.archived/STATE.md).
+
+## Development Workflow
+
+This project uses the Superpowers framework for development.
+See [docs/superpowers/README.md](docs/superpowers/README.md) for workflow details.
 
 ## Referencias
 
