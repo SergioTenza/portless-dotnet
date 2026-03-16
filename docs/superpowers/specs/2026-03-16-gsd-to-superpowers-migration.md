@@ -223,6 +223,27 @@ docs/superpowers/
    See docs/superpowers/README.md for workflow details.
    ```
 
+**Step 1.5: Validate Extraction Completeness**
+1. Count extracted decisions:
+   ```bash
+   grep -c "^|" docs/superpowers/decisions.md
+   # Expected: 93+ decisions (13 from PROJECT.md + 80+ from STATE.md)
+   ```
+2. Cross-check against original files:
+   ```bash
+   # Count PROJECT.md key decisions (should be 13)
+   grep -A 20 "## Key Decisions" .planning.archived/PROJECT.md | grep -c "^|"
+
+   # Count STATE.md accumulated decisions (should be 80+)
+   grep -c "→ Decisions:" .planning.archived/STATE.md
+   ```
+3. Verify requirement count:
+   ```bash
+   # Should have 42 total requirements
+   grep -c "✅\|✓" docs/superpowers/validated-requirements.md
+   ```
+4. If counts mismatch, re-extract before proceeding
+
 #### Phase 2: Create Migration Spec (30 min)
 
 **Step 2.1: Write Migration Spec**
@@ -338,6 +359,13 @@ docs/superpowers/
 
 **Step 5.1: Create VERIFICATION.md for Each Phase (13-19)**
 
+**Location:** `.planning.archived/phases/*/VERIFICATION.md` (historical record)
+**Purpose:** Document that phases were verified post-facto, closing the GSD workflow properly
+
+**Note:** Future phases will use Superpowers verification-before-completion workflow,
+creating verification records in `docs/superpowers/verifications/` instead.
+These VERIFICATION.md files serve as the bridge between GSD and Superpowers workflows.
+
 **Format:**
 ```markdown
 # Phase XX: [Phase Name] - Verification
@@ -385,7 +413,8 @@ docs/superpowers/
 - Use conversational UAT (ask user to test features)
 - Document test results per phase
 - Confirm requirements satisfaction
-- Create files in `.planning.archived/phases/*/VERIFICATION.md`
+- Create files in `.planning.archived/phases/*/VERIFICATION.md` (historical GSD closure)
+- Future work will use Superpowers `verification-before-completion` skill
 
 #### Phase 6: Final Verification (30 min)
 
