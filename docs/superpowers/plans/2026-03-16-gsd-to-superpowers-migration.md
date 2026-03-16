@@ -1122,7 +1122,8 @@ Expected: File created successfully
 
 ```bash
 # Count extracted decisions (should be ~72: 12 from PROJECT.md + ~60 from STATE.md)
-grep -c "^### Decision" docs/superpowers/decisions.md || echo "Count failed"
+# Pattern matches both "### Decision A1" and "**Decision 13-01**" formats
+grep -E "^### Decision|^\*\*Decision [A-Z0-9]+" docs/superpowers/decisions.md | wc -l
 
 # Verify key sections present
 grep -q "Architectural Decisions" docs/superpowers/decisions.md && echo "✓ Architectural section present"
@@ -1134,7 +1135,7 @@ grep -q "Decision 19-05" docs/superpowers/decisions.md && echo "✓ Last phase d
 ```
 
 Expected Output:
-- Decision count: ~72 (12 architectural + ~60 phase-level)
+- Decision count: ~72 (31 architectural + ~40 phase-level)
 - All sections present
 - First and last decisions present
 
