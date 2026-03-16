@@ -16,6 +16,7 @@ namespace Portless.Tests
     /// Integration tests for YARP-based proxy routing functionality.
     /// Tests verify Host header routing behavior, multiple hostname support,
     /// invalid hostname handling, and dynamic configuration updates.
+[Collection("Integration Tests")]
     /// </summary>
     public class ProxyRoutingTests : IClassFixture<WebApplicationFactory<Program>>
     {

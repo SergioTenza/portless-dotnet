@@ -34,6 +34,7 @@ namespace Portless.Tests;
 /// - Connection state: Always check State before sending messages
 /// - Cleanup: Always StopAsync() to avoid hanging connections
 /// </summary>
+[Collection("Integration Tests")]
 public class SignalRIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly WebApplicationFactory<Program> _factory;
@@ -51,6 +52,7 @@ public class SignalRIntegrationTests : IClassFixture<WebApplicationFactory<Progr
     /// Verifies that a SignalR connection can be established through the proxy.
     /// Tests the basic WebSocket negotiation and connection establishment.
     /// </summary>
+
     [Fact]
     public async Task SignalR_Connection_Established_Through_Proxy()
     {
@@ -87,6 +89,7 @@ public class SignalRIntegrationTests : IClassFixture<WebApplicationFactory<Progr
     /// Verifies that messages can be sent and received through the proxy.
     /// Tests bidirectional messaging using SignalR's broadcast pattern.
     /// </summary>
+
     [Fact]
     public async Task SignalR_Message_Sent_And_Received_Through_Proxy()
     {
@@ -126,6 +129,7 @@ public class SignalRIntegrationTests : IClassFixture<WebApplicationFactory<Progr
     /// Verifies that multiple sequential messages can be sent and received.
     /// Tests message ordering and connection stability over multiple messages.
     /// </summary>
+
     [Fact]
     public async Task SignalR_Multiple_Messages_Sent_And_Received()
     {
@@ -185,6 +189,7 @@ public class SignalRIntegrationTests : IClassFixture<WebApplicationFactory<Progr
     /// Verifies that the echo method works correctly.
     /// Tests request-response pattern through the proxy.
     /// </summary>
+
     [Fact]
     public async Task SignalR_Echo_Message_Returns_Correct_Value()
     {
@@ -217,6 +222,7 @@ public class SignalRIntegrationTests : IClassFixture<WebApplicationFactory<Progr
     /// <summary>
     /// Constructs the hub URL from the WebApplicationFactory server address.
     /// </summary>
+
     /// <param name="factory">The WebApplicationFactory instance.</param>
     /// <param name="path">The hub path (e.g., "/testhub").</param>
     /// <returns>The complete hub URL.</returns>

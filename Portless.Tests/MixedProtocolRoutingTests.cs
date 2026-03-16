@@ -12,6 +12,7 @@ namespace Portless.Tests;
 /// Mixed protocol routing integration tests.
 /// Tests verify proxy supports HTTP and HTTPS backends simultaneously with correct SSL validation.
 /// </summary>
+[Collection("Integration Tests")]
 public class MixedProtocolRoutingTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly WebApplicationFactory<Program> _factory;

@@ -18,6 +18,7 @@ namespace Portless.Tests;
 /// <para><strong>Cross-Platform Note:</strong> On Linux/macOS, trust installation requires manual commands
 /// (see Phase 14 documentation for platform-specific trust installation instructions).</para>
 /// </summary>
+[Collection("Integration Tests")]
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 public class CertificateTrustTests : IClassFixture<WebApplicationFactory<Program>>
 {

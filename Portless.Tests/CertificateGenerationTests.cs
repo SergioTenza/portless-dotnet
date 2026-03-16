@@ -13,6 +13,7 @@ namespace Portless.Tests;
 /// Certificate generation integration tests.
 /// Tests verify SAN extensions, 5-year validity, and certificate metadata.
 /// </summary>
+[Collection("Integration Tests")]
 public class CertificateGenerationTests : IClassFixture<WebApplicationFactory<Program>>, IAsyncLifetime
 {
     private WebApplicationFactory<Program> _factory;

@@ -17,6 +17,7 @@ namespace Portless.Tests;
 /// HTTPS endpoint integration tests.
 /// Tests verify TLS certificate serving, dual HTTP/HTTPS endpoints, and certificate binding.
 /// </summary>
+[Collection("Integration Tests")]
 public class HttpsEndpointTests : IClassFixture<WebApplicationFactory<Program>>, IAsyncLifetime
 {
     private WebApplicationFactory<Program> _factory;

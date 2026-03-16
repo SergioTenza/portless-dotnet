@@ -10,6 +10,7 @@ namespace Portless.Tests;
 /// Comprehensive route persistence integration tests.
 /// Tests verify save/load, file locking, cleanup, and hot-reload functionality.
 /// </summary>
+[Collection("Integration Tests")]
 public class RoutePersistenceIntegrationTests : IAsyncLifetime
 {
     private readonly string _testDirectory;

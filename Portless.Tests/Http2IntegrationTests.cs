@@ -12,6 +12,7 @@ namespace Portless.Tests;
 /// HTTP/2 protocol support integration tests.
 /// Tests verify HTTP/2 negotiation, protocol logging, and X-Forwarded headers.
 /// </summary>
+[Collection("Integration Tests")]
 public class Http2IntegrationTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly WebApplicationFactory<Program> _factory;

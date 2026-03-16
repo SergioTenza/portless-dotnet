@@ -13,6 +13,7 @@ namespace Portless.Tests;
 /// Comprehensive YARP proxy integration tests extending existing ProxyRoutingTests.
 /// Tests verify advanced routing scenarios, header forwarding, and API endpoints.
 /// </summary>
+[Collection("Integration Tests")]
 public class YarpProxyIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly WebApplicationFactory<Program> _factory;

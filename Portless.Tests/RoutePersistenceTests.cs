@@ -73,8 +73,16 @@ public class RoutePersistenceTests : IAsyncLifetime
         // Act
         await _routeStore!.SaveRoutesAsync(routes);
 
-        // Assert
-        Assert.True(File.Exists(_testRoutesFile));
+        // Assert - Add robust polling for file system timing
+        var fileExists = false;
+        for (int i = 0; i < 10; i++)
+        {
+            fileExists = File.Exists(_testRoutesFile);
+            if (fileExists) break;
+            await Task.Delay(50); // Wait 50ms between checks
+        }
+
+        Assert.True(fileExists, $"File not found at {_testRoutesFile} after 10 checks");
     }
 
     [Fact]

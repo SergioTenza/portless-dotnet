@@ -19,6 +19,7 @@ namespace Portless.Tests;
 /// X-Forwarded-Proto header integration tests.
 /// Tests verify protocol header preservation for HTTP and HTTPS client requests.
 /// </summary>
+[Collection("Integration Tests")]
 public class XForwardedProtoTests : IClassFixture<WebApplicationFactory<Program>>, IAsyncLifetime
 {
     private WebApplicationFactory<Program>? _factory;

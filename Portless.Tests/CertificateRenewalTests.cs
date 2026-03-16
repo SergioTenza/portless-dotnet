@@ -14,6 +14,7 @@ namespace Portless.Tests;
 /// Certificate renewal integration tests.
 /// Tests verify certificate regeneration before expiration and metadata updates.
 /// </summary>
+[Collection("Integration Tests")]
 public class CertificateRenewalTests : IClassFixture<WebApplicationFactory<Program>>, IAsyncLifetime
 {
     private WebApplicationFactory<Program> _factory;
