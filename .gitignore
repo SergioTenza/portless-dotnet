@@ -481,3 +481,6 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 Portless/
+
+# Git worktrees for isolated development
+.worktrees/
