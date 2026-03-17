@@ -158,7 +158,7 @@ public class CertificateTrustServiceMacOS : ICertificateTrustService
                 StartInfo = new ProcessStartInfo
                 {
                     FileName = "security",
-                    Arguments = $"delete-certificate -c /Library/Keychains/System.keychain -Z {thumbprint}",
+                    Arguments = $"delete-certificate -Z {thumbprint} /Library/Keychains/System.keychain",
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false
