@@ -66,6 +66,13 @@ public static class ServiceCollectionExtensions
         // Register certificate trust service (Windows-only)
         services.AddSingleton<ICertificateTrustService, CertificateTrustService>();
 
+        // Register certificate trust service factory as singleton
+        services.TryAddSingleton<ICertificateTrustServiceFactory, CertificateTrustServiceFactory>();
+
+        // Register platform-specific certificate trust services
+        services.AddTransient<CertificateTrustServiceMacOS>();
+        services.AddTransient<CertificateTrustServiceLinux>();
+
         return services;
     }
 
