@@ -9,7 +9,7 @@
     <!-- Tool packaging configuration -->
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>portless</ToolCommandName>
-    <Version>1.0.0</Version>
+    <Version>1.2.0</Version>
     <Authors>Portless.NET Contributors</Authors>
     <Description>Stable .localhost URLs for local .NET development</Description>
 

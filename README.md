@@ -8,14 +8,15 @@
 [![HTTP/2](https://img.shields.io/badge/HTTP%2F2-supported-brightgreen.svg)](docs/http2-websocket-guide.md)
 [![WebSocket](https://img.shields.io/badge/WebSocket-supported-brightgreen.svg)](docs/http2-websocket-guide.md)
 
-> **🎉 What's New in v1.1**
+> **🎉 What's New in v1.2**
 >
-> - HTTP/2 support for improved performance
-> - WebSocket proxying for real-time apps
-> - SignalR chat example
-> - Protocol testing and troubleshooting guides
+> - **HTTPS with automatic certificates** - No more certificate warnings!
+> - Automatic certificate generation for `*.localhost` domains
+> - Background monitoring and auto-renewal
+> - One-click Windows trust installation
+> - Mixed protocol routing (HTTP/HTTPS backends)
 >
-> See [🌐 HTTP/2 and WebSocket Support](#-http2-and-websocket-support) below.
+> See [🔒 HTTPS with Automatic Certificates](#-https-with-automatic-certificates) below.
 
 ## 🎯 ¿Qué es Portless.NET?
 
@@ -148,14 +149,184 @@ For more details, see:
 - [SignalR Troubleshooting Guide](docs/signalr-troubleshooting.md)
 - [Examples README](Examples/README.md)
 
+## 🔒 HTTPS with Automatic Certificates
+
+**Portless.NET v1.2** brings automatic HTTPS certificate generation and management for secure local development without browser warnings.
+
+### Automatic Certificate Management
+
+- **Zero-configuration HTTPS**: Automatic certificate generation for `*.localhost` domains
+- **Local Certificate Authority**: CA created automatically for certificate signing
+- **5-year validity**: Long-lasting certificates for development
+- **Background monitoring**: Optional service checks certificate expiration every 6 hours
+- **Auto-renewal**: Certificates automatically renewed within 30 days of expiration
+- **Secure storage**: Platform-specific file permissions for certificate protection
+
+### Quick Start: HTTPS in 3 Commands
+
+```bash
+# 1. Install the CA certificate (Windows only, requires admin)
+portless cert install
+
+# 2. Start proxy with HTTPS enabled
+portless proxy start --https
+
+# 3. Run your app
+portless run myapp dotnet run
+
+# Access via HTTPS:
+# https://myapp.localhost:1356
+```
+
+### Certificate Management Commands
+
+```bash
+# Check certificate status
+portless cert status
+
+# Check certificate expiration
+portless cert check
+
+# Renew certificate manually
+portless cert renew
+
+# Force renewal (even if valid)
+portless cert renew --force
+
+# Uninstall CA certificate (Windows only)
+portless cert uninstall
+```
+
+### Platform Support
+
+**Windows 10+**
+- ✅ Automated trust installation with one command
+- ✅ Windows Certificate Store integration
+- ✅ Administrator privileges required
+
+**macOS 12+**
+- ⚠️ Manual trust installation required
+- ✅ Comprehensive documentation provided
+- See [Certificate Trust Installation for macOS/Linux](docs/certificate-troubleshooting-macos-linux.md)
+
+**Linux (Ubuntu/Debian, Fedora/RHEL, Arch)**
+- ⚠️ Manual trust installation required
+- ✅ Distribution-specific instructions
+- See [Certificate Trust Installation for macOS/Linux](docs/certificate-troubleshooting-macos-linux.md)
+
+### HTTPS Configuration
+
+**Environment Variables**
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PORTLESS_HTTPS_ENABLED` | Enable HTTPS endpoint | `false` |
+| `PORTLESS_CERT_WARNING_DAYS` | Days before expiration warning | `30` |
+| `PORTLESS_CERT_CHECK_INTERVAL_HOURS` | Hours between certificate checks | `6` |
+| `PORTLESS_AUTO_RENEW` | Auto-renew expiring certificates | `true` |
+| `PORTLESS_ENABLE_MONITORING` | Enable background monitoring | `false` |
+
+**Example: Enable HTTPS with custom thresholds**
+
+```bash
+export PORTLESS_HTTPS_ENABLED=true
+export PORTLESS_CERT_WARNING_DAYS=60
+export PORTLESS_ENABLE_MONITORING=true
+portless proxy start
+```
+
+### Certificate Lifecycle
+
+Portless.NET manages the complete certificate lifecycle:
+
+1. **Generation**: Automatic on first HTTPS proxy start
+2. **Installation**: One-click Windows trust store integration
+3. **Monitoring**: Background service checks expiration periodically
+4. **Renewal**: Automatic renewal within 30-day window
+5. **Cleanup**: Secure removal when uninstalled
+
+### Mixed Protocol Routing
+
+Portless.NET supports simultaneous HTTP and HTTPS backend routing:
+
+```bash
+# HTTP backend
+portless run http-api dotnet run --project HttpApi
+
+# HTTPS backend
+portless run https-api dotnet run --project HttpsApi
+
+# Both routes work simultaneously
+# http://http-api.localhost:1355  -> HTTP backend
+# https://https-api.localhost:1356 -> HTTPS backend
+```
+
+**Headers Preserved:**
+- `X-Forwarded-Proto: http` for HTTP backends
+- `X-Forwarded-Proto: https` for HTTPS backends
+- Full `X-Forwarded-*` header suite for proper backend request context
+
+### Security Considerations
+
+**Development Certificates**
+- ✅ Perfect for local development and testing
+- ⚠️ **NOT suitable for production use**
+- ✅ Self-signed with local CA trust
+- ✅ Private keys protected with platform-specific permissions
+
+**Best Practices:**
+- Install CA certificate only on development machines
+- Use environment variable `PORTLESS=0` to bypass HTTPS when needed
+- Keep certificates updated with automatic renewal enabled
+- Review certificate status periodically with `portless cert check`
+
+### Troubleshooting
+
+**Certificate warnings in browser?**
+```bash
+# Check trust status
+portless cert status
+
+# Reinstall certificate (Windows)
+portless cert uninstall
+portless cert install
+```
+
+**Certificate expired?**
+```bash
+# Check expiration
+portless cert check
+
+# Renew manually
+portless cert renew --force
+
+# Restart proxy
+portless proxy stop
+portless proxy start --https
+```
+
+**Platform-specific issues?**
+- Windows: Ensure running as Administrator
+- macOS/Linux: Follow manual installation guides
+- See [Certificate Lifecycle Management](docs/certificate-lifecycle.md)
+
+For comprehensive documentation, see:
+- [Certificate Lifecycle Management](docs/certificate-lifecycle.md) - Complete guide
+- [Certificate Security Considerations](docs/certificate-security.md) - Security best practices
+- [Migration Guide v1.1 to v1.2](docs/migration-v1.1-to-v1.2.md) - Upgrade instructions
+- [Platform-Specific Troubleshooting](docs/certificate-troubleshooting-macos-linux.md) - macOS/Linux setup
+
 ### ✨ Ventajas
 
+- ✅ **HTTPS automático** con certificados generados on-the-fly
 - ✅ **Soporte Windows nativo** (a diferencia de Portless original)
 - ✅ **Mejor rendimiento** con .NET 10 + Kestrel + HTTP/2
 - ✅ **Integración nativa** con ecosistema .NET
 - ✅ **HTTP/2** con multiplexing y header compression
 - ✅ **WebSocket** para comunicación en tiempo real
 - ✅ **SignalR** soporte completo para ASP.NET Core SignalR
+- ✅ **Gestión automática de certificados** con renovación y monitoreo
+- ✅ **Mixed protocol routing** (HTTP/HTTPS backends simultáneos)
 
 ## 🚀 Quick Start
 
@@ -215,11 +386,21 @@ Active routes:
 ## 📚 Comandos
 
 ```bash
-portless proxy start [--port <PORT>]    # Inicia proxy (default: puerto 1355)
+# Proxy Management
+portless proxy start [--https]           # Inicia proxy (HTTP: 1355, HTTPS: 1356)
 portless proxy stop                      # Detiene proxy
+
+# App Management
 portless run <name> <command...>         # Ejecuta app con URL nombrada
 portless r <name> <command...>           # Alias corto de 'run'
 portless list                            # Lista apps activas
+
+# Certificate Management (NEW in v1.2)
+portless cert install                    # Instala certificado CA (Windows)
+portless cert status [--verbose]         # Verifica estado de confianza
+portless cert check [--verbose]          # Verifica expiración de certificado
+portless cert renew [--force]            # Renueva certificado manualmente
+portless cert uninstall                  # Desinstala certificado CA (Windows)
 ```
 
 ## 🔧 Integración con ASP.NET Core
@@ -492,8 +673,9 @@ Para más detalles sobre gestión de certificados, ver [Certificate Lifecycle](d
 
 - [x] v1.0 - MVP (HTTP/1.1, routing, CLI, process management)
 - [x] v1.1 - Advanced Protocols (HTTP/2, WebSocket, SignalR)
-- [ ] v1.2 - Platform Expansion (HTTPS, cross-platform validation)
-- [ ] v2.0 - Production Features (TLS, authentication, monitoring)
+- [x] v1.2 - HTTPS with Automatic Certificates (certificate management, mixed protocol routing)
+- [ ] v1.3 - Platform Expansion (macOS/Linux automated trust, advanced certificate features)
+- [ ] v2.0 - Production Features (authentication, monitoring, high availability)
 
 Ver [PRD.md](PRD.md) para roadmap completo.
 
