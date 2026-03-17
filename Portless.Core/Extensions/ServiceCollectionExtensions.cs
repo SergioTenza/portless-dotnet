@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Portless.Core.Services;
@@ -47,6 +48,9 @@ public static class ServiceCollectionExtensions
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddPortlessCertificates(this IServiceCollection services)
     {
+        // Register platform detector as singleton
+        services.TryAddSingleton<IPlatformDetectorService, PlatformDetectorService>();
+
         // Register certificate permission service as singleton
         services.AddSingleton<ICertificatePermissionService, CertificatePermissionService>();
 
@@ -59,8 +63,22 @@ public static class ServiceCollectionExtensions
         // Register certificate manager as singleton
         services.AddSingleton<ICertificateManager, CertificateManager>();
 
-        // Register certificate trust service (Windows-only)
-        services.AddSingleton<ICertificateTrustService, CertificateTrustService>();
+        // Register factory for platform-specific trust services
+        services.TryAddSingleton<ICertificateTrustServiceFactory, CertificateTrustServiceFactory>();
+
+        // Register Windows implementation (existing v1.2 code)
+        services.TryAddSingleton<CertificateTrustService>();
+
+        // Register macOS implementation (new v1.3)
+        services.TryAddSingleton<CertificateTrustServiceMacOS>();
+
+        // Register Linux implementation (new v1.3)
+        services.TryAddSingleton<CertificateTrustServiceLinux>();
+
+        // Register ICertificateTrustService with factory for backward compatibility
+        // This allows existing code that injects ICertificateTrustService to work
+        services.TryAddSingleton<ICertificateTrustService>(sp =>
+            sp.GetRequiredService<ICertificateTrustServiceFactory>().CreateTrustService());
 
         return services;
     }
