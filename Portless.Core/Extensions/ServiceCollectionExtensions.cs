@@ -48,7 +48,7 @@ public static class ServiceCollectionExtensions
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddPortlessCertificates(this IServiceCollection services)
     {
-        // Register platform detector service as singleton
+        // Register platform detector as singleton
         services.TryAddSingleton<IPlatformDetectorService, PlatformDetectorService>();
 
         // Register certificate permission service as singleton
@@ -63,15 +63,20 @@ public static class ServiceCollectionExtensions
         // Register certificate manager as singleton
         services.AddSingleton<ICertificateManager, CertificateManager>();
 
-        // Register certificate trust service (Windows-only)
-        services.AddSingleton<ICertificateTrustService, CertificateTrustService>();
-
-        // Register certificate trust service factory as singleton
+        // Register factory for platform-specific trust services
         services.TryAddSingleton<ICertificateTrustServiceFactory, CertificateTrustServiceFactory>();
 
-        // Register platform-specific certificate trust services
-        services.AddTransient<CertificateTrustServiceMacOS>();
-        services.AddTransient<CertificateTrustServiceLinux>();
+        // Register Windows implementation (existing v1.2 code)
+        services.TryAddSingleton<CertificateTrustService>();
+
+        // Register macOS implementation (new v1.3)
+        services.TryAddSingleton<CertificateTrustServiceMacOS>();
+
+        // Register Linux implementation (new v1.3)
+        services.TryAddSingleton<CertificateTrustServiceLinux>();
+
+        // Note: Factory will select appropriate implementation at runtime
+        // ICertificateTrustService is not directly registered - use factory instead
 
         return services;
     }

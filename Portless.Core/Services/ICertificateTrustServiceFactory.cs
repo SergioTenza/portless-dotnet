@@ -12,4 +12,9 @@ public interface ICertificateTrustServiceFactory
     /// <returns>An implementation of ICertificateTrustService for the detected platform.</returns>
     /// <exception cref="PlatformNotSupportedException">Thrown when the platform is not supported.</exception>
     ICertificateTrustService CreateTrustService();
+
+    /// <summary>
+    /// Gets the platform detector service for external access.
+    /// </summary>
+    IPlatformDetectorService PlatformDetector { get; }
 }
