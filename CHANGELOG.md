@@ -180,10 +180,53 @@ This milestone completes the HTTPS vision for Portless.NET, bringing secure loca
 
 ---
 
+## [1.3.0] - TBD
+
+### 🎉 Major Feature: Platform Parity for Certificate Trust
+
+Portless.NET v1.3 achieves complete platform parity for certificate trust automation across Windows, macOS, and Linux.
+
+**Automated Installation:**
+- **macOS 12+**: Automated trust installation with one command
+- **Linux**: Automated trust installation for Ubuntu, Debian, Fedora, RHEL, Arch
+- **Windows 10+**: Existing automated installation (unchanged from v1.2)
+
+**Key Features:**
+- Platform-specific certificate trust services
+- Distribution-specific certificate store paths
+- System Keychain integration for macOS
+- Root privilege detection and sudo prompts
+- Graceful degradation with manual instructions
+
+**Benefits:**
+- Consistent user experience across all platforms
+- Reduced documentation (345 lines → 50 lines)
+- Lower barrier to entry for macOS/Linux developers
+- Professional tool matching .NET, Docker, and other dev tools
+
+**Documentation:**
+- README.md updated with platform parity
+- Troubleshooting guide reduced to edge cases only
+- Migration guide v1.2 → v1.3 (zero breaking changes)
+
+**Platform Support:**
+- Windows 10+ ✅
+- macOS 12+ ✅
+- Ubuntu 20.04+ ✅
+- Debian 11+ ✅
+- Fedora 38+ ✅
+- RHEL 9+ ✅
+- Arch Linux ✅
+
+---
+
+**For more information, see:**
+- [v1.3 Platform Parity Design Spec](docs/superpowers/specs/2026-03-17-v1.3-platform-parity-design.md)
+- [v1.3 Implementation Plan](docs/superpowers/plans/2026-03-17-v1.3-platform-parity-implementation.md)
+
 ## [Unreleased]
 
 ### Planned for v1.3
-- macOS/Linux automated trust installation
 - HTTP/3 (QUIC) support
 - Configurable certificate validity periods
 - Multiple CA certificate support

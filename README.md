@@ -205,14 +205,14 @@ portless cert uninstall
 - ✅ Administrator privileges required
 
 **macOS 12+**
-- ⚠️ Manual trust installation required
-- ✅ Comprehensive documentation provided
-- See [Certificate Trust Installation for macOS/Linux](docs/certificate-troubleshooting-macos-linux.md)
+- ✅ Automated trust installation with one command
+- ✅ System Keychain integration
+- ✅ Administrator privileges required
 
 **Linux (Ubuntu/Debian, Fedora/RHEL, Arch)**
-- ⚠️ Manual trust installation required
-- ✅ Distribution-specific instructions
-- See [Certificate Trust Installation for macOS/Linux](docs/certificate-troubleshooting-macos-linux.md)
+- ✅ Automated trust installation with one command
+- ✅ Distribution-specific certificate store integration
+- ✅ Root privileges required
 
 ### HTTPS Configuration
 
