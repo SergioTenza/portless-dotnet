@@ -8,16 +8,16 @@ namespace Portless.Cli.Commands.CertCommand;
 public class CertStatusCommand : AsyncCommand<CertStatusSettings>
 {
     private readonly ICertificateManager _certificateManager;
-    private readonly ICertificateTrustService _trustService;
+    private readonly ICertificateTrustServiceFactory _trustServiceFactory;
     private readonly ILogger<CertStatusCommand> _logger;
 
     public CertStatusCommand(
         ICertificateManager certificateManager,
-        ICertificateTrustService trustService,
+        ICertificateTrustServiceFactory trustServiceFactory,
         ILogger<CertStatusCommand> logger)
     {
         _certificateManager = certificateManager;
-        _trustService = trustService;
+        _trustServiceFactory = trustServiceFactory;
         _logger = logger;
     }
 
@@ -25,6 +25,9 @@ public class CertStatusCommand : AsyncCommand<CertStatusSettings>
     {
         try
         {
+            // Create platform-specific trust service
+            var trustService = _trustServiceFactory.CreateTrustService();
+
             // Load certificate metadata (works on all platforms)
             var metadata = await _certificateManager.GetCertificateStatusAsync(cancellationToken);
 
@@ -34,8 +37,9 @@ public class CertStatusCommand : AsyncCommand<CertStatusSettings>
                 return 0;
             }
 
-            // Platform detection: certificate trust status is Windows-only in v1.2
-            if (!OperatingSystem.IsWindows())
+            // Platform detection: certificate trust status is platform-specific
+            var platformInfo = _trustServiceFactory.PlatformDetector.GetPlatformInfo();
+            if (platformInfo.OSPlatform != System.Runtime.InteropServices.OSPlatform.Windows)
             {
                 // Display certificate file information (no trust status on non-Windows)
                 AnsiConsole.MarkupLine("Certificate: [green]Valid[/]");
@@ -59,7 +63,7 @@ public class CertStatusCommand : AsyncCommand<CertStatusSettings>
             }
 
             // Get trust status
-            var status = await _trustService.GetTrustStatusAsync(cert.Thumbprint, cancellationToken);
+            var status = await trustService.GetTrustStatusAsync(cert.Thumbprint, cancellationToken);
 
             // Display status with color coding
             switch (status)

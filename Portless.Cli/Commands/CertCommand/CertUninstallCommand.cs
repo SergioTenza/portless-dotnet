@@ -8,16 +8,16 @@ namespace Portless.Cli.Commands.CertCommand;
 public class CertUninstallCommand : AsyncCommand<CertUninstallSettings>
 {
     private readonly ICertificateManager _certificateManager;
-    private readonly ICertificateTrustService _trustService;
+    private readonly ICertificateTrustServiceFactory _trustServiceFactory;
     private readonly ILogger<CertUninstallCommand> _logger;
 
     public CertUninstallCommand(
         ICertificateManager certificateManager,
-        ICertificateTrustService trustService,
+        ICertificateTrustServiceFactory trustServiceFactory,
         ILogger<CertUninstallCommand> logger)
     {
         _certificateManager = certificateManager;
-        _trustService = trustService;
+        _trustServiceFactory = trustServiceFactory;
         _logger = logger;
     }
 
@@ -25,8 +25,12 @@ public class CertUninstallCommand : AsyncCommand<CertUninstallSettings>
     {
         try
         {
-            // Platform detection: certificate trust uninstallation is Windows-only in v1.2
-            if (!OperatingSystem.IsWindows())
+            // Create platform-specific trust service
+            var trustService = _trustServiceFactory.CreateTrustService();
+
+            // Platform detection: certificate trust uninstallation is platform-specific
+            var platformInfo = _trustServiceFactory.PlatformDetector.GetPlatformInfo();
+            if (platformInfo.OSPlatform != System.Runtime.InteropServices.OSPlatform.Windows)
             {
                 AnsiConsole.MarkupLine("[yellow]Warning:[/] Certificate trust uninstallation is Windows-only in v1.2.");
                 AnsiConsole.MarkupLine("\n[bold]Manual uninstallation required for macOS/Linux:[/]");
@@ -44,7 +48,7 @@ public class CertUninstallCommand : AsyncCommand<CertUninstallSettings>
             }
 
             // Uninstall certificate
-            var removed = await _trustService.UninstallCertificateAuthorityAsync(cert.Thumbprint, cancellationToken);
+            var removed = await trustService.UninstallCertificateAuthorityAsync(cert.Thumbprint, cancellationToken);
 
             if (removed)
             {

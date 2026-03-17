@@ -75,8 +75,10 @@ public static class ServiceCollectionExtensions
         // Register Linux implementation (new v1.3)
         services.TryAddSingleton<CertificateTrustServiceLinux>();
 
-        // Note: Factory will select appropriate implementation at runtime
-        // ICertificateTrustService is not directly registered - use factory instead
+        // Register ICertificateTrustService with factory for backward compatibility
+        // This allows existing code that injects ICertificateTrustService to work
+        services.TryAddSingleton<ICertificateTrustService>(sp =>
+            sp.GetRequiredService<ICertificateTrustServiceFactory>().CreateTrustService());
 
         return services;
     }
