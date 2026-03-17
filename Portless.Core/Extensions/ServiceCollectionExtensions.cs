@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Portless.Core.Services;
@@ -47,6 +48,9 @@ public static class ServiceCollectionExtensions
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddPortlessCertificates(this IServiceCollection services)
     {
+        // Register platform detector service as singleton
+        services.TryAddSingleton<IPlatformDetectorService, PlatformDetectorService>();
+
         // Register certificate permission service as singleton
         services.AddSingleton<ICertificatePermissionService, CertificatePermissionService>();
 
