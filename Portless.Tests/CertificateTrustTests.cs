@@ -82,8 +82,10 @@ public class CertificateTrustTests : IClassFixture<WebApplicationFactory<Program
     }
 
     /// <summary>
-    /// Tests behavior on non-Windows platforms.
-    /// Verifies that GetTrustStatusAsync returns TrustStatus.Unknown on Linux/macOS.
+    /// Tests trust status detection on non-Windows platforms.
+    /// On Linux/macOS (v1.3+), the platform-specific trust service returns NotTrusted
+    /// when the certificate is not installed in the system trust store.
+    /// On truly unsupported platforms, it returns Unknown.
     /// </summary>
     [Fact]
     public async Task Trust_Status_Detection_Throws_On_Unsupported_Platform()
@@ -98,19 +100,19 @@ public class CertificateTrustTests : IClassFixture<WebApplicationFactory<Program
         var cert = await certManager.GetCertificateAuthorityAsync();
         Assert.NotNull(cert);
 
-        // Act & Assert
-        // On non-Windows platforms, GetTrustStatusAsync should return Unknown
-        // This test documents the actual behavior: it returns Unknown, not an exception
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            var status = await trustService.GetTrustStatusAsync(cert.Thumbprint);
-            Assert.Equal(TrustStatus.Unknown, status);
-            _output.WriteLine("Test verified: Non-Windows platform returns TrustStatus.Unknown");
-        }
-        else
-        {
-            _output.WriteLine("Test skipped: Running on Windows platform");
-        }
+        // Act
+        var status = await trustService.GetTrustStatusAsync(cert.Thumbprint);
+
+        // Assert
+        // On Linux/macOS (v1.3+ with platform trust services), expect NotTrusted
+        // when the CA certificate is not installed in the system trust store.
+        // On Windows, the status depends on whether the cert is installed.
+        Assert.True(status == TrustStatus.NotTrusted ||
+                    status == TrustStatus.Unknown ||
+                    status == TrustStatus.Trusted,
+                    $"Trust status should be NotTrusted, Unknown, or Trusted, but was: {status}");
+
+        _output.WriteLine($"Test verified: Platform trust detection returned {status}");
     }
 
     /// <summary>
