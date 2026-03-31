@@ -189,12 +189,26 @@ try
 
         foreach (var route in existingRoutes)
         {
+            // Skip routes with empty or whitespace-only hostnames (stale/invalid data)
+            if (string.IsNullOrWhiteSpace(route.Hostname))
+            {
+                logger.LogWarning("Skipping route with empty hostname (port: {Port}), cleaning up stale data", route.Port);
+                continue;
+            }
+
             routeConfigs.Add(CreateRoute(route.Hostname, $"cluster-{route.Hostname}"));
             clusterConfigs.Add(CreateCluster($"cluster-{route.Hostname}", $"http://localhost:{route.Port}"));
         }
 
-        configProvider.Update(routeConfigs, clusterConfigs);
-        logger.LogInformation("Loaded {Count} routes from persistence layer", existingRoutes.Length);
+        if (routeConfigs.Count > 0)
+        {
+            configProvider.Update(routeConfigs, clusterConfigs);
+            logger.LogInformation("Loaded {Count} routes from persistence layer", routeConfigs.Count);
+        }
+        else
+        {
+            logger.LogInformation("No valid routes found in persistence layer, starting with empty configuration");
+        }
     }
     else
     {
