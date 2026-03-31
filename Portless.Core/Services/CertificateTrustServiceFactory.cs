@@ -30,6 +30,8 @@ public class CertificateTrustServiceFactory : ICertificateTrustServiceFactory
     {
         var platformInfo = _platformDetector.GetPlatformInfo();
 
+        // CA1416: Platform-specific services are selected based on detected platform at runtime
+#pragma warning disable CA1416
         if (platformInfo.OSPlatform == OSPlatform.Windows)
         {
             _logger.LogInformation("Creating Windows certificate trust service");
@@ -47,6 +49,7 @@ public class CertificateTrustServiceFactory : ICertificateTrustServiceFactory
             _logger.LogInformation("Creating Linux certificate trust service for distro: {Distro}", platformInfo.LinuxDistro);
             return _serviceProvider.GetRequiredService<CertificateTrustServiceLinux>();
         }
+#pragma warning restore CA1416
 
         throw new PlatformNotSupportedException($"Unsupported platform: {platformInfo.OSPlatform}");
     }

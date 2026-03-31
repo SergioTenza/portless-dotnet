@@ -70,9 +70,7 @@ public class CertificateTrustTests : IClassFixture<WebApplicationFactory<Program
         var status = await trustService.GetTrustStatusAsync(cert.Thumbprint);
 
         // Assert
-        Assert.NotNull(status);
-
-        // Result should be one of the valid trust statuses (not ExpiringSoon for this test)
+        // TrustStatus is a value type; no null check needed
         Assert.True(status == TrustStatus.Trusted ||
                     status == TrustStatus.NotTrusted ||
                     status == TrustStatus.Unknown,

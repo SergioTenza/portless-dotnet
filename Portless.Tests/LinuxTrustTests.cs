@@ -13,6 +13,7 @@ namespace Portless.Tests;
 /// Tests for Linux certificate trust service.
 /// Note: These are basic smoke tests. Full integration testing requires Docker containers.
 /// </summary>
+#pragma warning disable CA1416 // CertificateTrustServiceLinux is Linux-only; tested via mocking
 public class LinuxTrustTests
 {
     [Fact]
@@ -76,3 +77,4 @@ public class LinuxTrustTests
         return cert;
     }
 }
+#pragma warning restore CA1416

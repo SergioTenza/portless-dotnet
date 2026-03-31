@@ -17,7 +17,7 @@ namespace Portless.Tests;
 [Collection("Integration Tests")]
 public class CertificateRenewalTests : IClassFixture<WebApplicationFactory<Program>>, IAsyncLifetime
 {
-    private WebApplicationFactory<Program> _factory;
+    private WebApplicationFactory<Program> _factory = null!;
     private readonly ITestOutputHelper _output;
     private string? _tempDir;
     private ICertificateManager? _certManager;

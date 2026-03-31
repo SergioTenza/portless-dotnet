@@ -19,7 +19,9 @@ public class HotReloadTests : IAsyncLifetime
     private readonly string _testDirectory;
     private readonly string _testRoutesFile;
     private IRouteStore? _routeStore;
+#pragma warning disable CS0649 // Field is used for test lifecycle management; assigned conditionally
     private IHost? _testHost;
+#pragma warning restore CS0649
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -198,7 +200,11 @@ public class HotReloadTests : IAsyncLifetime
         Assert.Single(clusterConfigs);
         Assert.Equal("route-api.localhost", routeConfigs[0].RouteId);
         Assert.Equal("cluster-api.localhost", routeConfigs[0].ClusterId);
-        Assert.Equal("api.localhost", routeConfigs[0].Match.Hosts[0]);
-        Assert.Equal("http://localhost:4001", clusterConfigs[0].Destinations["backend1"].Address);
+        Assert.NotNull(routeConfigs[0].Match);
+        Assert.NotNull(routeConfigs[0].Match!.Hosts);
+        Assert.Equal("api.localhost", routeConfigs[0].Match!.Hosts![0]);
+        Assert.NotNull(clusterConfigs[0].Destinations);
+        Assert.NotNull(clusterConfigs[0].Destinations!["backend1"]);
+        Assert.Equal("http://localhost:4001", clusterConfigs[0].Destinations!["backend1"]!.Address);
     }
 }

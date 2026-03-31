@@ -66,14 +66,14 @@ public static class ServiceCollectionExtensions
         // Register factory for platform-specific trust services
         services.TryAddSingleton<ICertificateTrustServiceFactory, CertificateTrustServiceFactory>();
 
-        // Register Windows implementation (existing v1.2 code)
+        // Register platform-specific trust service implementations
+        // CA1416: These types have [SupportedOSPlatform] attributes but are registered
+        // conditionally at runtime via CertificateTrustServiceFactory.
+#pragma warning disable CA1416
         services.TryAddSingleton<CertificateTrustService>();
-
-        // Register macOS implementation (new v1.3)
         services.TryAddSingleton<CertificateTrustServiceMacOS>();
-
-        // Register Linux implementation (new v1.3)
         services.TryAddSingleton<CertificateTrustServiceLinux>();
+#pragma warning restore CA1416
 
         // Register ICertificateTrustService with factory for backward compatibility
         // This allows existing code that injects ICertificateTrustService to work
@@ -123,7 +123,7 @@ public static class ServiceCollectionExtensions
 
         // Register monitoring service as singleton and hosted service
         services.AddSingleton<ICertificateMonitoringService, CertificateMonitoringService>();
-        services.AddHostedService(sp => sp.GetRequiredService<ICertificateMonitoringService>() as CertificateMonitoringService);
+        services.AddHostedService(sp => (CertificateMonitoringService)sp.GetRequiredService<ICertificateMonitoringService>());
 
         return services;
     }

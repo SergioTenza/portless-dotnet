@@ -18,9 +18,11 @@ public class CertificateTrustServiceFactoryTests
         services.AddSingleton<IPlatformDetectorService, PlatformDetectorService>();
         services.AddSingleton<ICertificateTrustServiceFactory, CertificateTrustServiceFactory>();
         services.AddSingleton<ICertificateManager, CertificateManager>();
+#pragma warning disable CA1416 // Platform-specific services registered for factory resolution
         services.AddTransient<CertificateTrustService>();
         services.AddTransient<CertificateTrustServiceMacOS>();
         services.AddTransient<CertificateTrustServiceLinux>();
+#pragma warning restore CA1416
 
         var serviceProvider = services.BuildServiceProvider();
         var factory = serviceProvider.GetRequiredService<ICertificateTrustServiceFactory>();

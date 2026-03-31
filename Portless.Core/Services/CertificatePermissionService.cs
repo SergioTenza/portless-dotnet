@@ -120,6 +120,7 @@ public class CertificatePermissionService : ICertificatePermissionService
     /// <summary>
     /// Creates a directory with secure permissions on Windows (ACL restricting to current user).
     /// </summary>
+#pragma warning disable CA1416 // Platform-specific APIs are guarded by runtime OS checks in caller
     private void CreateSecureDirectoryWindows(string path)
     {
         var security = new DirectorySecurity();
@@ -149,10 +150,12 @@ public class CertificatePermissionService : ICertificatePermissionService
 
         _logger.LogDebug("Created secure directory with Windows ACL: {Path}", path);
     }
+#pragma warning restore CA1416
 
     /// <summary>
     /// Creates a directory with secure permissions on Unix (chmod 700).
     /// </summary>
+#pragma warning disable CA1416 // Unix-specific APIs are guarded by runtime OS checks in caller
     private void CreateSecureDirectoryUnix(string path)
     {
         // chmod 700 (rwx------)
@@ -163,10 +166,12 @@ public class CertificatePermissionService : ICertificatePermissionService
 
         _logger.LogDebug("Created secure directory with chmod 700: {Path}", path);
     }
+#pragma warning restore CA1416
 
     /// <summary>
     /// Sets secure file permissions on Unix (chmod 600).
     /// </summary>
+#pragma warning disable CA1416 // Unix-specific APIs are guarded by runtime OS checks in caller
     private void SetSecureFilePermissionsUnix(string path)
     {
         // chmod 600 (rw-------)
@@ -177,10 +182,12 @@ public class CertificatePermissionService : ICertificatePermissionService
 
         _logger.LogDebug("Set secure file permissions with chmod 600: {Path}", path);
     }
+#pragma warning restore CA1416
 
     /// <summary>
     /// Sets secure file permissions on Windows (ACL restricting to current user).
     /// </summary>
+#pragma warning disable CA1416 // Platform-specific APIs are guarded by runtime OS checks in caller
     private void SetSecureFilePermissionsWindows(string path)
     {
         var security = new FileSecurity();
@@ -204,10 +211,12 @@ public class CertificatePermissionService : ICertificatePermissionService
 
         _logger.LogDebug("Set secure file permissions with Windows ACL: {Path}", path);
     }
+#pragma warning restore CA1416
 
     /// <summary>
     /// Verifies file permissions on Unix.
     /// </summary>
+#pragma warning disable CA1416 // Unix-specific APIs are guarded by runtime OS checks in caller
     private bool VerifyFilePermissionsUnix(string path)
     {
         try
@@ -236,10 +245,12 @@ public class CertificatePermissionService : ICertificatePermissionService
             return false;
         }
     }
+#pragma warning restore CA1416
 
     /// <summary>
     /// Verifies file permissions on Windows.
     /// </summary>
+#pragma warning disable CA1416 // Platform-specific APIs are guarded by runtime OS checks in caller
     private bool VerifyFilePermissionsWindows(string path)
     {
         try
@@ -294,4 +305,5 @@ public class CertificatePermissionService : ICertificatePermissionService
             return false;
         }
     }
+#pragma warning restore CA1416
 }

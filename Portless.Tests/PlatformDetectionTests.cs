@@ -20,7 +20,7 @@ public class PlatformDetectionTests
 
         // Assert
         Assert.NotNull(info);
-        Assert.NotNull(info.OSPlatform);
+        // OSPlatform is a value type; no null check needed
     }
 
     [Fact]

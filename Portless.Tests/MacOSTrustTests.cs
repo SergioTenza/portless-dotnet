@@ -13,6 +13,7 @@ namespace Portless.Tests;
 /// Tests for macOS certificate trust service.
 /// Note: These are basic unit tests. Full integration testing requires macOS.
 /// </summary>
+#pragma warning disable CA1416 // CertificateTrustServiceMacOS is macOS-only; tested via mocking
 public class MacOSTrustTests
 {
     [Fact]
@@ -97,3 +98,4 @@ public class MacOSTrustTests
         return cert;
     }
 }
+#pragma warning restore CA1416

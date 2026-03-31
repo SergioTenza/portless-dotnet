@@ -147,7 +147,7 @@ public class CertificateTrustServiceLinux : ICertificateTrustService
 
             // Read certificate and check thumbprint
             var certBytes = await File.ReadAllBytesAsync(certPath, cancellationToken);
-            var cert = new X509Certificate2(certBytes);
+            using var cert = X509CertificateLoader.LoadCertificate(certBytes);
 
             if (cert.Thumbprint != thumbprint)
             {
@@ -200,7 +200,7 @@ public class CertificateTrustServiceLinux : ICertificateTrustService
 
             // Verify thumbprint matches before deleting
             var certBytes = await File.ReadAllBytesAsync(certPath, cancellationToken);
-            var cert = new X509Certificate2(certBytes);
+            using var cert = X509CertificateLoader.LoadCertificate(certBytes);
 
             if (cert.Thumbprint != thumbprint)
             {
@@ -244,7 +244,7 @@ public class CertificateTrustServiceLinux : ICertificateTrustService
         try
         {
             var existingCertBytes = await File.ReadAllBytesAsync(certPath, cancellationToken);
-            var existingCert = new X509Certificate2(existingCertBytes);
+            using var existingCert = X509CertificateLoader.LoadCertificate(existingCertBytes);
             return existingCert.Thumbprint == certificate.Thumbprint;
         }
         catch
