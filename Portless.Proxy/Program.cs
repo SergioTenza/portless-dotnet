@@ -6,6 +6,7 @@ using Portless.Core.Services;
 using Portless.Core.Models;
 using Portless.Core.Configuration;
 using Portless.Proxy;
+using Portless.Proxy.ErrorPages;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Authentication;
 
@@ -432,6 +433,63 @@ app.Use(async (context, next) =>
     var protocol = context.Request.Protocol;
     context.Request.Headers["X-Forwarded-Protocol"] = protocol;
     await next();
+});
+
+// Branded error pages middleware
+app.Use(async (context, next) =>
+{
+    var originalBodyStream = context.Response.Body;
+    using var responseBody = new MemoryStream();
+    context.Response.Body = responseBody;
+
+    await next();
+
+    var hostname = context.Request.Host.Host;
+    var statusCode = context.Response.StatusCode;
+
+    // Only intercept HTML requests (not API, not WebSocket)
+    var acceptHeader = context.Request.Headers["Accept"].ToString();
+    var isHtmlRequest = acceptHeader.Contains("text/html") || string.IsNullOrEmpty(acceptHeader);
+
+    if (isHtmlRequest && (statusCode == 404 || statusCode == 502))
+    {
+        // Reset and read the response
+        responseBody.Seek(0, SeekOrigin.Begin);
+
+        context.Response.Body = originalBodyStream;
+
+        var routeStoreLocal = context.RequestServices.GetRequiredService<IRouteStore>();
+        var routes = await routeStoreLocal.LoadRoutesAsync();
+        var activeHostnames = routes
+            .Where(r => !string.IsNullOrWhiteSpace(r.Hostname))
+            .Select(r => r.Hostname)
+            .ToList();
+
+        string html;
+
+        if (statusCode == 404)
+        {
+            html = ErrorPageGenerator.Generate404(hostname, activeHostnames);
+        }
+        else
+        {
+            // Try to find the backend port for more context
+            var route = routes.FirstOrDefault(r => r.Hostname.Equals(hostname, StringComparison.OrdinalIgnoreCase));
+            int? backendPort = route?.Port;
+            html = ErrorPageGenerator.Generate502(hostname, backendPort, null);
+        }
+
+        context.Response.StatusCode = statusCode;
+        context.Response.ContentType = "text/html; charset=utf-8";
+        await context.Response.WriteAsync(html);
+    }
+    else
+    {
+        // Copy the response back to the original stream
+        responseBody.Seek(0, SeekOrigin.Begin);
+        context.Response.Body = originalBodyStream;
+        await responseBody.CopyToAsync(originalBodyStream);
+    }
 });
 
 app.MapReverseProxy();
