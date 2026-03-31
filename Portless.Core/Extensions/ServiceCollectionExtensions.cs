@@ -30,6 +30,12 @@ public static class ServiceCollectionExtensions
         // Register process health monitor as hosted service
         services.AddHostedService<ProcessHealthMonitor>();
 
+        // Register project name detector
+        services.AddSingleton<IProjectNameDetector, ProjectNameDetector>();
+
+        // Register framework detector
+        services.AddSingleton<IFrameworkDetector, FrameworkDetector>();
+
         return services;
     }
 
