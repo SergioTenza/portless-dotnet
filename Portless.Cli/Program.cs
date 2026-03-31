@@ -5,6 +5,9 @@ using Portless.Cli.Commands.ProxyCommand;
 using Portless.Cli.Commands.CertCommand;
 using Portless.Cli.Commands.RunCommand;
 using Portless.Cli.Commands.ListCommand;
+using Portless.Cli.Commands.GetCommand;
+using Portless.Cli.Commands.AliasCommand;
+using Portless.Cli.Commands.HostsCommand;
 using Portless.Cli.DependencyInjection;
 using Portless.Cli.Services;
 using Portless.Core.Extensions;
@@ -36,6 +39,21 @@ app.Configure(config =>
     config.AddCommand<ListCommand>("list")
         .WithAlias("ls")
         .WithDescription("List active routes");
+
+    config.AddCommand<GetCommand>("get")
+        .WithAlias("g")
+        .WithDescription("Get the URL for a named service")
+        .WithExample("get", "api");
+
+    config.AddCommand<AliasCommand>("alias")
+        .WithDescription("Manage static route aliases for Docker/external services")
+        .WithExample("alias", "db", "5432")
+        .WithExample("alias", "--remove", "db");
+
+    config.AddCommand<HostsCommand>("hosts")
+        .WithDescription("Manage /etc/hosts entries for portless routes")
+        .WithExample("hosts", "sync")
+        .WithExample("hosts", "clean");
 
     config.AddBranch("proxy", proxy =>
     {
