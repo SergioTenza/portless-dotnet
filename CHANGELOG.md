@@ -5,6 +5,91 @@ All notable changes to Portless.NET will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Planned for TIER 2 (v2.0 stable)
+- Production deployment features
+- Authentication and authorization
+- Advanced monitoring dashboards
+- Cluster support
+- High availability mode
+
+---
+
+## [2.0.0-beta.1] - 2026-04-01
+
+### 🎉 TIER 1 Features (feature/v2.0-dx branch)
+
+Developer experience overhaul with intelligent project detection, framework awareness, and branded error handling.
+
+### ✨ Added
+
+#### New CLI Commands
+- `portless get` - Query route information by name or port
+- `portless alias` - Manage route aliases for quick access
+- `portless hosts sync` - Synchronize routes with system hosts file
+- `portless hosts clean` - Remove stale entries from hosts file
+
+#### Project Name Auto-Detection
+- **IProjectNameDetector** interface for pluggable name resolution
+- Automatic project name detection from `.csproj`, `package.json`, `Cargo.toml`, and other manifest files
+- Fallback heuristics based on directory structure
+
+#### Framework Detection
+- **IFrameworkDetector** interface with detection for 11 frameworks:
+  - ASP.NET Core, Blazor, Express, Next.js, Nuxt, SvelteKit, Remix, FastAPI, Django, Rails, Go net/http
+- Framework-specific environment variable injection during `run` command
+- Automatic `ASPNETCORE_URLS`, `PORT`, `HOST`, and other framework-specific vars
+
+#### Placeholder Expansion
+- `{PORT}` - Resolves to the allocated port number
+- `{HOST}` - Resolves to the local hostname
+- `{URL}` - Resolves to the full .localhost URL
+- `{NAME}` - Resolves to the detected project name
+- Placeholders expanded in command arguments, environment variables, and configuration
+
+#### Branded Error Pages
+- **404** - Route not found error page with Portless.NET branding
+- **502** - Backend unreachable error page with diagnostic hints
+- **508** - Loop detected error page for circular route references
+
+#### RunCommand Integration
+- Framework-aware environment variable injection (`ASPNETCORE_URLS`, `PORT`, `NODE_ENV`, etc.)
+- `PORTLESS_URL` always injected into child process environment
+- Seamless integration with detected framework conventions
+
+### 📊 Metrics
+- **98 unit tests** passing
+- **0 build errors**
+
+---
+
+## [1.3.0] - 2026-03-31
+
+### ✨ Added
+
+#### Platform Parity for Certificate Trust
+- **Linux automated trust installation**: CA certificate installed to system trust store via `update-ca-certificates`
+- **macOS automated trust installation**: CA certificate added to system keychain via `security` command
+- Full parity across Windows, macOS, and Linux for certificate trust management
+- `portless cert install` and `portless cert uninstall` now work natively on all platforms
+
+#### Cross-Platform Proxy Process Management
+- Unified proxy process lifecycle management across Windows, macOS, and Linux
+- Platform-appropriate process spawning and signal handling
+- Consistent graceful shutdown behavior across all platforms
+
+#### Route Validation
+- Route configuration validation on startup and during hot-reload
+- Validation of port ranges, hostname format, and backend URLs
+- Clear error messages for invalid route configurations
+
+### 📊 Metrics
+- **95 tests** passing
+- **0 build errors**
+
+---
+
 ## [1.2.0] - 2026-03-17
 
 ### 🎉 Major Feature: HTTPS with Automatic Certificates
@@ -177,24 +262,6 @@ This milestone completes the HTTPS vision for Portless.NET, bringing secure loca
 - **18/18 requirements verified** (100%)
 - **12/12 phases complete** (100%)
 - **Initial stable release** for .NET local development
-
----
-
-## [Unreleased]
-
-### Planned for v1.3
-- macOS/Linux automated trust installation
-- HTTP/3 (QUIC) support
-- Configurable certificate validity periods
-- Multiple CA certificate support
-- Advanced monitoring and metrics
-
-### Planned for v2.0
-- Production deployment features
-- Authentication and authorization
-- Advanced monitoring dashboards
-- Cluster support
-- High availability mode
 
 ---
 
