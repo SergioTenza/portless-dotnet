@@ -19,6 +19,8 @@ public class RunCommand : AsyncCommand<RunSettings>
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IProxyProcessManager _proxyManager;
     private readonly IProcessManager _processManager;
+    private readonly IFrameworkDetector _frameworkDetector;
+    private readonly IProjectNameDetector _projectNameDetector;
     private readonly ILogger<RunCommand> _logger;
     private Process? _spawnedProcess;
 
@@ -28,6 +30,8 @@ public class RunCommand : AsyncCommand<RunSettings>
         IHttpClientFactory httpClientFactory,
         IProxyProcessManager proxyManager,
         IProcessManager processManager,
+        IFrameworkDetector frameworkDetector,
+        IProjectNameDetector projectNameDetector,
         ILogger<RunCommand> logger)
     {
         _portAllocator = portAllocator;
@@ -35,6 +39,8 @@ public class RunCommand : AsyncCommand<RunSettings>
         _httpClientFactory = httpClientFactory;
         _proxyManager = proxyManager;
         _processManager = processManager;
+        _frameworkDetector = frameworkDetector;
+        _projectNameDetector = projectNameDetector;
         _logger = logger;
     }
 
@@ -42,13 +48,8 @@ public class RunCommand : AsyncCommand<RunSettings>
     {
         try
         {
-            // DEBUG: Show what we received
-            Console.WriteLine($"[DEBUG] Context Arguments: {string.Join(" | ", context.Arguments)}");
-
-            // Skip first argument (the NAME) and get the rest as the command
+            // Parse command args: skip the NAME and get the rest as the command
             var commandArgs = context.Arguments.Skip(1).ToArray();
-            Console.WriteLine($"[DEBUG] Command args: {string.Join(" | ", commandArgs)}");
-            Console.WriteLine($"[DEBUG] Command count: {commandArgs.Length}");
 
             if (commandArgs.Length == 0)
             {
@@ -57,12 +58,27 @@ public class RunCommand : AsyncCommand<RunSettings>
                 return 1;
             }
 
-            // Step 0: Check for duplicate routes
-            var hostname = $"{settings.Name}.localhost";
+            // Resolve name: use provided name or auto-detect from project
+            var name = settings.Name;
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                name = _projectNameDetector.DetectProjectName();
+                if (string.IsNullOrWhiteSpace(name))
+                {
+                    AnsiConsole.MarkupLine("[red]Error:[/] Could not auto-detect project name. Please provide a name.");
+                    AnsiConsole.MarkupLine("Usage: [yellow]portless run <name> <command>[/]");
+                    return 1;
+                }
+                AnsiConsole.MarkupLine($"[dim]Auto-detected name: [blue]{name}[/][/]");
+            }
+
+            var hostname = $"{name}.localhost";
+
+            // Check for duplicate routes
             var existingRoutes = await _routeStore.LoadRoutesAsync();
             if (existingRoutes.Any(r => r.Hostname == hostname))
             {
-                AnsiConsole.MarkupLine($"[red]Error:[/] Route '{settings.Name}' already exists.");
+                AnsiConsole.MarkupLine($"[red]Error:[/] Route '{name}' already exists.");
                 AnsiConsole.MarkupLine("Use [yellow]'portless list'[/] to see active routes.");
                 return 1;
             }
@@ -99,15 +115,47 @@ public class RunCommand : AsyncCommand<RunSettings>
                 }
             }
 
-            // Step 2: Assign free port first (will use temporary PID 0, updated later)
+            // Step 2: Assign free port
             var port = await _portAllocator.AssignFreePortAsync(0);
 
-            // Step 3: Start process using ProcessManager with PORT injection
+            // Step 3: Detect framework and build environment variables
+            var detectedFramework = _frameworkDetector.Detect();
+            var envVars = new Dictionary<string, string>();
+
+            if (detectedFramework != null)
+            {
+                AnsiConsole.MarkupLine($"[dim]Detected framework: [blue]{detectedFramework.DisplayName}[/][/]");
+                _logger.LogInformation("Detected framework: {Framework}", detectedFramework.DisplayName);
+
+                // Expand framework env vars with actual port and hostname
+                envVars = PlaceholderExpander.ExpandEnvVars(detectedFramework.InjectedEnvVars, port, hostname);
+            }
+            else
+            {
+                _logger.LogInformation("No framework detected, using default PORT injection");
+            }
+
+            // Always inject PORTLESS_URL
+            envVars["PORTLESS_URL"] = $"http://{hostname}";
+
+            // Step 4: Expand placeholders in command args and handle framework flags
+            var expandedArgs = PlaceholderExpander.ExpandArgs(commandArgs, port, hostname).ToList();
+
+            // If framework detected and has injected flags, append them to the command
+            if (detectedFramework?.InjectedFlags.Length > 0)
+            {
+                var expandedFlags = PlaceholderExpander.ExpandArgs(detectedFramework.InjectedFlags, port, hostname);
+                expandedArgs.AddRange(expandedFlags);
+                _logger.LogDebug("Appended framework flags: {Flags}", string.Join(" ", expandedFlags));
+            }
+
+            // Step 5: Start process with framework-aware env vars
             var process = _processManager.StartManagedProcess(
-                commandArgs[0],                                             // command
-                string.Join(" ", commandArgs.Skip(1)),                     // args
-                port,                                                       // allocated port
-                Directory.GetCurrentDirectory()                            // working directory
+                expandedArgs[0],                                              // command
+                string.Join(" ", expandedArgs.Skip(1)),                      // args
+                port,                                                         // allocated port
+                Directory.GetCurrentDirectory(),                              // working directory
+                envVars                                                       // framework-specific env vars
             );
 
             // Store process reference for signal forwarding
@@ -127,13 +175,11 @@ public class RunCommand : AsyncCommand<RunSettings>
                 }
             });
 
-            // Step 4: Update port allocation with real PID
-            // Note: This is a workaround - we allocated with PID=0, now we need to update
-            // The PortPool doesn't have an "UpdatePid" method, so we'll release and re-allocate
+            // Step 6: Update port allocation with real PID
             await _portAllocator.ReleasePortAsync(port);
             await _portAllocator.AssignFreePortAsync(process.Id);
 
-            // Step 6: Register route with proxy
+            // Step 7: Register route with proxy
             var httpClient = _httpClientFactory.CreateClient();
             var payload = new
             {
@@ -160,11 +206,10 @@ public class RunCommand : AsyncCommand<RunSettings>
             {
                 AnsiConsole.MarkupLine("[red]Error:[/] Failed to communicate with proxy");
                 AnsiConsole.MarkupLine($"[dim]{ex.Message}[/]");
-                AnsiConsole.MarkupLine($"[dim]HResult: {ex.HResult}[/]");
                 return 1;
             }
 
-            // Step 7: Persist route to storage
+            // Step 8: Persist route to storage
             var routes = await _routeStore.LoadRoutesAsync();
             var newRoute = new RouteInfo
             {
@@ -184,8 +229,8 @@ public class RunCommand : AsyncCommand<RunSettings>
                 // Don't fail the command - the route is still usable via proxy
             }
 
-            // Step 7: Show success message
-            AnsiConsole.MarkupLine($"[green]✓[/] Running on [blue]http://{hostname}[/] (port: {port})");
+            // Step 9: Show success message
+            AnsiConsole.MarkupLine($"[green]✓[/] Running on [blue link]http://{hostname}[/] (port: {port})");
 
             return 0;
         }

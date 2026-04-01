@@ -17,6 +17,18 @@ public interface IProcessManager
     System.Diagnostics.Process StartManagedProcess(string command, string args, int port, string workingDirectory);
 
     /// <summary>
+    /// Starts a managed process with additional environment variables for framework-specific injection.
+    /// </summary>
+    /// <param name="command">The command to execute.</param>
+    /// <param name="args">The command arguments.</param>
+    /// <param name="port">The port number to inject via PORT env var.</param>
+    /// <param name="workingDirectory">The working directory for the process.</param>
+    /// <param name="additionalEnvVars">Additional environment variables to inject (e.g., ASPNETCORE_URLS, PORTLESS_URL).</param>
+    /// <returns>The started Process object with valid PID for tracking.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when process fails to start.</exception>
+    System.Diagnostics.Process StartManagedProcess(string command, string args, int port, string workingDirectory, Dictionary<string, string> additionalEnvVars);
+
+    /// <summary>
     /// Gets the current status of a process by its PID.
     /// </summary>
     /// <param name="pid">The process ID to check.</param>

@@ -1,44 +1,44 @@
 # Agent Context - Portless.NET
 
 > Documento de contexto para agentes AI que continuan el desarrollo de Portless.NET.
-> Ultima actualizacion: 2026-03-31 por Hermes Agent (profile: portless-dotnet)
+> Ultima actualizacion: 2026-04-01 por Hermes Agent (profile: portless-dotnet)
 > Memorias respaldadas en Honcho: https://honcho.tnzservicios.es/v3/workspaces/hermes/peers/hermes-agent/card
 
 ---
 
 ## Estado del Proyecto
 
-**Version actual:** v1.3.0 RELEASED + v2.0 TIER 1 IN PROGRESS
+**Version actual:** v1.3.0 RELEASED + v2.0 TIER 1 COMPLETE
 **Branch:** feature/v2.0-dx (from development)
 **Tag:** v1.3.0 at commit ae5e547
 **GitHub:** https://github.com/SergioTenza/portless-dotnet
 
 ### Build & Tests
 - Build: 0 errores, warnings by-design (IL2xxx/IL3xxx, ASP0000)
-- Tests: 76 unitarios + 21 nuevos v2.0 + 19 integracion = 116 total
+- Tests: 98 unitarios (86 base + 14 nuevos integracion RunCommand) + 19 integracion = 117+
 - SDK: .NET 10.0.201 en /usr/local/dotnet. **SIEMPRE** ejecutar: `export PATH="/usr/local/dotnet:$PATH"`
 - Git user: Sergio Tenza <sergio@tnzservicios.es>
 
 ### v2.0 TIER 1 Progress (branch: feature/v2.0-dx)
 
-#### Completed (4 commits: dbbd4fe, cf57277, 76182c9, 8f61290)
+#### All TIER 1 Features Complete (6 commits)
 - [x] `portless get <name>` - URL de servicio para scripts
 - [x] `portless alias <name> <port>` - Rutas estaticas (Docker, servicios externos)
 - [x] `portless alias --remove <name>` - Eliminar alias
 - [x] `portless hosts sync` - Sincronizar /etc/hosts
 - [x] `portless hosts clean` - Limpiar entradas portless
 - [x] Auto-deteccion de nombre (.csproj/git/cwd) via IProjectNameDetector
-- [x] Framework Detection (ASP.NET, Vite, Next.js, Astro, Angular, Expo, React Native, npm, Python, Go, Rust) via IFrameworkDetector
+- [x] Framework Detection (11 frameworks) via IFrameworkDetector
 - [x] Placeholder expansion ({PORT}, {HOST}, {URL}, {NAME}) via PlaceholderExpander
-- [x] Paginas de error branded (404 con rutas activas, 502 con contexto, 508 loop)
-- [x] ProxyPortProvider para resolucion consistente del puerto proxy
-- [x] 21 tests unitarios para todos los nuevos features
-
-#### Remaining for TIER 1 completion
-- [ ] Integrar framework detection en RunCommand (inyeccion automatica de flags)
-- [ ] Integrar placeholder expansion en RunCommand
-- [ ] Integrar auto-deteccion de nombre en RunCommand (cuando NAME no se especifica)
-- [ ] Tests de integracion para los nuevos comandos CLI
+- [x] Paginas de error branded (404, 502, 508) con dark theme
+- [x] Integracion completa en RunCommand:
+  - Auto-deteccion de nombre cuando NAME no se especifica
+  - Framework detection con inyeccion automatica de env vars (ASPNETCORE_URLS, etc.)
+  - Placeholder expansion en command args + framework flags
+  - PORTLESS_URL siempre inyectada
+  - IProcessManager extendido con overload para additional env vars
+- [x] 35+ tests (21 unitarios features + 14 integracion RunCommand/ProcessManager)
+- [x] DEBUG lines removidos de RunCommand
 
 ### Warnings By-Design (NO TOCAR)
 - `IL2xxx/IL3xxx` - Spectre.Console incompatible con AOT/trimming
@@ -49,7 +49,7 @@
 Portless.Core/          - Class library, logica compartida
 Portless.Cli/           - Console app, CLI entry point (dotnet tool)
 Portless.Proxy/         - Web app, proxy YARP (Kestrel)
-Portless.Tests/         - xUnit test suite (76 + 21 tests)
+Portless.Tests/         - xUnit test suite (98 tests)
 Portless.IntegrationTests/ - Integration tests (19 tests)
 Portless.E2ETests/      - End-to-end tests
 TestApi/                - Test API para proxy testing
@@ -58,7 +58,7 @@ TestApi/                - Test API para proxy testing
 ### Comandos CLI Actuales (v2.0 TIER 1)
 ```
 portless proxy start/stop/status  - Gestion del reverse proxy
-portless run <name> <cmd>         - Ejecutar app con URL nombrada
+portless run [name] <cmd>         - Ejecutar app con URL nombrada (auto-naming)
 portless list                     - Ver rutas activas
 portless get <name>               - Obtener URL de un servicio
 portless alias <name> <port>      - Rutas estaticas (Docker, etc.)
@@ -79,11 +79,11 @@ portless cert check/status/install/uninstall/renew  - Certificados
 
 ## Roadmap v2.0 Completo
 
-### TIER 1: Developer Experience (EN PROGRESO)
-- 1.1 CLI completa + auto-deteccion ✅
-- 1.2 Framework detection + placeholder expansion ✅
-- 1.3 Paginas de error branded ✅
-- Integracion en RunCommand (PENDIENTE)
+### TIER 1: Developer Experience ✅ COMPLETE
+- 1.1 CLI completa + auto-deteccion
+- 1.2 Framework detection + placeholder expansion
+- 1.3 Paginas de error branded
+- Integracion completa en RunCommand
 
 ### TIER 2: Routing Avanzado (SIGUIENTE)
 - 2.1 Path-based routing (YARP RouteConfig.Match.Path)

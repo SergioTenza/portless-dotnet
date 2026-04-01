@@ -17,6 +17,10 @@ public class ProcessManager : IProcessManager
 
     /// <inheritdoc />
     public Process StartManagedProcess(string command, string args, int port, string workingDirectory)
+        => StartManagedProcess(command, args, port, workingDirectory, []);
+
+    /// <inheritdoc />
+    public Process StartManagedProcess(string command, string args, int port, string workingDirectory, Dictionary<string, string> additionalEnvVars)
     {
         _logger.LogDebug("Starting process: {Command} {Args} with PORT={Port} in {WorkingDirectory}",
             command, args, port, workingDirectory);
@@ -34,6 +38,13 @@ public class ProcessManager : IProcessManager
 
         // Inject PORT environment variable (preserves existing environment)
         startInfo.Environment["PORT"] = port.ToString();
+
+        // Inject additional environment variables (framework-specific)
+        foreach (var (key, value) in additionalEnvVars)
+        {
+            startInfo.Environment[key] = value;
+            _logger.LogDebug("Injecting env var: {Key}={Value}", key, value);
+        }
 
         _logger.LogDebug("Process start info configured: UseShellExecute={UseShellExecute}, CreateNoWindow={CreateNoWindow}",
             startInfo.UseShellExecute, startInfo.CreateNoWindow);
