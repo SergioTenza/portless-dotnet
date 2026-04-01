@@ -4,6 +4,7 @@ using Xunit;
 using Xunit.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Connections;
 
 namespace Portless.Tests;
 
@@ -66,6 +67,8 @@ public class SignalRIntegrationTests : IClassFixture<WebApplicationFactory<Progr
             {
                 // Use the test server's HttpClient for the connection
                 options.HttpMessageHandlerFactory = _ => _factory.Server.CreateHandler();
+                // TestServer does not support WebSocket upgrades, so use LongPolling
+                options.Transports = HttpTransportType.LongPolling;
             })
             .Build();
 
@@ -99,6 +102,8 @@ public class SignalRIntegrationTests : IClassFixture<WebApplicationFactory<Progr
             .WithUrl(hubUrl, options =>
             {
                 options.HttpMessageHandlerFactory = _ => _factory.Server.CreateHandler();
+                // TestServer does not support WebSocket upgrades, so use LongPolling
+                options.Transports = HttpTransportType.LongPolling;
             })
             .Build();
 
@@ -139,6 +144,8 @@ public class SignalRIntegrationTests : IClassFixture<WebApplicationFactory<Progr
             .WithUrl(hubUrl, options =>
             {
                 options.HttpMessageHandlerFactory = _ => _factory.Server.CreateHandler();
+                // TestServer does not support WebSocket upgrades, so use LongPolling
+                options.Transports = HttpTransportType.LongPolling;
             })
             .Build();
 
@@ -199,6 +206,8 @@ public class SignalRIntegrationTests : IClassFixture<WebApplicationFactory<Progr
             .WithUrl(hubUrl, options =>
             {
                 options.HttpMessageHandlerFactory = _ => _factory.Server.CreateHandler();
+                // TestServer does not support WebSocket upgrades, so use LongPolling
+                options.Transports = HttpTransportType.LongPolling;
             })
             .Build();
 

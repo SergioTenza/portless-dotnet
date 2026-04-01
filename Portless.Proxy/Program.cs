@@ -185,17 +185,24 @@ try
     var existingRoutes = await routeStore.LoadRoutesAsync();
     if (existingRoutes.Length > 0)
     {
+        // Deduplicate routes by hostname (keep last occurrence)
+        var deduplicatedRoutes = existingRoutes
+            .GroupBy(r => r.Hostname, StringComparer.OrdinalIgnoreCase)
+            .Select(g => g.Last())
+            .ToArray();
+
         var routeConfigs = new List<RouteConfig>();
         var clusterConfigs = new List<ClusterConfig>();
 
-        foreach (var route in existingRoutes)
+        foreach (var route in deduplicatedRoutes)
         {
             routeConfigs.Add(CreateRoute(route.Hostname, $"cluster-{route.Hostname}"));
             clusterConfigs.Add(CreateCluster($"cluster-{route.Hostname}", $"http://localhost:{route.Port}"));
         }
 
         configProvider.Update(routeConfigs, clusterConfigs);
-        logger.LogInformation("Loaded {Count} routes from persistence layer", existingRoutes.Length);
+        logger.LogInformation("Loaded {Count} routes from persistence layer ({Duplicates} duplicates removed)",
+            deduplicatedRoutes.Length, existingRoutes.Length - deduplicatedRoutes.Length);
     }
     else
     {
@@ -209,181 +216,7 @@ catch (Exception ex)
 
 app.UseMiddleware<RequestLoggingMiddleware>();
 
-app.MapPost("/api/v1/add-host", async (AddHostRequest request, ILogger<Program> logger) =>
-{
-    try
-    {
-        // Validate request
-        if (string.IsNullOrWhiteSpace(request.Hostname))
-        {
-            logger.LogWarning("Invalid add-host request: Hostname is null or empty");
-            return Results.Problem(
-                detail: "Hostname cannot be null or empty",
-                statusCode: 400,
-                title: "Validation Error"
-            );
-        }
-
-        if (string.IsNullOrWhiteSpace(request.BackendUrl))
-        {
-            logger.LogWarning("Invalid add-host request: BackendUrl is null or empty");
-            return Results.Problem(
-                detail: "BackendUrl cannot be null or empty",
-                statusCode: 400,
-                title: "Validation Error"
-            );
-        }
-
-        var config = app.Services.GetRequiredService<DynamicConfigProvider>();
-        var routeStore = app.Services.GetRequiredService<IRouteStore>();
-
-        // Get existing configuration to preserve other routes
-        var existingConfig = config.GetConfig();
-        var existingRoutes = existingConfig.Routes.ToList();
-        var existingClusters = existingConfig.Clusters.ToList();
-
-        // Check if hostname already exists
-        if (existingRoutes.Any(r => r.Match?.Hosts?.Contains(request.Hostname) == true))
-        {
-            logger.LogWarning("Hostname {Hostname} already exists", request.Hostname);
-            return Results.Problem(
-                detail: $"Hostname '{request.Hostname}' is already configured",
-                statusCode: 409,
-                title: "Conflict"
-            );
-        }
-
-        // Create new route and cluster
-        var clusterId = $"cluster-{request.Hostname}";
-        var newRoute = CreateRoute(request.Hostname, clusterId);
-        var newCluster = CreateCluster(clusterId, request.BackendUrl);
-
-        // Add to existing configuration
-        existingRoutes.Add(newRoute);
-        existingClusters.Add(newCluster);
-
-        // Update configuration
-        config.Update(existingRoutes, existingClusters);
-
-        // Persist route to file
-        Console.WriteLine($"[DEBUG] → Attempting to persist route: {request.Hostname} => {request.BackendUrl}");
-
-        try
-        {
-            var allRoutes = await routeStore.LoadRoutesAsync();
-            Console.WriteLine($"[DEBUG] → Loaded {allRoutes.Length} existing routes from file");
-
-            // Extract port from backendUrl
-            var uri = new Uri(request.BackendUrl);
-            var port = uri.Port;
-
-            var newRouteInfo = new RouteInfo
-            {
-                Hostname = request.Hostname,
-                Port = port,
-                Pid = Environment.ProcessId,
-                CreatedAt = DateTime.UtcNow
-            };
-            var updatedRoutes = allRoutes.Append(newRouteInfo).ToArray();
-            Console.WriteLine($"[DEBUG] → Saving {updatedRoutes.Length} routes to file (PID: {Environment.ProcessId})");
-            Console.WriteLine($"[DEBUG] → Route to save: {newRouteInfo.Hostname} => Port {newRouteInfo.Port}");
-
-            await routeStore.SaveRoutesAsync(updatedRoutes);
-
-            Console.WriteLine($"[DEBUG] ✓ Route persisted successfully: {request.Hostname} => {port}");
-            logger.LogInformation("Route persisted: {Hostname} => {Port}", request.Hostname, port);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[DEBUG] ✗ Error persisting route: {ex.Message}");
-            Console.WriteLine($"[DEBUG] ✗ Stack trace: {ex.StackTrace}");
-            logger.LogError(ex, "Error persisting route to file");
-        }
-
-        logger.LogInformation("Host added successfully: {Hostname} => {BackendUrl}",
-            request.Hostname, request.BackendUrl);
-
-        return Results.Ok(new
-        {
-            success = true,
-            message = $"Host '{request.Hostname}' added successfully",
-            data = new
-            {
-                hostname = request.Hostname,
-                backendUrl = request.BackendUrl,
-                clusterId = clusterId,
-                routeId = newRoute.RouteId
-            }
-        });
-    }
-    catch (Exception ex)
-    {
-        logger.LogError(ex, "Error adding host");
-        return Results.Problem(
-            detail: ex.Message,
-            statusCode: 500,
-            title: "Add Host Error"
-        );
-    }
-});
-
-// Configure reverse proxy (must be after logging middleware)
-app.MapDelete("/api/v1/remove-host", async (string hostname, ILogger<Program> logger, DynamicConfigProvider config, IRouteStore routeStore) =>
-{
-    try
-    {
-        if (string.IsNullOrWhiteSpace(hostname))
-        {
-            return Results.Problem(
-                detail: "Hostname cannot be null or empty",
-                statusCode: 400,
-                title: "Validation Error"
-            );
-        }
-
-        var existingConfig = config.GetConfig();
-        var existingRoutes = existingConfig.Routes.ToList();
-        var existingClusters = existingConfig.Clusters.ToList();
-
-        // Remove route and cluster
-        var routeToRemove = existingRoutes.FirstOrDefault(r => r.Match?.Hosts?.Contains(hostname) == true);
-        if (routeToRemove != null)
-        {
-            existingRoutes.Remove(routeToRemove);
-        }
-
-        var clusterToRemove = existingClusters.FirstOrDefault(c => c.ClusterId == $"cluster-{hostname}");
-        if (clusterToRemove != null)
-        {
-            existingClusters.Remove(clusterToRemove);
-        }
-
-        // Update configuration
-        config.Update(existingRoutes, existingClusters);
-
-        // Remove from file storage
-        var allRoutes = await routeStore.LoadRoutesAsync();
-        var updatedRoutes = allRoutes.Where(r => r.Hostname != hostname).ToArray();
-        await routeStore.SaveRoutesAsync(updatedRoutes);
-
-        logger.LogInformation("Host removed: {Hostname}", hostname);
-
-        return Results.Ok(new
-        {
-            success = true,
-            message = $"Host '{hostname}' removed successfully"
-        });
-    }
-    catch (Exception ex)
-    {
-        logger.LogError(ex, "Error removing host");
-        return Results.Problem(
-            detail: ex.Message,
-            statusCode: 500,
-            title: "Remove Host Error"
-        );
-    }
-});
+app.MapPortlessApi(configProvider, routeStore);
 
 // Use ForwardedHeaders middleware to add X-Forwarded-* headers
 app.UseForwardedHeaders(new ForwardedHeadersOptions
@@ -496,12 +329,6 @@ app.MapReverseProxy();
 
 app.Run();
 
-
-public record AddHostRequest(
-    string Hostname,
-    string BackendUrl
-);
-
 // Request logging middleware
 public class RequestLoggingMiddleware
 {
@@ -523,7 +350,6 @@ public class RequestLoggingMiddleware
 
         try
         {
-            
             await _next(context);
 
             var duration = (DateTime.UtcNow - startTime).TotalMilliseconds;

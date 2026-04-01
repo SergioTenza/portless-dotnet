@@ -2,7 +2,6 @@ using Portless.Core.Models;
 using Portless.Core.Services;
 using Spectre.Console;
 using Spectre.Console.Cli;
-using System.Diagnostics;
 using System.Text.Json;
 
 namespace Portless.Cli.Commands.ListCommand;
@@ -10,10 +9,12 @@ namespace Portless.Cli.Commands.ListCommand;
 public class ListCommand : AsyncCommand<ListSettings>
 {
     private readonly IRouteStore _routeStore;
+    private readonly IProcessLivenessChecker _processLivenessChecker;
 
-    public ListCommand(IRouteStore routeStore)
+    public ListCommand(IRouteStore routeStore, IProcessLivenessChecker processLivenessChecker)
     {
         _routeStore = routeStore;
+        _processLivenessChecker = processLivenessChecker;
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, ListSettings settings, CancellationToken cancellationToken)
@@ -74,7 +75,7 @@ public class ListCommand : AsyncCommand<ListSettings>
             var pid = route.Pid.ToString();
 
             // Add status indicator based on PID liveness
-            var isAlive = IsProcessAlive(route.Pid);
+            var isAlive = _processLivenessChecker.IsAlive(route);
             var status = isAlive ? "[green]●[/]" : "[red]○[/]";
 
             table.AddRow($"{status} {name}", url, port, pid);
@@ -107,16 +108,4 @@ public class ListCommand : AsyncCommand<ListSettings>
         Console.WriteLine(json);
     }
 
-    private static bool IsProcessAlive(int pid)
-    {
-        try
-        {
-            var process = Process.GetProcessById(pid);
-            return !process.HasExited;
-        }
-        catch (ArgumentException)
-        {
-            return false;
-        }
-    }
 }
