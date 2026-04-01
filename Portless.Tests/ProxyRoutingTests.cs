@@ -18,15 +18,35 @@ namespace Portless.Tests
     /// invalid hostname handling, and dynamic configuration updates.
 [Collection("Integration Tests")]
     /// </summary>
-    public class ProxyRoutingTests : IClassFixture<WebApplicationFactory<Program>>
+    public class ProxyRoutingTests : IAsyncLifetime
     {
-        private readonly WebApplicationFactory<Program> _factory;
-        private readonly HttpClient _client;
+        private WebApplicationFactory<Program> _factory = null!;
+        private HttpClient _client = null!;
 
-        public ProxyRoutingTests(WebApplicationFactory<Program> factory)
+        public async Task InitializeAsync()
         {
-            _factory = factory;
-            _client = factory.CreateClient();
+            // Use isolated temp state directory to prevent interference from other tests
+            var tempDir = Path.Combine(Path.GetTempPath(), $"portless-routing-test-{Guid.NewGuid():N}");
+            Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", tempDir);
+            Directory.CreateDirectory(tempDir);
+            await File.WriteAllTextAsync(Path.Combine(tempDir, "routes.json"), "[]");
+
+            _factory = new WebApplicationFactory<Program>();
+            _client = _factory.CreateClient();
+        }
+
+        public async Task DisposeAsync()
+        {
+            _client?.Dispose();
+            _factory?.Dispose();
+            Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", null);
+            try
+            {
+                var dirs = Directory.GetDirectories(Path.GetTempPath(), "portless-routing-test-*");
+                foreach (var d in dirs) try { Directory.Delete(d, true); } catch { }
+            }
+            catch { }
+            await Task.CompletedTask;
         }
 
         [Fact]
