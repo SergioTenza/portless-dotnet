@@ -39,6 +39,9 @@ public static class ServiceCollectionExtensions
         // Register YARP config factory
         services.AddSingleton<IYarpConfigFactory, YarpConfigFactory>();
 
+        // Register config loader
+        services.AddSingleton<IPortlessConfigLoader, PortlessConfigLoader>();
+
         return services;
     }
 
