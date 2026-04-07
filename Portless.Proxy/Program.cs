@@ -86,6 +86,9 @@ builder.Services.AddSingleton<IProxyConfigProvider>(sp => sp.GetRequiredService<
 builder.Services.AddPortlessPersistence();
 builder.Services.AddRouteFileWatcher();
 
+// Health checks
+builder.Services.AddHealthChecks();
+
 // Add Reverse Proxy with empty initial config (will be managed by DynamicConfigProvider)
 builder.Services.AddReverseProxy()
     .LoadFromMemory([],[]);
@@ -273,6 +276,9 @@ if (fileConfig.Routes.Count > 0)
 }
 
 app.UseMiddleware<RequestLoggingMiddleware>();
+
+// Health check endpoint (excluded from proxy routing)
+app.MapHealthChecks("/health");
 
 app.MapPortlessApi(configProvider, routeStore, configFactory);
 

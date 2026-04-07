@@ -24,6 +24,40 @@ public static class PortlessApiEndpoints
         IRouteStore routeStore,
         IYarpConfigFactory configFactory)
     {
+        // GET /api/v1/routes - List all active routes
+        endpoints.MapGet("/api/v1/routes", async (IRouteStore rs) =>
+        {
+            var routes = await rs.LoadRoutesAsync();
+            return Results.Ok(routes.Select(r => new
+            {
+                r.Hostname,
+                r.Port,
+                r.Pid,
+                r.Path,
+                r.Type,
+                r.BackendProtocol,
+                backends = r.GetBackendUrls(),
+                r.LoadBalancingPolicy,
+                r.TcpListenPort,
+                r.CreatedAt,
+                r.LastSeen
+            }));
+        });
+
+        // GET /api/v1/status - Proxy status
+        endpoints.MapGet("/api/v1/status", (DynamicConfigProvider cp, ITcpForwardingService? tcpService) =>
+        {
+            var config = cp.GetConfig();
+            return Results.Ok(new
+            {
+                status = "running",
+                httpRoutes = config.Routes.Count,
+                clusters = config.Clusters.Count,
+                tcpListeners = tcpService?.GetActiveListeners().Count ?? 0,
+                uptime = DateTime.UtcNow.ToString("O")
+            });
+        });
+
         // POST /api/v1/add-host
         endpoints.MapPost("/api/v1/add-host", async (AddHostRequest request, ILogger<Program> logger) =>
         {
