@@ -1,10 +1,6 @@
 using System.Diagnostics;
-using System.Net.Http;
 using System.Net.Sockets;
-using System.Text;
-using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using Portless.Core.Models;
 using Portless.Core.Services;
 using Portless.Cli.Services;
 using Spectre.Console;
@@ -16,32 +12,32 @@ public class RunCommand : AsyncCommand<RunSettings>
 {
     private readonly IPortAllocator _portAllocator;
     private readonly IRouteStore _routeStore;
-    private readonly IHttpClientFactory _httpClientFactory;
     private readonly IProxyProcessManager _proxyManager;
     private readonly IProcessManager _processManager;
     private readonly IFrameworkDetector _frameworkDetector;
     private readonly IProjectNameDetector _projectNameDetector;
     private readonly ILogger<RunCommand> _logger;
+    private readonly IProxyRouteRegistrar _registrar;
     private Process? _spawnedProcess;
 
     public RunCommand(
         IPortAllocator portAllocator,
         IRouteStore routeStore,
-        IHttpClientFactory httpClientFactory,
         IProxyProcessManager proxyManager,
         IProcessManager processManager,
         IFrameworkDetector frameworkDetector,
         IProjectNameDetector projectNameDetector,
-        ILogger<RunCommand> logger)
+        ILogger<RunCommand> logger,
+        IProxyRouteRegistrar registrar)
     {
         _portAllocator = portAllocator;
         _routeStore = routeStore;
-        _httpClientFactory = httpClientFactory;
         _proxyManager = proxyManager;
         _processManager = processManager;
         _frameworkDetector = frameworkDetector;
         _projectNameDetector = projectNameDetector;
         _logger = logger;
+        _registrar = registrar;
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, RunSettings settings, CancellationToken cancellationToken)
@@ -180,56 +176,14 @@ public class RunCommand : AsyncCommand<RunSettings>
             await _portAllocator.AssignFreePortAsync(process.Id);
 
             // Step 7: Register route with proxy
-            var httpClient = _httpClientFactory.CreateClient();
-            var payload = new
+            var registered = await _registrar.RegisterRouteAsync(hostname, $"http://localhost:{port}");
+            if (!registered)
             {
-                hostname = hostname,
-                backendUrl = $"http://localhost:{port}"
-            };
-
-            var json = JsonSerializer.Serialize(payload);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            try
-            {
-                var response = await httpClient.PostAsync("http://localhost:1355/api/v1/add-host", content);
-                if (!response.IsSuccessStatusCode)
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    AnsiConsole.MarkupLine("[red]Error:[/] Failed to register route with proxy");
-                    AnsiConsole.MarkupLine($"[dim]Status: {response.StatusCode}[/]");
-                    AnsiConsole.MarkupLine($"[dim]Response: {errorContent}[/]");
-                    return 1;
-                }
-            }
-            catch (HttpRequestException ex)
-            {
-                AnsiConsole.MarkupLine("[red]Error:[/] Failed to communicate with proxy");
-                AnsiConsole.MarkupLine($"[dim]{ex.Message}[/]");
+                AnsiConsole.MarkupLine("[red]Error:[/] Failed to register route with proxy");
                 return 1;
             }
 
-            // Step 8: Persist route to storage
-            var routes = await _routeStore.LoadRoutesAsync();
-            var newRoute = new RouteInfo
-            {
-                Hostname = hostname,
-                Port = port,
-                Pid = process.Id,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            try
-            {
-                await _routeStore.SaveRoutesAsync(routes.Append(newRoute).ToArray());
-            }
-            catch (Exception ex)
-            {
-                AnsiConsole.MarkupLine($"[yellow]Warning:[/] Route registered with proxy but failed to persist: {ex.Message}");
-                // Don't fail the command - the route is still usable via proxy
-            }
-
-            // Step 9: Show success message
+            // Step 8: Show success message
             AnsiConsole.MarkupLine($"[green]✓[/] Running on [blue link]http://{hostname}[/] (port: {port})");
 
             return 0;

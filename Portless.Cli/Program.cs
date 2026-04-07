@@ -11,6 +11,7 @@ using Portless.Cli.Commands.HostsCommand;
 using Portless.Cli.DependencyInjection;
 using Portless.Cli.Services;
 using Portless.Core.Extensions;
+using Portless.Core.Services;
 
 // Create service collection
 var services = new ServiceCollection();
@@ -23,6 +24,7 @@ services.AddPortlessCertificates();
 
 // Register CLI services
 services.AddSingleton<IProxyProcessManager, ProxyProcessManager>();
+services.AddSingleton<IProxyRouteRegistrar, ProxyRouteRegistrar>();
 services.AddHttpClient();
 
 // Configure command app with dependency injection

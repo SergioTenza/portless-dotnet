@@ -3,24 +3,23 @@ using Portless.Core.Services;
 using Portless.Cli.Services;
 using Spectre.Console;
 using Spectre.Console.Cli;
-using System.Net.Http.Json;
 
 namespace Portless.Cli.Commands.AliasCommand;
 
 public class AliasCommand : AsyncCommand<AliasSettings>
 {
     private readonly IRouteStore _routeStore;
-    private readonly IHttpClientFactory _httpClientFactory;
     private readonly IProxyProcessManager _proxyProcessManager;
+    private readonly IProxyRouteRegistrar _registrar;
 
     public AliasCommand(
         IRouteStore routeStore,
-        IHttpClientFactory httpClientFactory,
-        IProxyProcessManager proxyProcessManager)
+        IProxyProcessManager proxyProcessManager,
+        IProxyRouteRegistrar registrar)
     {
         _routeStore = routeStore;
-        _httpClientFactory = httpClientFactory;
         _proxyProcessManager = proxyProcessManager;
+        _registrar = registrar;
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, AliasSettings settings, CancellationToken cancellationToken)
@@ -69,22 +68,13 @@ public class AliasCommand : AsyncCommand<AliasSettings>
         // Register with proxy if it's running
         try
         {
-            var proxyPort = ProxyPortProvider.GetProxyPort();
-            using var client = _httpClientFactory.CreateClient();
-            client.BaseAddress = new Uri($"http://localhost:{proxyPort}");
-
-            var response = await client.PostAsJsonAsync("/api/v1/add-host", new
+            var registered = await _registrar.RegisterRouteAsync(hostname, backendUrl);
+            if (!registered)
             {
-                hostname,
-                backendUrl
-            }, cancellationToken);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                AnsiConsole.MarkupLine($"[yellow]Warning:[/] Proxy returned {response.StatusCode}. Route saved but proxy may need restart.");
+                AnsiConsole.MarkupLine($"[yellow]Warning:[/] Failed to register with proxy. Route saved but proxy may need restart.");
             }
         }
-        catch (HttpRequestException)
+        catch (Exception)
         {
             AnsiConsole.MarkupLine("[yellow]Warning:[/] Proxy is not running. Route will be available after proxy starts.");
         }
@@ -123,12 +113,9 @@ public class AliasCommand : AsyncCommand<AliasSettings>
         // Remove from proxy if it's running
         try
         {
-            var proxyPort = ProxyPortProvider.GetProxyPort();
-            using var client = _httpClientFactory.CreateClient();
-            client.BaseAddress = new Uri($"http://localhost:{proxyPort}");
-            await client.DeleteAsync($"/api/v1/remove-host?hostname={hostname}", cancellationToken);
+            await _registrar.RemoveRouteAsync(hostname);
         }
-        catch (HttpRequestException)
+        catch (Exception)
         {
             // Proxy not running, that's fine
         }
