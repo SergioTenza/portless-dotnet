@@ -1,3 +1,4 @@
+using Portless.Core.Serialization;
 using Portless.Core.Services;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -39,15 +40,15 @@ public class GetCommand : AsyncCommand<GetSettings>
 
             if (settings.Json || Console.IsOutputRedirected)
             {
-                var json = JsonSerializer.Serialize(new
-                {
-                    name = route.Hostname.Replace(".localhost", ""),
-                    hostname = route.Hostname,
-                    url,
-                    port = route.Port,
-                    pid = route.Pid
-                }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+                var entry = new RouteDetailEntry(
+                    Name: route.Hostname.Replace(".localhost", ""),
+                    Hostname: route.Hostname,
+                    Url: url,
+                    Port: route.Port,
+                    Pid: route.Pid
+                );
 
+                var json = JsonSerializer.Serialize(entry, PortlessJsonContext.Default.RouteDetailEntry);
                 Console.WriteLine(json);
             }
             else

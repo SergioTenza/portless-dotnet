@@ -1,21 +1,13 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Portless.Core.Models;
+using Portless.Core.Serialization;
 
 namespace Portless.Core.Services;
 
 public class RouteStore : IRouteStore, IDisposable
 {
     private const int LockRetryMs = 100;
-    private const int LockTimeoutMs = 5000; // 5 seconds
-    private static readonly JsonSerializerOptions _jsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        AllowTrailingCommas = true
-    };
+    private const int LockTimeoutMs = 5_000; // 5 seconds
 
     private readonly string _routesFilePath;
     private readonly string _lockFilePath;
@@ -45,7 +37,7 @@ public class RouteStore : IRouteStore, IDisposable
                 return Array.Empty<RouteInfo>();
             }
 
-            var routes = JsonSerializer.Deserialize<RouteInfo[]>(json, _jsonOptions);
+            var routes = JsonSerializer.Deserialize(json, PortlessJsonContext.Default.RouteInfoArray);
             return routes ?? Array.Empty<RouteInfo>();
         }
         finally
@@ -67,7 +59,7 @@ public class RouteStore : IRouteStore, IDisposable
 
             try
             {
-                var json = JsonSerializer.Serialize(routes, _jsonOptions);
+                var json = JsonSerializer.Serialize(routes, PortlessJsonContext.Default.RouteInfoArray);
                 await File.WriteAllTextAsync(tempFileName, json, cancellationToken);
 
                 // Atomic replace (only works on same volume)

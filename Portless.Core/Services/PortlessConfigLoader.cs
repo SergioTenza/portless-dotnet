@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Portless.Core.Models;
 using YamlDotNet.Serialization;
 using Microsoft.Extensions.Logging;
@@ -8,6 +9,9 @@ public class PortlessConfigLoader : IPortlessConfigLoader
 {
     private const string ConfigFileName = "portless.config.yaml";
     private readonly ILogger<PortlessConfigLoader> _logger;
+
+    [UnconditionalSuppressMessage("AOT", "IL3050:RequiresDynamicCode",
+        Justification = "YamlDotNet DeserializerBuilder requires reflection - config loading not used in AOT path")]
     private static readonly IDeserializer _deserializer = new DeserializerBuilder().Build();
 
     public PortlessConfigLoader(ILogger<PortlessConfigLoader> logger)

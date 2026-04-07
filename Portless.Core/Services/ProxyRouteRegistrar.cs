@@ -2,6 +2,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using Portless.Core.Serialization;
 
 namespace Portless.Core.Services;
 
@@ -23,8 +24,8 @@ public class ProxyRouteRegistrar : IProxyRouteRegistrar
     public async Task<bool> RegisterRouteAsync(string hostname, string backendUrl, string? path = null)
     {
         var httpClient = _httpClientFactory.CreateClient();
-        var payload = new { hostname, backendUrl, path };
-        var json = JsonSerializer.Serialize(payload);
+        var payload = new AddHostPayload(hostname, backendUrl, path);
+        var json = JsonSerializer.Serialize(payload, PortlessJsonContext.Default.AddHostPayload);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         try
@@ -50,8 +51,8 @@ public class ProxyRouteRegistrar : IProxyRouteRegistrar
     public async Task<bool> RegisterRouteAsync(string hostname, string[] backendUrls, string? path = null, string? loadBalancePolicy = null)
     {
         var httpClient = _httpClientFactory.CreateClient();
-        var payload = new { hostname, backendUrl = backendUrls[0], path, backendUrls, loadBalancePolicy };
-        var json = JsonSerializer.Serialize(payload);
+        var payload = new AddHostPayload(hostname, backendUrls[0], path, backendUrls, loadBalancePolicy);
+        var json = JsonSerializer.Serialize(payload, PortlessJsonContext.Default.AddHostPayload);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         try
@@ -77,8 +78,8 @@ public class ProxyRouteRegistrar : IProxyRouteRegistrar
     public async Task<bool> RemoveRouteAsync(string hostname)
     {
         var httpClient = _httpClientFactory.CreateClient();
-        var payload = new { hostname };
-        var json = JsonSerializer.Serialize(payload);
+        var payload = new RemoveHostPayload(hostname);
+        var json = JsonSerializer.Serialize(payload, PortlessJsonContext.Default.RemoveHostPayload);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         try

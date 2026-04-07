@@ -2,6 +2,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using Portless.Core.Serialization;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -50,8 +51,8 @@ public class TcpCommand : AsyncCommand<TcpSettings>
         try
         {
             var client = _httpClientFactory.CreateClient();
-            var payload = new { name = settings.Name, listenPort = settings.ListenPort.Value, targetHost, targetPort };
-            var json = JsonSerializer.Serialize(payload);
+            var payload = new TcpProxyPayload(settings.Name, settings.ListenPort.Value, targetHost, targetPort);
+            var json = JsonSerializer.Serialize(payload, PortlessJsonContext.Default.TcpProxyPayload);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             var response = await client.PostAsync("http://localhost:1355/api/v1/tcp/add", content, ct);

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -32,7 +33,9 @@ services.AddHttpClient();
 
 // Configure command app with dependency injection
 var registrar = new TypeRegistrar(services);
+#pragma warning disable IL3050 // Spectre.Console.Cli relies on reflection — not AOT-compatible by design
 var app = new CommandApp(registrar);
+#pragma warning restore IL3050
 
 app.Configure(config =>
 {

@@ -132,7 +132,7 @@ public static class ServiceCollectionExtensions
 
         // Register monitoring service as singleton and hosted service
         services.AddSingleton<ICertificateMonitoringService, CertificateMonitoringService>();
-        services.AddHostedService(sp => sp.GetRequiredService<ICertificateMonitoringService>() as CertificateMonitoringService);
+        services.AddHostedService<CertificateMonitoringService>(sp => (CertificateMonitoringService)sp.GetRequiredService<ICertificateMonitoringService>());
 
         return services;
     }

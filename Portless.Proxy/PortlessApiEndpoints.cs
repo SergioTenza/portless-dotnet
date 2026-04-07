@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -18,6 +19,10 @@ public static class PortlessApiEndpoints
     /// <summary>
     /// Maps the /api/v1/add-host and /api/v1/remove-host endpoints.
     /// </summary>
+    [UnconditionalSuppressMessage("Trimming", "IL2026:RequiresUnreferencedCode",
+        Justification = "Minimal API endpoints use reflection for delegate parameter binding - by design in ASP.NET Core")]
+    [UnconditionalSuppressMessage("AOT", "IL3050:RequiresDynamicCode",
+        Justification = "Minimal API endpoints require dynamic code generation - by design in ASP.NET Core")]
     public static IEndpointRouteBuilder MapPortlessApi(
         this IEndpointRouteBuilder endpoints,
         DynamicConfigProvider configProvider,
