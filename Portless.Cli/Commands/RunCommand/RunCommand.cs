@@ -176,7 +176,7 @@ public class RunCommand : AsyncCommand<RunSettings>
             await _portAllocator.AssignFreePortAsync(process.Id);
 
             // Step 7: Register route with proxy
-            var registered = await _registrar.RegisterRouteAsync(hostname, $"http://localhost:{port}");
+            var registered = await _registrar.RegisterRouteAsync(hostname, $"http://localhost:{port}", settings.Path);
             if (!registered)
             {
                 AnsiConsole.MarkupLine("[red]Error:[/] Failed to register route with proxy");

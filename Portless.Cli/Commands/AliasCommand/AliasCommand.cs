@@ -42,7 +42,7 @@ public class AliasCommand : AsyncCommand<AliasSettings>
                 return 1;
             }
 
-            return await AddAliasAsync(hostname, settings.Port.Value, settings.Host, settings.Protocol, cancellationToken);
+            return await AddAliasAsync(hostname, settings.Port.Value, settings.Host, settings.Protocol, settings.Path, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -51,7 +51,7 @@ public class AliasCommand : AsyncCommand<AliasSettings>
         }
     }
 
-    private async Task<int> AddAliasAsync(string hostname, int port, string host, string protocol, CancellationToken cancellationToken)
+    private async Task<int> AddAliasAsync(string hostname, int port, string host, string protocol, string? path, CancellationToken cancellationToken)
     {
         var routes = await _routeStore.LoadRoutesAsync(cancellationToken);
 
@@ -68,7 +68,7 @@ public class AliasCommand : AsyncCommand<AliasSettings>
         // Register with proxy if it's running
         try
         {
-            var registered = await _registrar.RegisterRouteAsync(hostname, backendUrl);
+            var registered = await _registrar.RegisterRouteAsync(hostname, backendUrl, path);
             if (!registered)
             {
                 AnsiConsole.MarkupLine($"[yellow]Warning:[/] Failed to register with proxy. Route saved but proxy may need restart.");
@@ -87,7 +87,8 @@ public class AliasCommand : AsyncCommand<AliasSettings>
             Pid = 0, // No managed process - this is a static alias
             BackendProtocol = protocol,
             CreatedAt = DateTime.UtcNow,
-            LastSeen = DateTime.UtcNow
+            LastSeen = DateTime.UtcNow,
+            Path = path
         };
 
         var routeList = routes.ToList();

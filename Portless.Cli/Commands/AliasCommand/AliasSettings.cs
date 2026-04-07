@@ -27,4 +27,8 @@ public class AliasSettings : CommandSettings
     [Description("Backend protocol (http or https)")]
     [DefaultValue("http")]
     public string Protocol { get; init; } = "http";
+
+    [CommandOption("-p|--path <PATH>")]
+    [Description("Path prefix for path-based routing (e.g. /api)")]
+    public string? Path { get; init; }
 }

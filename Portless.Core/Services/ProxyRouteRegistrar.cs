@@ -20,10 +20,10 @@ public class ProxyRouteRegistrar : IProxyRouteRegistrar
         _proxyBaseUrl = "http://localhost:1355";
     }
 
-    public async Task<bool> RegisterRouteAsync(string hostname, string backendUrl)
+    public async Task<bool> RegisterRouteAsync(string hostname, string backendUrl, string? path = null)
     {
         var httpClient = _httpClientFactory.CreateClient();
-        var payload = new { hostname, backendUrl };
+        var payload = new { hostname, backendUrl, path };
         var json = JsonSerializer.Serialize(payload);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 

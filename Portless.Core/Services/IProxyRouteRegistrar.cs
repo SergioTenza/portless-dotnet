@@ -11,8 +11,9 @@ public interface IProxyRouteRegistrar
     /// </summary>
     /// <param name="hostname">The hostname to register (e.g. "myapi.localhost").</param>
     /// <param name="backendUrl">The backend URL to forward to (e.g. "http://localhost:4042").</param>
+    /// <param name="path">Optional path prefix for path-based routing (e.g. "/api").</param>
     /// <returns>True if registration succeeded; false otherwise.</returns>
-    Task<bool> RegisterRouteAsync(string hostname, string backendUrl);
+    Task<bool> RegisterRouteAsync(string hostname, string backendUrl, string? path = null);
 
     /// <summary>
     /// Removes a route from the proxy server.
