@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net.Sockets;
+using System.Linq;
 using Microsoft.Extensions.Logging;
 using Portless.Core.Services;
 using Portless.Cli.Services;
@@ -176,7 +177,17 @@ public class RunCommand : AsyncCommand<RunSettings>
             await _portAllocator.AssignFreePortAsync(process.Id);
 
             // Step 7: Register route with proxy
-            var registered = await _registrar.RegisterRouteAsync(hostname, $"http://localhost:{port}", settings.Path);
+            bool registered;
+            var primaryBackend = $"http://localhost:{port}";
+            if (settings.Backends.Length > 0)
+            {
+                var allBackends = new[] { primaryBackend }.Concat(settings.Backends).ToArray();
+                registered = await _registrar.RegisterRouteAsync(hostname, allBackends, settings.Path);
+            }
+            else
+            {
+                registered = await _registrar.RegisterRouteAsync(hostname, primaryBackend, settings.Path);
+            }
             if (!registered)
             {
                 AnsiConsole.MarkupLine("[red]Error:[/] Failed to register route with proxy");

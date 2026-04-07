@@ -47,6 +47,33 @@ public class ProxyRouteRegistrar : IProxyRouteRegistrar
         }
     }
 
+    public async Task<bool> RegisterRouteAsync(string hostname, string[] backendUrls, string? path = null, string? loadBalancePolicy = null)
+    {
+        var httpClient = _httpClientFactory.CreateClient();
+        var payload = new { hostname, backendUrl = backendUrls[0], path, backendUrls, loadBalancePolicy };
+        var json = JsonSerializer.Serialize(payload);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        try
+        {
+            var response = await httpClient.PostAsync($"{_proxyBaseUrl}/api/v1/add-host", content);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogError("Failed to register route {Hostname} with proxy. Status: {Status}, Response: {Response}",
+                    hostname, response.StatusCode, errorContent);
+                return false;
+            }
+            _logger.LogInformation("Route {Hostname} registered with proxy ({BackendCount} backends)", hostname, backendUrls.Length);
+            return true;
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Failed to communicate with proxy for route registration");
+            return false;
+        }
+    }
+
     public async Task<bool> RemoveRouteAsync(string hostname)
     {
         var httpClient = _httpClientFactory.CreateClient();
