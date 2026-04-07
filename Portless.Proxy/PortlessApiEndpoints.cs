@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Portless.Core.Configuration;
 using Portless.Core.Models;
 using Portless.Core.Services;
+using Yarp.ReverseProxy.Configuration;
 
 namespace Portless.Proxy;
 
@@ -66,8 +67,22 @@ public static class PortlessApiEndpoints
                 }
 
                 // Create new route and cluster using the factory
+                // Build backend URL list: BackendUrls if provided, otherwise single BackendUrl
+                var backendUrls = request.BackendUrls is { Length: > 0 }
+                    ? request.BackendUrls
+                    : new[] { request.BackendUrl };
+
                 var (newRoute, newCluster) = configFactory.CreateRouteClusterPair(
-                    request.Hostname, new[] { request.BackendUrl }, request.Path);
+                    request.Hostname, backendUrls, request.Path);
+
+                // Apply load balancing policy if specified
+                if (!string.IsNullOrEmpty(request.LoadBalancePolicy) && newCluster.Destinations!.Count > 1)
+                {
+                    newCluster = newCluster with
+                    {
+                        LoadBalancingPolicy = request.LoadBalancePolicy
+                    };
+                }
 
                 // Add to existing configuration
                 existingRoutes.Add(newRoute);
@@ -98,7 +113,9 @@ public static class PortlessApiEndpoints
                         Port = port,
                         Pid = Environment.ProcessId,
                         CreatedAt = DateTime.UtcNow,
-                        Path = request.Path
+                        Path = request.Path,
+                        BackendUrls = backendUrls.Length > 1 ? backendUrls : null,
+                        LoadBalancingPolicy = ParseLoadBalancingPolicy(request.LoadBalancePolicy),
                     };
                     var updatedRoutes = filteredRoutes.Append(newRouteInfo).ToArray();
                     logger.LogInformation("Saving {Count} routes to file (PID: {Pid})", updatedRoutes.Length, Environment.ProcessId);
@@ -199,6 +216,18 @@ public static class PortlessApiEndpoints
 
         return endpoints;
     }
+
+    private static LoadBalancingPolicy ParseLoadBalancingPolicy(string? policy)
+    {
+        return policy?.ToLowerInvariant() switch
+        {
+            "roundrobin" => LoadBalancingPolicy.RoundRobin,
+            "leastrequests" => LoadBalancingPolicy.LeastRequests,
+            "random" => LoadBalancingPolicy.Random,
+            "first" => LoadBalancingPolicy.First,
+            _ => LoadBalancingPolicy.PowerOfTwoChoices
+        };
+    }
 }
 
 /// <summary>
@@ -207,5 +236,7 @@ public static class PortlessApiEndpoints
 public record AddHostRequest(
     string Hostname,
     string BackendUrl,
-    string? Path = null
+    string? Path = null,
+    string[]? BackendUrls = null,
+    string? LoadBalancePolicy = null
 );

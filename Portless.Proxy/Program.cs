@@ -168,8 +168,26 @@ try
 
         foreach (var route in deduplicatedRoutes)
         {
-            var backendUrl = $"{route.BackendProtocol}://localhost:{route.Port}";
-            var (routeConfig, clusterConfig) = configFactory.CreateRouteClusterPair(route.Hostname, new[] { backendUrl });
+            var urls = route.GetBackendUrls();
+            var (routeConfig, clusterConfig) = configFactory.CreateRouteClusterPair(
+                route.Hostname, urls, route.Path);
+
+            // Apply load balancing policy for multi-backend clusters
+            if (urls.Length > 1)
+            {
+                clusterConfig = clusterConfig with
+                {
+                    LoadBalancingPolicy = route.LoadBalancingPolicy switch
+                    {
+                        LoadBalancingPolicy.RoundRobin => "RoundRobin",
+                        LoadBalancingPolicy.LeastRequests => "LeastRequests",
+                        LoadBalancingPolicy.Random => "Random",
+                        LoadBalancingPolicy.First => "First",
+                        _ => "PowerOfTwoChoices"
+                    }
+                };
+            }
+
             routeConfigs.Add(routeConfig);
             clusterConfigs.Add(clusterConfig);
         }
@@ -208,6 +226,23 @@ if (fileConfig.Routes.Count > 0)
             var urls = route.GetBackendUrls();
             var (routeConfig, clusterConfig) = configFactory.CreateRouteClusterPair(
                 route.Hostname, urls, route.Path);
+
+            // Apply load balancing policy for multi-backend clusters
+            if (urls.Length > 1)
+            {
+                clusterConfig = clusterConfig with
+                {
+                    LoadBalancingPolicy = route.LoadBalancingPolicy switch
+                    {
+                        LoadBalancingPolicy.RoundRobin => "RoundRobin",
+                        LoadBalancingPolicy.LeastRequests => "LeastRequests",
+                        LoadBalancingPolicy.Random => "Random",
+                        LoadBalancingPolicy.First => "First",
+                        _ => "PowerOfTwoChoices"
+                    }
+                };
+            }
+
             allRoutes.Add(routeConfig);
             allClusters.Add(clusterConfig);
         }
