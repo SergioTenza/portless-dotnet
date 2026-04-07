@@ -8,6 +8,7 @@ using Portless.Cli.Commands.ListCommand;
 using Portless.Cli.Commands.GetCommand;
 using Portless.Cli.Commands.AliasCommand;
 using Portless.Cli.Commands.HostsCommand;
+using Portless.Cli.Commands.UpCommand;
 using Portless.Cli.DependencyInjection;
 using Portless.Cli.Services;
 using Portless.Core.Extensions;
@@ -56,6 +57,11 @@ app.Configure(config =>
         .WithDescription("Manage /etc/hosts entries for portless routes")
         .WithExample("hosts", "sync")
         .WithExample("hosts", "clean");
+
+    config.AddCommand<UpCommand>("up")
+        .WithDescription("Start routes from portless.config.yaml")
+        .WithExample("up")
+        .WithExample("up", "-f", "./my-config.yaml");
 
     config.AddBranch("proxy", proxy =>
     {
