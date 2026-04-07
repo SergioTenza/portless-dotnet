@@ -67,7 +67,7 @@ public static class PortlessApiEndpoints
 
                 // Create new route and cluster using the factory
                 var (newRoute, newCluster) = configFactory.CreateRouteClusterPair(
-                    request.Hostname, new[] { request.BackendUrl });
+                    request.Hostname, new[] { request.BackendUrl }, request.Path);
 
                 // Add to existing configuration
                 existingRoutes.Add(newRoute);
@@ -97,7 +97,8 @@ public static class PortlessApiEndpoints
                         Hostname = request.Hostname,
                         Port = port,
                         Pid = Environment.ProcessId,
-                        CreatedAt = DateTime.UtcNow
+                        CreatedAt = DateTime.UtcNow,
+                        Path = request.Path
                     };
                     var updatedRoutes = filteredRoutes.Append(newRouteInfo).ToArray();
                     logger.LogInformation("Saving {Count} routes to file (PID: {Pid})", updatedRoutes.Length, Environment.ProcessId);
@@ -205,5 +206,6 @@ public static class PortlessApiEndpoints
 /// </summary>
 public record AddHostRequest(
     string Hostname,
-    string BackendUrl
+    string BackendUrl,
+    string? Path = null
 );
