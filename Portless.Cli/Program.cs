@@ -10,6 +10,7 @@ using Portless.Cli.Commands.AliasCommand;
 using Portless.Cli.Commands.HostsCommand;
 using Portless.Cli.Commands.UpCommand;
 using Portless.Cli.Commands.TcpCommand;
+using Portless.Cli.Commands.CompletionCommand;
 using Portless.Cli.DependencyInjection;
 using Portless.Cli.Services;
 using Portless.Core.Extensions;
@@ -68,6 +69,12 @@ app.Configure(config =>
         .WithDescription("Manage TCP proxy routes for databases and services")
         .WithExample("tcp", "redis", "localhost:6379", "--listen", "16379")
         .WithExample("tcp", "redis", "--remove");
+
+    config.AddCommand<CompletionCommand>("completion")
+        .WithDescription("Generate shell completion scripts")
+        .WithExample("completion", "bash")
+        .WithExample("completion", "zsh")
+        .WithExample("completion", "fish");
 
     config.AddBranch("proxy", proxy =>
     {
