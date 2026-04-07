@@ -1,5 +1,3 @@
-using System.Security.Authentication;
-using Yarp.ReverseProxy.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -16,42 +14,14 @@ namespace Portless.Proxy;
 /// </summary>
 public static class PortlessApiEndpoints
 {
-    // Helper methods for creating YARP routes and clusters
-    private static RouteConfig CreateRoute(string hostname, string clusterId) =>
-        new RouteConfig
-        {
-            RouteId = $"route-{hostname}",
-            ClusterId = clusterId,
-            Match = new RouteMatch
-            {
-                Hosts = new[] { hostname },
-                Path = "/{**catch-all}"
-            }
-        };
-
-    private static ClusterConfig CreateCluster(string clusterId, string backendUrl) =>
-        new ClusterConfig
-        {
-            ClusterId = clusterId,
-            Destinations = new Dictionary<string, DestinationConfig>
-            {
-                ["backend1"] = new DestinationConfig { Address = backendUrl }
-            },
-            // Add HttpClient configuration for SSL validation
-            HttpClient = new Yarp.ReverseProxy.Configuration.HttpClientConfig
-            {
-                DangerousAcceptAnyServerCertificate = true, // Development mode only
-                SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls13
-            }
-        };
-
     /// <summary>
     /// Maps the /api/v1/add-host and /api/v1/remove-host endpoints.
     /// </summary>
     public static IEndpointRouteBuilder MapPortlessApi(
         this IEndpointRouteBuilder endpoints,
         DynamicConfigProvider configProvider,
-        IRouteStore routeStore)
+        IRouteStore routeStore,
+        IYarpConfigFactory configFactory)
     {
         // POST /api/v1/add-host
         endpoints.MapPost("/api/v1/add-host", async (AddHostRequest request, ILogger<Program> logger) =>
@@ -95,10 +65,9 @@ public static class PortlessApiEndpoints
                     );
                 }
 
-                // Create new route and cluster
-                var clusterId = $"cluster-{request.Hostname}";
-                var newRoute = CreateRoute(request.Hostname, clusterId);
-                var newCluster = CreateCluster(clusterId, request.BackendUrl);
+                // Create new route and cluster using the factory
+                var (newRoute, newCluster) = configFactory.CreateRouteClusterPair(
+                    request.Hostname, new[] { request.BackendUrl });
 
                 // Add to existing configuration
                 existingRoutes.Add(newRoute);
@@ -153,7 +122,7 @@ public static class PortlessApiEndpoints
                     {
                         hostname = request.Hostname,
                         backendUrl = request.BackendUrl,
-                        clusterId = clusterId,
+                        clusterId = newCluster.ClusterId,
                         routeId = newRoute.RouteId
                     }
                 });

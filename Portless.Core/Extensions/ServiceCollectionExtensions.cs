@@ -36,6 +36,9 @@ public static class ServiceCollectionExtensions
         // Register framework detector
         services.AddSingleton<IFrameworkDetector, FrameworkDetector>();
 
+        // Register YARP config factory
+        services.AddSingleton<IYarpConfigFactory, YarpConfigFactory>();
+
         return services;
     }
 

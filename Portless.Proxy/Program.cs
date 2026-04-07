@@ -12,35 +12,6 @@ using System.Security.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Helper methods for creating YARP routes and clusters
-static RouteConfig CreateRoute(string hostname, string clusterId) =>
-    new RouteConfig
-    {
-        RouteId = $"route-{hostname}",
-        ClusterId = clusterId,
-        Match = new RouteMatch
-        {
-            Hosts = new[] { hostname },
-            Path = "/{**catch-all}"
-        }
-    };
-
-static ClusterConfig CreateCluster(string clusterId, string backendUrl) =>
-    new ClusterConfig
-    {
-        ClusterId = clusterId,
-        Destinations = new Dictionary<string, DestinationConfig>
-        {
-            ["backend1"] = new DestinationConfig { Address = backendUrl }
-        },
-        // Add HttpClient configuration for SSL validation
-        HttpClient = new Yarp.ReverseProxy.Configuration.HttpClientConfig
-        {
-            DangerousAcceptAnyServerCertificate = true, // Development mode only
-            SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls13
-        }
-    };
-
 // Add logging configuration
 builder.Logging.AddConsole();
 builder.Logging.SetMinimumLevel(LogLevel.Information);
@@ -179,6 +150,7 @@ if (enableHttps)
 // Load existing routes on startup
 var routeStore = app.Services.GetRequiredService<IRouteStore>();
 var configProvider = app.Services.GetRequiredService<DynamicConfigProvider>();
+var configFactory = app.Services.GetRequiredService<IYarpConfigFactory>();
 
 try
 {
@@ -196,8 +168,10 @@ try
 
         foreach (var route in deduplicatedRoutes)
         {
-            routeConfigs.Add(CreateRoute(route.Hostname, $"cluster-{route.Hostname}"));
-            clusterConfigs.Add(CreateCluster($"cluster-{route.Hostname}", $"http://localhost:{route.Port}"));
+            var backendUrl = $"{route.BackendProtocol}://localhost:{route.Port}";
+            var (routeConfig, clusterConfig) = configFactory.CreateRouteClusterPair(route.Hostname, new[] { backendUrl });
+            routeConfigs.Add(routeConfig);
+            clusterConfigs.Add(clusterConfig);
         }
 
         configProvider.Update(routeConfigs, clusterConfigs);
@@ -216,7 +190,7 @@ catch (Exception ex)
 
 app.UseMiddleware<RequestLoggingMiddleware>();
 
-app.MapPortlessApi(configProvider, routeStore);
+app.MapPortlessApi(configProvider, routeStore, configFactory);
 
 // Use ForwardedHeaders middleware to add X-Forwarded-* headers
 app.UseForwardedHeaders(new ForwardedHeadersOptions
