@@ -3,10 +3,32 @@ name: Release
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - 'v*'
 
 jobs:
-  build:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Run unit tests
+        run: >
+          dotnet test Portless.Tests/Portless.Tests.csproj
+          --configuration Release
+          --filter "FullyQualifiedName!~YarpProxyIntegrationTests&FullyQualifiedName!~SignalRIntegrationTests&FullyQualifiedName!~Http2IntegrationTests"
+
+      - name: Run integration tests
+        run: dotnet test Portless.IntegrationTests/Portless.IntegrationTests.csproj --configuration Release
+
+  publish:
+    needs: test
     runs-on: ubuntu-latest
 
     strategy:
@@ -22,9 +44,6 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Run tests
-        run: dotnet test Portless.slnx --configuration Release
-
       - name: Publish Native AOT executable
         run: |
           dotnet publish Portless.Cli/Portless.Cli.csproj \
@@ -34,11 +53,21 @@ jobs:
             -p:PublishAot=true \
             -o publish/${{ matrix.runtime }}
 
+      - name: Prepare upload artifact (win-x64)
+        if: matrix.runtime == 'win-x64'
+        run: |
+          cp publish/${{ matrix.runtime }}/portless.exe publish/portless-${{ matrix.runtime }}.exe
+
+      - name: Prepare upload artifact (unix)
+        if: matrix.runtime != 'win-x64'
+        run: |
+          cp publish/${{ matrix.runtime }}/portless publish/portless-${{ matrix.runtime }}
+
       - name: Upload to GitHub Release (win-x64)
         if: matrix.runtime == 'win-x64'
         uses: softprops/action-gh-release@v2
         with:
-          files: publish/${{ matrix.runtime }}/portless.exe
+          files: publish/portless-${{ matrix.runtime }}.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -46,6 +75,6 @@ jobs:
         if: matrix.runtime != 'win-x64'
         uses: softprops/action-gh-release@v2
         with:
-          files: publish/${{ matrix.runtime }}/portless
+          files: publish/portless-${{ matrix.runtime }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

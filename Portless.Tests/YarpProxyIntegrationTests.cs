@@ -14,15 +14,38 @@ namespace Portless.Tests;
 /// Tests verify advanced routing scenarios, header forwarding, and API endpoints.
 /// </summary>
 [Collection("Integration Tests")]
-public class YarpProxyIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
+public class YarpProxyIntegrationTests : IAsyncLifetime
 {
-    private readonly WebApplicationFactory<Program> _factory;
-    private readonly HttpClient _client;
+    private WebApplicationFactory<Program> _factory = null!;
+    private HttpClient _client = null!;
 
-    public YarpProxyIntegrationTests(WebApplicationFactory<Program> factory)
+    public async Task InitializeAsync()
     {
-        _factory = factory;
-        _client = factory.CreateClient();
+        // Use isolated temp state directory to prevent interference from other tests
+        var tempDir = Path.Combine(Path.GetTempPath(), $"portless-yarp-test-{Guid.NewGuid():N}");
+        Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", tempDir);
+        Directory.CreateDirectory(tempDir);
+        await File.WriteAllTextAsync(Path.Combine(tempDir, "routes.json"), "[]");
+
+        _factory = new WebApplicationFactory<Program>();
+        _client = _factory.CreateClient();
+    }
+
+    public async Task DisposeAsync()
+    {
+        _client?.Dispose();
+        _factory?.Dispose();
+        Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", null);
+        // Cleanup temp dir
+        var tempDir = Environment.GetEnvironmentVariable("PORTLESS_STATE_DIR");
+        try
+        {
+            var stateDir = Path.Combine(Path.GetTempPath(), $"portless-yarp-test-");
+            var dirs = Directory.GetDirectories(Path.GetTempPath(), "portless-yarp-test-*");
+            foreach (var d in dirs) try { Directory.Delete(d, true); } catch { }
+        }
+        catch { }
+        await Task.CompletedTask;
     }
 
     [Fact]

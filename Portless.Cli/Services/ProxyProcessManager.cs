@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using Portless.Core.Services;
 
@@ -50,15 +51,34 @@ public class ProxyProcessManager : IProxyProcessManager
             throw new InvalidOperationException($"Proxy project not found at: {proxyProjectPath}");
         }
 
-        // Create process start info for detached execution
-        var startInfo = new ProcessStartInfo
+        // Create process start info for detached execution (cross-platform)
+        ProcessStartInfo startInfo;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            FileName = "cmd.exe",
-            Arguments = $"/c set PORTLESS_PORT={DefaultPort} && set PORTLESS_HTTPS_ENABLED={enableHttps.ToString().ToLower()} && set DOTNET_MODIFIABLE_ASSEMBLIES=debug && dotnet run --project \"{proxyProjectPath}\" --urls http://*:{DefaultPort}",
-            UseShellExecute = true,  // Required for detached execution on Windows
-            CreateNoWindow = true,
-            WindowStyle = ProcessWindowStyle.Hidden
-        };
+            startInfo = new ProcessStartInfo
+            {
+                FileName = "cmd.exe",
+                Arguments = $"/c set PORTLESS_PORT={DefaultPort} && set PORTLESS_HTTPS_ENABLED={enableHttps.ToString().ToLower()} && set DOTNET_MODIFIABLE_ASSEMBLIES=debug && dotnet run --project \"{proxyProjectPath}\" --urls http://*:{DefaultPort}",
+                UseShellExecute = true,
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden
+            };
+        }
+        else
+        {
+            // Linux/macOS: use dotnet directly as the executable
+            var dotnetExe = "dotnet";
+            startInfo = new ProcessStartInfo
+            {
+                FileName = dotnetExe,
+                Arguments = $"run --project \"{proxyProjectPath}\" --urls http://*:{DefaultPort}",
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            startInfo.Environment["PORTLESS_PORT"] = DefaultPort;
+            startInfo.Environment["PORTLESS_HTTPS_ENABLED"] = enableHttps.ToString().ToLower();
+            startInfo.Environment["DOTNET_MODIFIABLE_ASSEMBLIES"] = "debug";
+        }
 
         // Start the process
         var process = Process.Start(startInfo);

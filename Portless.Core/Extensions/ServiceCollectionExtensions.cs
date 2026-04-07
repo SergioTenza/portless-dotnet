@@ -30,6 +30,22 @@ public static class ServiceCollectionExtensions
         // Register process health monitor as hosted service
         services.AddHostedService<ProcessHealthMonitor>();
 
+        // Register project name detector
+        services.AddSingleton<IProjectNameDetector, ProjectNameDetector>();
+
+        // Register framework detector
+        services.AddSingleton<IFrameworkDetector, FrameworkDetector>();
+
+        // Register YARP config factory
+        services.AddSingleton<IYarpConfigFactory, YarpConfigFactory>();
+
+        // Register config loader
+        services.AddSingleton<IPortlessConfigLoader, PortlessConfigLoader>();
+
+        // Register TCP forwarding service
+        services.AddSingleton<ITcpForwardingService, TcpForwardingService>();
+        services.AddHostedService(sp => (TcpForwardingService)sp.GetRequiredService<ITcpForwardingService>());
+
         return services;
     }
 
