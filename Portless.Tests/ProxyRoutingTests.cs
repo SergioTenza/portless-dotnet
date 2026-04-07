@@ -20,34 +20,38 @@ namespace Portless.Tests
     /// </summary>
     public class ProxyRoutingTests : IAsyncLifetime
     {
-        private WebApplicationFactory<Program> _factory = null!;
-        private HttpClient _client = null!;
+    private WebApplicationFactory<Program> _factory = null!;
+    private HttpClient _client = null!;
+    private string _tempDir = null!;
 
-        public async Task InitializeAsync()
+    public async Task InitializeAsync()
+    {
+        // Use isolated temp state directory to prevent interference from other tests
+        _tempDir = Path.Combine(Path.GetTempPath(), $"portless-routing-test-{Guid.NewGuid():N}");
+        Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", _tempDir);
+        Directory.CreateDirectory(_tempDir);
+        await File.WriteAllTextAsync(Path.Combine(_tempDir, "routes.json"), "[]");
+
+        _factory = new WebApplicationFactory<Program>();
+        _client = _factory.CreateClient();
+    }
+
+    public async Task DisposeAsync()
+    {
+        _client?.Dispose();
+        _factory?.Dispose();
+        Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", null);
+        // Cleanup only our own temp dir
+        try
         {
-            // Use isolated temp state directory to prevent interference from other tests
-            var tempDir = Path.Combine(Path.GetTempPath(), $"portless-routing-test-{Guid.NewGuid():N}");
-            Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", tempDir);
-            Directory.CreateDirectory(tempDir);
-            await File.WriteAllTextAsync(Path.Combine(tempDir, "routes.json"), "[]");
-
-            _factory = new WebApplicationFactory<Program>();
-            _client = _factory.CreateClient();
-        }
-
-        public async Task DisposeAsync()
-        {
-            _client?.Dispose();
-            _factory?.Dispose();
-            Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", null);
-            try
+            if (_tempDir != null && Directory.Exists(_tempDir))
             {
-                var dirs = Directory.GetDirectories(Path.GetTempPath(), "portless-routing-test-*");
-                foreach (var d in dirs) try { Directory.Delete(d, true); } catch { }
+                Directory.Delete(_tempDir, true);
             }
-            catch { }
-            await Task.CompletedTask;
         }
+        catch { }
+        await Task.CompletedTask;
+    }
 
         [Fact]
         public async Task SingleHostname_RoutesToCorrectBackend()
@@ -83,6 +87,9 @@ namespace Portless.Tests
             };
 
             config.Update(routes, clusters);
+
+            // Allow YARP to process the configuration change
+            await Task.Delay(200);
 
             // Act - Make request with custom Host header
             var request = new HttpRequestMessage(HttpMethod.Get, "/");
@@ -157,6 +164,9 @@ namespace Portless.Tests
 
             config.Update(routes, clusters);
 
+            // Allow YARP to process the configuration change
+            await Task.Delay(200);
+
             // Act & Assert - Test first hostname
             var request1 = new HttpRequestMessage(HttpMethod.Get, "/");
             request1.Headers.Add("Host", "api1.localhost");
@@ -219,6 +229,9 @@ namespace Portless.Tests
 
             config.Update(routes, clusters);
 
+            // Allow YARP to process the configuration change
+            await Task.Delay(200);
+
             // Act - Make request with unknown hostname
             var request = new HttpRequestMessage(HttpMethod.Get, "/");
             request.Headers.Add("Host", "unknown.localhost");
@@ -262,6 +275,9 @@ namespace Portless.Tests
             };
 
             config.Update(initialRoutes, initialClusters);
+
+            // Allow YARP to process the configuration change
+            await Task.Delay(200);
 
             // Verify first route works
             var request1 = new HttpRequestMessage(HttpMethod.Get, "/");

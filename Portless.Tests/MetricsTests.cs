@@ -3,6 +3,7 @@ using Xunit;
 
 namespace Portless.Tests;
 
+[Collection("Integration Tests")]
 public class MetricsTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly WebApplicationFactory<Program> _factory;

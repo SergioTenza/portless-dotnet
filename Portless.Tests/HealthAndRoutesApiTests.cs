@@ -11,14 +11,15 @@ public class HealthAndRoutesApiTests : IAsyncLifetime
 {
     private WebApplicationFactory<Program> _factory = null!;
     private HttpClient _client = null!;
+    private string _tempDir = null!;
 
     public async Task InitializeAsync()
     {
         // Use isolated temp state directory to prevent interference from other tests
-        var tempDir = Path.Combine(Path.GetTempPath(), $"portless-health-test-{Guid.NewGuid():N}");
-        Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", tempDir);
-        Directory.CreateDirectory(tempDir);
-        await File.WriteAllTextAsync(Path.Combine(tempDir, "routes.json"), "[]");
+        _tempDir = Path.Combine(Path.GetTempPath(), $"portless-health-test-{Guid.NewGuid():N}");
+        Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", _tempDir);
+        Directory.CreateDirectory(_tempDir);
+        await File.WriteAllTextAsync(Path.Combine(_tempDir, "routes.json"), "[]");
 
         _factory = new WebApplicationFactory<Program>();
         _client = _factory.CreateClient();
@@ -29,10 +30,13 @@ public class HealthAndRoutesApiTests : IAsyncLifetime
         _client?.Dispose();
         _factory?.Dispose();
         Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", null);
+        // Cleanup only our own temp dir
         try
         {
-            var dirs = Directory.GetDirectories(Path.GetTempPath(), "portless-health-test-*");
-            foreach (var d in dirs) try { Directory.Delete(d, true); } catch { }
+            if (_tempDir != null && Directory.Exists(_tempDir))
+            {
+                Directory.Delete(_tempDir, true);
+            }
         }
         catch { }
         await Task.CompletedTask;

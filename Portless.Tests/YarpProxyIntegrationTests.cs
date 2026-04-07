@@ -18,14 +18,15 @@ public class YarpProxyIntegrationTests : IAsyncLifetime
 {
     private WebApplicationFactory<Program> _factory = null!;
     private HttpClient _client = null!;
+    private string _tempDir = null!;
 
     public async Task InitializeAsync()
     {
         // Use isolated temp state directory to prevent interference from other tests
-        var tempDir = Path.Combine(Path.GetTempPath(), $"portless-yarp-test-{Guid.NewGuid():N}");
-        Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", tempDir);
-        Directory.CreateDirectory(tempDir);
-        await File.WriteAllTextAsync(Path.Combine(tempDir, "routes.json"), "[]");
+        _tempDir = Path.Combine(Path.GetTempPath(), $"portless-yarp-test-{Guid.NewGuid():N}");
+        Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", _tempDir);
+        Directory.CreateDirectory(_tempDir);
+        await File.WriteAllTextAsync(Path.Combine(_tempDir, "routes.json"), "[]");
 
         _factory = new WebApplicationFactory<Program>();
         _client = _factory.CreateClient();
@@ -36,13 +37,13 @@ public class YarpProxyIntegrationTests : IAsyncLifetime
         _client?.Dispose();
         _factory?.Dispose();
         Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", null);
-        // Cleanup temp dir
-        var tempDir = Environment.GetEnvironmentVariable("PORTLESS_STATE_DIR");
+        // Cleanup only our own temp dir
         try
         {
-            var stateDir = Path.Combine(Path.GetTempPath(), $"portless-yarp-test-");
-            var dirs = Directory.GetDirectories(Path.GetTempPath(), "portless-yarp-test-*");
-            foreach (var d in dirs) try { Directory.Delete(d, true); } catch { }
+            if (_tempDir != null && Directory.Exists(_tempDir))
+            {
+                Directory.Delete(_tempDir, true);
+            }
         }
         catch { }
         await Task.CompletedTask;
@@ -81,6 +82,9 @@ public class YarpProxyIntegrationTests : IAsyncLifetime
         };
 
         config.Update(routes, clusters);
+
+        // Allow YARP to process the configuration change
+        await Task.Delay(200);
 
         // Act - Send request with custom headers
         var request = new HttpRequestMessage(HttpMethod.Get, "/");
@@ -151,6 +155,9 @@ public class YarpProxyIntegrationTests : IAsyncLifetime
         };
 
         config.Update(routes, clusters);
+
+        // Allow YARP to process the configuration change
+        await Task.Delay(200);
 
         // Act - Request to api.localhost
         var request1 = new HttpRequestMessage(HttpMethod.Get, "/");
@@ -270,6 +277,9 @@ public class YarpProxyIntegrationTests : IAsyncLifetime
         };
 
         config.Update(initialRoutes, initialClusters);
+
+        // Allow YARP to process the configuration change
+        await Task.Delay(200);
 
         // Verify first route works
         var request1 = new HttpRequestMessage(HttpMethod.Get, "/");
