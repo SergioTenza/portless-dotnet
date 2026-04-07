@@ -188,6 +188,35 @@ catch (Exception ex)
     logger.LogError(ex, "Error loading existing routes, starting with empty configuration");
 }
 
+// Also load routes from portless.config.yaml if present
+var configLoader = app.Services.GetRequiredService<IPortlessConfigLoader>();
+var fileConfig = configLoader.Load();
+if (fileConfig.Routes.Count > 0)
+{
+    var configRouteInfos = configLoader.ToRouteInfos(fileConfig);
+    var httpRoutes = configRouteInfos.Where(r => r.Type == RouteType.Http).ToArray();
+    
+    if (httpRoutes.Length > 0)
+    {
+        // Get current config to append (not replace)
+        var currentConfig = configProvider.GetConfig();
+        var allRoutes = currentConfig.Routes.ToList();
+        var allClusters = currentConfig.Clusters.ToList();
+        
+        foreach (var route in httpRoutes)
+        {
+            var urls = route.GetBackendUrls();
+            var (routeConfig, clusterConfig) = configFactory.CreateRouteClusterPair(
+                route.Hostname, urls, route.Path);
+            allRoutes.Add(routeConfig);
+            allClusters.Add(clusterConfig);
+        }
+        
+        configProvider.Update(allRoutes, allClusters);
+        logger.LogInformation("Loaded {Count} HTTP routes from config file", httpRoutes.Length);
+    }
+}
+
 app.UseMiddleware<RequestLoggingMiddleware>();
 
 app.MapPortlessApi(configProvider, routeStore, configFactory);
