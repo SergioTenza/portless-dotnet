@@ -42,6 +42,10 @@ public static class ServiceCollectionExtensions
         // Register config loader
         services.AddSingleton<IPortlessConfigLoader, PortlessConfigLoader>();
 
+        // Register TCP forwarding service
+        services.AddSingleton<ITcpForwardingService, TcpForwardingService>();
+        services.AddHostedService(sp => (TcpForwardingService)sp.GetRequiredService<ITcpForwardingService>());
+
         return services;
     }
 

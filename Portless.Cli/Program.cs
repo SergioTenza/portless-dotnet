@@ -9,6 +9,7 @@ using Portless.Cli.Commands.GetCommand;
 using Portless.Cli.Commands.AliasCommand;
 using Portless.Cli.Commands.HostsCommand;
 using Portless.Cli.Commands.UpCommand;
+using Portless.Cli.Commands.TcpCommand;
 using Portless.Cli.DependencyInjection;
 using Portless.Cli.Services;
 using Portless.Core.Extensions;
@@ -62,6 +63,11 @@ app.Configure(config =>
         .WithDescription("Start routes from portless.config.yaml")
         .WithExample("up")
         .WithExample("up", "-f", "./my-config.yaml");
+
+    config.AddCommand<TcpCommand>("tcp")
+        .WithDescription("Manage TCP proxy routes for databases and services")
+        .WithExample("tcp", "redis", "localhost:6379", "--listen", "16379")
+        .WithExample("tcp", "redis", "--remove");
 
     config.AddBranch("proxy", proxy =>
     {

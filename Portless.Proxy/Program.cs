@@ -250,6 +250,26 @@ if (fileConfig.Routes.Count > 0)
         configProvider.Update(allRoutes, allClusters);
         logger.LogInformation("Loaded {Count} HTTP routes from config file", httpRoutes.Length);
     }
+
+    // Start TCP listeners from config file
+    var tcpRoutes = configRouteInfos?.Where(r => r.Type == RouteType.Tcp).ToArray()
+        ?? Array.Empty<RouteInfo>();
+    if (tcpRoutes.Length > 0 && configRouteInfos != null)
+    {
+        var tcpForwarding = app.Services.GetRequiredService<ITcpForwardingService>();
+        foreach (var route in tcpRoutes)
+        {
+            if (route.TcpListenPort.HasValue && route.Port > 0)
+            {
+                await tcpForwarding.StartListenerAsync(
+                    route.Hostname,
+                    route.TcpListenPort.Value,
+                    "localhost",
+                    route.Port);
+            }
+        }
+        logger.LogInformation("Started {Count} TCP proxy listeners", tcpRoutes.Length);
+    }
 }
 
 app.UseMiddleware<RequestLoggingMiddleware>();

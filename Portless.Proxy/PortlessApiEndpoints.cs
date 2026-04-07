@@ -214,6 +214,43 @@ public static class PortlessApiEndpoints
             }
         });
 
+        // POST /api/v1/tcp/add
+        endpoints.MapPost("/api/v1/tcp/add", async (TcpAddRequest request, ILogger<Program> logger) =>
+        {
+            var tcpForwarding = endpoints.ServiceProvider.GetRequiredService<ITcpForwardingService>();
+            try
+            {
+                if (string.IsNullOrWhiteSpace(request.Name) || request.ListenPort <= 0 || string.IsNullOrWhiteSpace(request.TargetHost) || request.TargetPort <= 0)
+                {
+                    return Results.Problem("Name, ListenPort, TargetHost, and TargetPort are required", statusCode: 400);
+                }
+
+                await tcpForwarding.StartListenerAsync(request.Name, request.ListenPort, request.TargetHost, request.TargetPort);
+                return Results.Ok(new { success = true, message = $"TCP listener '{request.Name}' started on port {request.ListenPort}" });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error starting TCP listener");
+                return Results.Problem(ex.Message, statusCode: 500);
+            }
+        });
+
+        // DELETE /api/v1/tcp/remove
+        endpoints.MapDelete("/api/v1/tcp/remove", (string name, ILogger<Program> logger) =>
+        {
+            var tcpForwarding = endpoints.ServiceProvider.GetRequiredService<ITcpForwardingService>();
+            try
+            {
+                tcpForwarding.StopListenerAsync(name).GetAwaiter().GetResult();
+                return Results.Ok(new { success = true, message = $"TCP listener '{name}' stopped" });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error stopping TCP listener");
+                return Results.Problem(ex.Message, statusCode: 500);
+            }
+        });
+
         return endpoints;
     }
 
@@ -240,3 +277,5 @@ public record AddHostRequest(
     string[]? BackendUrls = null,
     string? LoadBalancePolicy = null
 );
+
+public record TcpAddRequest(string Name, int ListenPort, string TargetHost, int TargetPort);
