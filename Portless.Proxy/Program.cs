@@ -1,6 +1,7 @@
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Model;
 using Microsoft.AspNetCore.HttpOverrides;
+using Prometheus;
 using Portless.Core.Extensions;
 using Portless.Core.Services;
 using Portless.Core.Models;
@@ -85,6 +86,9 @@ builder.Services.AddSingleton<IProxyConfigProvider>(sp => sp.GetRequiredService<
 // Add persistence layer
 builder.Services.AddPortlessPersistence();
 builder.Services.AddRouteFileWatcher();
+
+// Prometheus metrics
+builder.Services.AddSingleton<IMetricsService, PrometheusMetricsService>();
 
 // Health checks
 builder.Services.AddHealthChecks();
@@ -196,6 +200,8 @@ try
         }
 
         configProvider.Update(routeConfigs, clusterConfigs);
+        var metrics = app.Services.GetRequiredService<IMetricsService>();
+        metrics.UpdateActiveRoutes(routeConfigs.Count);
         logger.LogInformation("Loaded {Count} routes from persistence layer ({Duplicates} duplicates removed)",
             deduplicatedRoutes.Length, existingRoutes.Length - deduplicatedRoutes.Length);
     }
@@ -276,6 +282,9 @@ if (fileConfig.Routes.Count > 0)
 }
 
 app.UseMiddleware<RequestLoggingMiddleware>();
+
+// Prometheus metrics endpoint (excluded from proxy routing)
+app.UseMetricServer("/metrics");
 
 // Health check endpoint (excluded from proxy routing)
 app.MapHealthChecks("/health");
@@ -398,11 +407,13 @@ public class RequestLoggingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<RequestLoggingMiddleware> _logger;
+    private readonly IMetricsService? _metricsService;
 
-    public RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggingMiddleware> logger)
+    public RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggingMiddleware> logger, IMetricsService? metricsService = null)
     {
         _next = next;
         _logger = logger;
+        _metricsService = metricsService;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -422,6 +433,8 @@ public class RequestLoggingMiddleware
 
             _logger.LogInformation("Request: {Method} {Host}{Path} => {StatusCode} ({Duration}ms) [{Protocol}]",
                 method, host, path, statusCode, duration, protocol);
+
+            _metricsService?.RecordProxyRequest(host.Split(':')[0], method, statusCode, duration);
 
             // Detect silent protocol downgrades (HTTP/2 requested but HTTP/1.1 used)
             var http2Requested = context.Request.Headers["Upgrade-Insecure-Requests"].Count > 0 ||
