@@ -294,8 +294,9 @@ public static class PortlessApiEndpoints
         });
 
         // ── Inspector API ──────────────────────────────────────────────────
+        // TODO: Add app.UseWebSockets() in Program.cs (required for /inspect/stream)
 
-        // GET /api/v1/inspect/sessions - List recent captured requests
+        // GET /api/v1/inspect/sessions - List recent captured requests (summary only)
         endpoints.MapGet("/api/v1/inspect/sessions", (IRequestInspector? inspector, int count = 100) =>
         {
             if (inspector == null) return Results.Ok(Array.Empty<object>());
@@ -307,16 +308,12 @@ public static class PortlessApiEndpoints
                 s.Method,
                 s.Hostname,
                 s.Path,
-                s.Scheme,
                 s.StatusCode,
-                s.DurationMs,
-                s.RouteId,
-                RequestBodySize = s.RequestBody?.Length,
-                ResponseBodySize = s.ResponseBody?.Length
+                s.DurationMs
             }));
         });
 
-        // GET /api/v1/inspect/sessions/{id} - Get single request detail
+        // GET /api/v1/inspect/sessions/{id:guid} - Get full request detail
         endpoints.MapGet("/api/v1/inspect/sessions/{id:guid}", (Guid id, IRequestInspector? inspector) =>
         {
             if (inspector == null) return Results.NotFound();
@@ -327,8 +324,9 @@ public static class PortlessApiEndpoints
         // DELETE /api/v1/inspect/sessions - Clear all captured data
         endpoints.MapDelete("/api/v1/inspect/sessions", (IRequestInspector? inspector) =>
         {
+            var cleared = inspector?.Count ?? 0;
             inspector?.Clear();
-            return Results.Ok(new { success = true });
+            return Results.Ok(new { cleared });
         });
 
         // GET /api/v1/inspect/stats - Inspector statistics
@@ -336,46 +334,59 @@ public static class PortlessApiEndpoints
         {
             if (inspector == null)
             {
-                return Results.Ok(new { totalCaptured = 0, avgDurationMs = 0.0, errorRate = 0.0 });
+                return Results.Ok(new { totalCaptured = 0, avgDurationMs = 0.0, errorRate = 0.0, requestsPerMinute = 0.0 });
             }
 
             var recent = inspector.GetRecent(100);
-            var avgDuration = recent.Count > 0 ? recent.Average(r => r.DurationMs) : 0;
-            var errorRate = recent.Count > 0 ? recent.Count(r => r.StatusCode >= 400) / (double)recent.Count : 0;
+            var avgDuration = recent.Count > 0 ? recent.Average(r => r.DurationMs) : 0.0;
+            var errorRate = recent.Count > 0 ? recent.Count(r => r.StatusCode >= 400) / (double)recent.Count : 0.0;
+
+            // Calculate requests per minute from recent requests timestamps
+            double requestsPerMinute = 0.0;
+            if (recent.Count >= 2)
+            {
+                var oldest = recent.Min(r => r.Timestamp);
+                var newest = recent.Max(r => r.Timestamp);
+                var span = newest - oldest;
+                if (span.TotalMinutes > 0)
+                {
+                    requestsPerMinute = recent.Count / span.TotalMinutes;
+                }
+            }
 
             return Results.Ok(new
             {
                 totalCaptured = inspector.Count,
                 avgDurationMs = Math.Round(avgDuration, 2),
-                errorRate = Math.Round(errorRate, 4)
+                errorRate = Math.Round(errorRate, 4),
+                requestsPerMinute = Math.Round(requestsPerMinute, 2)
             });
         });
 
         // GET /api/v1/inspect/stream - WebSocket for live request stream
-        endpoints.MapGet("/api/v1/inspect/stream", async (HttpContext context, IRequestInspector? inspector) =>
+        endpoints.MapGet("/api/v1/inspect/stream", async (HttpContext context) =>
         {
             if (!context.WebSockets.IsWebSocketRequest)
             {
+                context.Response.StatusCode = 400;
                 return;
             }
 
+            var inspector = context.RequestServices.GetRequiredService<IRequestInspector>();
+            var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
             using var ws = await context.WebSockets.AcceptWebSocketAsync();
+            var lastCount = inspector.Count;
 
-            // Simple polling-based streaming (1 second interval)
-            var lastCount = inspector?.Count ?? 0;
             try
             {
                 while (ws.State == WebSocketState.Open)
                 {
-                    await Task.Delay(1000, context.RequestAborted);
-
-                    if (inspector == null) continue;
-
+                    await Task.Delay(500, context.RequestAborted);
                     var currentCount = inspector.Count;
                     if (currentCount > lastCount)
                     {
-                        var newRequests = inspector.GetRecent(currentCount - lastCount);
-                        foreach (var req in newRequests)
+                        var recent = inspector.GetRecent(currentCount - lastCount);
+                        foreach (var req in recent)
                         {
                             var json = System.Text.Json.JsonSerializer.Serialize(new
                             {
@@ -383,20 +394,14 @@ public static class PortlessApiEndpoints
                                 data = req
                             });
                             var bytes = System.Text.Encoding.UTF8.GetBytes(json);
-                            await ws.SendAsync(bytes, WebSocketMessageType.Text, true, context.RequestAborted);
+                            await ws.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, context.RequestAborted);
                         }
                         lastCount = currentCount;
                     }
                 }
             }
-            catch (OperationCanceledException)
-            {
-                // Client disconnected
-            }
-            catch (WebSocketException)
-            {
-                // Client disconnected
-            }
+            catch (OperationCanceledException) { }
+            catch (WebSocketException) { }
         });
 
         // ── Plugin API ─────────────────────────────────────────────────────
