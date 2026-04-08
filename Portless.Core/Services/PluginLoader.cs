@@ -116,7 +116,7 @@ public sealed class PluginLoader : IPluginLoader
             if (existing != null)
             {
                 _loadedPlugins.Remove(existing);
-                existing.Context.Unload();
+                existing.Context?.Unload();
             }
             _loadedPlugins.Add(loaded);
         }
@@ -147,7 +147,7 @@ public sealed class PluginLoader : IPluginLoader
             _loadedPlugins.Remove(toRemove);
         }
 
-        toRemove.Context.Unload();
+        toRemove.Context?.Unload();
         _logger.LogInformation("Plugin unloaded: {Name}", pluginName);
     }
 
