@@ -5,76 +5,101 @@ on:
     tags:
       - 'v*'
 
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+
+permissions:
+  contents: write
+
 jobs:
-  test:
+  release:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup .NET 10 SDK
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
 
-      - name: Run unit tests
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.NUGET_PACKAGES }}
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Restore dependencies
+        run: dotnet restore Portless.slnx
+
+      - name: Build
+        run: dotnet build Portless.slnx --configuration Release --no-restore
+
+      - name: Test
         run: >
-          dotnet test Portless.Tests/Portless.Tests.csproj
+          dotnet test Portless.slnx
           --configuration Release
-          --filter "FullyQualifiedName!~YarpProxyIntegrationTests&FullyQualifiedName!~SignalRIntegrationTests&FullyQualifiedName!~Http2IntegrationTests"
+          --no-build
+          --collect:"XPlat Code Coverage"
+          --results-directory ./coverage
 
-      - name: Run integration tests
-        run: dotnet test Portless.IntegrationTests/Portless.IntegrationTests.csproj --configuration Release
+      - name: Pack
+        run: >
+          dotnet pack Portless.Cli/Portless.Cli.csproj
+          --configuration Release
+          --no-build
+          --output ./artifacts
+          -p:PackageVersion=${{ steps.version.outputs.VERSION }}
 
-  publish:
-    needs: test
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        runtime: [win-x64, linux-x64, osx-x64, osx-arm64]
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup .NET 10 SDK
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
-
-      - name: Publish Native AOT executable
+      - name: Generate changelog
+        id: changelog
         run: |
-          dotnet publish Portless.Cli/Portless.Cli.csproj \
-            --configuration Release \
-            --runtime ${{ matrix.runtime }} \
-            --self-contained true \
-            -p:PublishAot=true \
-            -o publish/${{ matrix.runtime }}
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -n "$PREVIOUS_TAG" ]; then
+            LOG=$(git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
+          else
+            LOG=$(git log --pretty=format:"- %s (%h)" --no-merges -20)
+          fi
+          {
+            echo "CHANGES<<EOF"
+            echo "$LOG"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
 
-      - name: Prepare upload artifact (win-x64)
-        if: matrix.runtime == 'win-x64'
-        run: |
-          cp publish/${{ matrix.runtime }}/portless.exe publish/portless-${{ matrix.runtime }}.exe
-
-      - name: Prepare upload artifact (unix)
-        if: matrix.runtime != 'win-x64'
-        run: |
-          cp publish/${{ matrix.runtime }}/portless publish/portless-${{ matrix.runtime }}
-
-      - name: Upload to GitHub Release (win-x64)
-        if: matrix.runtime == 'win-x64'
-        uses: softprops/action-gh-release@v2
-        with:
-          files: publish/portless-${{ matrix.runtime }}.exe
+      - name: Create GitHub Release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create ${{ github.ref_name }} \
+            ./artifacts/*.nupkg \
+            --title "Release ${{ github.ref_name }}" \
+            --notes "## Changes
+          ${{ steps.changelog.outputs.CHANGES }}
 
-      - name: Upload to GitHub Release (unix)
-        if: matrix.runtime != 'win-x64'
-        uses: softprops/action-gh-release@v2
+          ## Installation
+          \`\`\`bash
+          dotnet tool install --global Portless.NET.Tool --version ${{ steps.version.outputs.VERSION }}
+          \`\`\`"
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
         with:
-          files: publish/portless-${{ matrix.runtime }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: coverage-report
+          path: ./coverage/**
+          retention-days: 7
+
+      - name: Upload NuGet package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nupkg
+          path: ./artifacts/*.nupkg
+          retention-days: 30
