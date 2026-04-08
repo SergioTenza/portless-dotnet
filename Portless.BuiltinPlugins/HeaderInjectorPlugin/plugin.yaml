@@ -1,0 +1,10 @@
+name: header-injector
+version: 1.0.0
+description: Inject custom headers into proxied requests and responses
+author: Portless.NET
+entryAssembly: HeaderInjectorPlugin.dll
+hooks:
+  - after-proxy
+config:
+  X-Powered-By: Portless.NET
+  X-Proxy-Version: "3.0.0"
