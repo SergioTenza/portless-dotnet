@@ -57,6 +57,14 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    public static IServiceCollection AddConfigFileWatcher(this IServiceCollection services)
+    {
+        // Register config file watcher as hosted service
+        services.AddHostedService<ConfigFileWatcher>();
+
+        return services;
+    }
+
     /// <summary>
     /// Registers certificate-related services for HTTPS support.
     /// </summary>

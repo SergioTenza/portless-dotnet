@@ -1,700 +1,447 @@
-# Portless.NET
+<p align="center">
+  <img src="https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet" alt=".NET 10" />
+</p>
 
-> Reemplaza números de puerto con URLs estables y con nombre en `.localhost` para desarrollo local
+<h1 align="center">Portless.NET</h1>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![.NET](https://img.shields.io/badge/.NET-10-purple.svg)](https://dotnet.microsoft.com/download/dotnet/10.0)
-[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://github.com/SergioTenza/portless-dotnet)
-[![HTTP/2](https://img.shields.io/badge/HTTP%2F2-supported-brightgreen.svg)](docs/http2-websocket-guide.md)
-[![WebSocket](https://img.shields.io/badge/WebSocket-supported-brightgreen.svg)](docs/http2-websocket-guide.md)
+<p align="center">
+  <strong>Stable <code>.localhost</code> URLs for local development — no more port numbers.</strong>
+</p>
 
-> **🎉 What's New in v1.2**
->
-> - **HTTPS with automatic certificates** - No more certificate warnings!
-> - Automatic certificate generation for `*.localhost` domains
-> - Background monitoring and auto-renewal
-> - One-click Windows trust installation
-> - Mixed protocol routing (HTTP/HTTPS backends)
->
-> See [🔒 HTTPS with Automatic Certificates](#-https-with-automatic-certificates) below.
+<p align="center">
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#commands">Commands</a> •
+  <a href="#configuration">Configuration</a> •
+  <a href="#docker">Docker</a> •
+  <a href="#development">Development</a>
+</p>
 
-## 🎯 ¿Qué es Portless.NET?
+<p align="center">
+  <img src="https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet" alt=".NET 10" />
+</p>
 
-**Portless.NET** es una herramienta `dotnet tool` que elimina los conflictos de puerto en desarrollo local proporcionando URLs estables y nombradas. En lugar de recordar si tu app está en `localhost:3001`, `localhost:8080` o `localhost:5000`, simplemente usas `http://miapp.localhost:1355`.
+[![Build](https://github.com/SergioTenza/portless-dotnet/actions/workflows/ci.yml/badge.svg)](https://github.com/SergioTenza/portless-dotnet/actions/workflows/ci.yml)
+[![NuGet](https://img.shields.io/nuget/v/Portless.NET.Tool.svg)](https://www.nuget.org/packages/Portless.NET.Tool/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![.NET](https://img.shields.io/badge/.NET-10-512BD4.svg)](https://dotnet.microsoft.com/download/dotnet/10.0)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](#cross-platform)
 
-### Inspirado en [Portless](https://github.com/portless/portless)
+---
 
-Portless.NET es un port a .NET 10 del excelente [Portless](https://github.com/portless/portless) (Node.js), usando [YARP](https://microsoft.github.io/reverse-proxy/) (Yet Another Reverse Proxy) de Microsoft como motor de proxy inverso.
+## What is Portless.NET?
 
-## 🌐 HTTP/2 and WebSocket Support
+**Portless.NET** is a `dotnet tool` that eliminates port conflicts in local development by giving every service a stable, named URL. Instead of remembering whether your API runs on `localhost:3001`, `localhost:8080`, or `localhost:5000`, you just use:
 
-**Portless.NET v1.1** now supports advanced protocols for improved performance and real-time communication.
-
-### HTTP/2 Benefits
-
-- **Multiplexing**: Multiple concurrent requests over a single connection
-- **Header compression**: Reduced bandwidth overhead
-- **Better performance**: Especially for services with many small requests
-- **Automatic negotiation**: HTTP/2 activates when supported by client
-
-### When to Use HTTP/2
-
-HTTP/2 is most beneficial for:
-- **Microservices**: Many small requests between services
-- **API gateways**: Multiple concurrent calls to backend services
-- **Modern browsers**: Automatically use HTTP/2 when available
-- **gRPC services**: HTTP/2 is required for gRPC
-
-**Note:** HTTP/2 is automatically enabled. No configuration needed.
-
-### Verifying HTTP/2 is Active
-
-```bash
-# Test HTTP/2 with curl
-curl -I --http2 http://miapi.localhost:1355
-
-# Response should include:
-# HTTP/2 200
+```
+http://myapi.localhost
 ```
 
-In browser DevTools (F12 → Network tab), look for "h2" in the Protocol column.
+It runs a lightweight reverse proxy (powered by Microsoft YARP) on your machine, auto-assigns free ports to your apps, and routes named `.localhost` domains to them. Works with any backend — .NET, Node.js, Python, Go, Docker containers, and more.
 
-### WebSocket Support
+Inspired by [Portless](https://github.com/portless/portless) (Node.js), rebuilt with .NET 10 + YARP for native Windows support, better performance, and first-class .NET integration.
 
-- **Real-time communication**: Chat apps, live updates, notifications
-- **SignalR integration**: Full support for ASP.NET Core SignalR
-- **Long-lived connections**: Stable connections for extended periods
-- **Transparent proxying**: Works seamlessly through the proxy
+---
 
-**Works with:** HTTP/1.1 WebSocket upgrade (RFC 6455) and HTTP/2 WebSocket (RFC 8441)
-
-### WebSocket Examples
-
-Portless.NET supports WebSockets transparently. Your WebSocket apps work without modification.
-
-**Example: SignalR Chat**
+## Quick Start
 
 ```bash
-# Start the proxy
-portless proxy start
+# 1. Install the tool
+dotnet tool install -g Portless.NET.Tool
 
-# Run the SignalR chat example (see Examples/ directory)
-portless run chat dotnet run --project Examples/SignalRChat
+# 2. Run your app with a name
+portless run myapi dotnet run
 
-# Connect multiple clients at:
-# http://chat.localhost:1355
+# 3. Open in browser
+# http://myapi.localhost
 ```
 
-**Example: WebSocket Echo Server**
+That's it. The proxy starts automatically on first use.
+
+---
+
+## Features
+
+- **Named `.localhost` URLs** — `http://myapi.localhost` instead of `http://localhost:5000`
+- **Automatic proxy management** — proxy starts on demand, no manual setup
+- **Auto port allocation** — free ports assigned automatically, no conflicts
+- **Multiple backends & load balancing** — RoundRobin, FirstAlphabetical, PowerOfTwoStrategies
+- **Path-based routing** — route `/api` to one service, `/app` to another on the same host
+- **TCP proxying** — proxy databases and non-HTTP services (Redis, PostgreSQL, etc.)
+- **Static aliases** — map names to external services and Docker containers
+- **HTTPS with auto certificates** — `https://` with generated certs, zero config
+- **HTTP/2 support** — multiplexing, header compression, gRPC-ready
+- **WebSocket & SignalR** — real-time communication through the proxy
+- **Config-as-code** — `portless.config.yaml` for declarative route management
+- **Daemon mode** — run as a systemd user service (Linux)
+- **Shell completion** — bash, zsh, fish
+- **Hosts file management** — sync/clean `/etc/hosts` entries
+- **Cross-platform** — Windows 10+, macOS 12+, Linux (Ubuntu, Debian, Fedora, Arch)
+- **Framework detection** — auto-injects `PORT`, `ASPNETCORE_URLS`, and more
+
+---
+
+## Installation
+
+### From NuGet (recommended)
 
 ```bash
-# Run the echo server example
-portless run echo dotnet run --project Examples/WebSocketEchoServer
-
-# Test with a WebSocket client
-# Messages sent will be echoed back
+dotnet tool install -g Portless.NET.Tool
 ```
 
-**Long-lived Connections**
-
-WebSocket connections remain stable for extended periods. The proxy is configured with:
-- `KeepAliveTimeout`: 10 minutes (configurable)
-- `RequestHeadersTimeout`: 30 seconds
-- Proper upgrade handling for both HTTP/1.1 and HTTP/2
-
-### Quick Start: Testing HTTP/2 and WebSockets
-
-**1. Verify HTTP/2 is working**
+### From Source
 
 ```bash
-# Terminal 1: Start proxy
-portless proxy start
-
-# Terminal 2: Run any app
-portless run testapi dotnet run --project Examples/WebApi
-
-# Terminal 3: Test with curl
-curl -I --http2 http://testapi.localhost:1355
-# Look for "HTTP/2 200" in response
+git clone https://github.com/SergioTenza/portless-dotnet.git
+cd portless-dotnet
+dotnet build Portless.slnx --configuration Release
+dotnet pack Portless.Cli/Portless.Cli.csproj -o ./nupkg --configuration Release
+dotnet tool install --add-source ./nupkg -g Portless.NET.Tool
 ```
 
-**2. Test WebSocket echo server**
+### Verify
 
 ```bash
-# Terminal 1: Start proxy (if not running)
-portless proxy start
-
-# Terminal 2: Run echo server
-portless run echo dotnet run --project Examples/WebSocketEchoServer
-
-# Browser: Open http://echo.localhost:1355
-# Use the test page to send WebSocket messages
+portless --help
+portless proxy status
 ```
 
-**3. Try SignalR chat**
+---
+
+## Commands
+
+### Proxy Management
+
+| Command | Description |
+|---------|-------------|
+| `portless proxy start [--port PORT] [--https]` | Start the proxy server (default port: 1355) |
+| `portless proxy stop` | Stop the proxy server |
+| `portless proxy status` | Check if proxy is running |
+
+### App Management
+
+| Command | Description |
+|---------|-------------|
+| `portless run <name> <command...>` | Run an app with a named URL |
+| `portless run <name> <command...> --path /api` | Run with path-based routing |
+| `portless run <name> <command...> --backend http://host:port` | Add backends for load balancing |
+| `portless r <name> <command...>` | Shortcut for `run` |
+| `portless list` | List all active routes |
+| `portless get <name>` | Get the URL for a named service |
+
+### Static Aliases
+
+| Command | Description |
+|---------|-------------|
+| `portless alias <name> <port> [--host HOST] [--protocol PROTO]` | Create a static route to an external service |
+| `portless alias <name> --remove` | Remove a static alias |
+
+### Config-Based Routing
+
+| Command | Description |
+|---------|-------------|
+| `portless up [-f config.yaml]` | Register all routes from a config file |
+
+### TCP Proxying
+
+| Command | Description |
+|---------|-------------|
+| `portless tcp <name> <host:port> --listen <port>` | Create a TCP proxy (e.g., for databases) |
+| `portless tcp <name> --remove` | Remove a TCP proxy |
+
+### Certificate Management
+
+| Command | Description |
+|---------|-------------|
+| `portless cert install` | Install CA certificate to system trust store |
+| `portless cert status [--verbose]` | Display certificate trust status |
+| `portless cert check [--verbose]` | Check certificate expiration and validity |
+| `portless cert renew [--force]` | Renew certificate (auto-renews if expiring soon) |
+| `portless cert uninstall` | Remove CA certificate from system trust store |
+
+### Daemon Mode (Linux)
+
+| Command | Description |
+|---------|-------------|
+| `portless daemon install [--https] [--enable]` | Install proxy as a systemd user service |
+| `portless daemon uninstall` | Stop and remove the systemd service |
+| `portless daemon status` | Show daemon service status |
+| `portless daemon enable` | Enable auto-start on boot |
+| `portless daemon disable` | Disable auto-start on boot |
+
+### Hosts File
+
+| Command | Description |
+|---------|-------------|
+| `portless hosts sync` | Sync `/etc/hosts` entries for active routes |
+| `portless hosts clean` | Remove portless entries from `/etc/hosts` |
+
+### Shell Completion
+
+| Command | Description |
+|---------|-------------|
+| `portless completion bash` | Generate bash completion script |
+| `portless completion zsh` | Generate zsh completion script |
+| `portless completion fish` | Generate fish completion script |
+
+---
+
+## Configuration
+
+Create a `portless.config.yaml` in your project root:
+
+```yaml
+routes:
+  # Simple HTTP route
+  - host: myapi.localhost
+    backends: ["http://localhost:5000"]
+    path: /api
+
+  # Multiple backends with load balancing
+  - host: frontend.localhost
+    backends: ["http://localhost:3000", "http://localhost:3001"]
+    loadBalancePolicy: RoundRobin
+
+  # TCP proxy for databases
+  - host: db.localhost
+    type: tcp
+    listenPort: 5432
+    backends: ["localhost:5432"]
+```
+
+Then start all routes at once:
 
 ```bash
-# Terminal 1: Start proxy
-portless proxy start
-
-# Terminal 2: Run chat server
-portless run chat dotnet run --project Examples/SignalRChat
-
-# Browser: Open http://chat.localhost:1355 in multiple tabs
-# Chat messages should appear in all tabs in real-time
+portless up
 ```
 
-For more details, see:
-- [HTTP/2 and WebSocket Testing Guide](docs/http2-websocket-guide.md)
-- [SignalR Troubleshooting Guide](docs/signalr-troubleshooting.md)
-- [Examples README](Examples/README.md)
+### Config File Discovery
 
-## 🔒 HTTPS with Automatic Certificates
-
-**Portless.NET v1.2** brings automatic HTTPS certificate generation and management for secure local development without browser warnings.
-
-### Automatic Certificate Management
-
-- **Zero-configuration HTTPS**: Automatic certificate generation for `*.localhost` domains
-- **Local Certificate Authority**: CA created automatically for certificate signing
-- **5-year validity**: Long-lasting certificates for development
-- **Background monitoring**: Optional service checks certificate expiration every 6 hours
-- **Auto-renewal**: Certificates automatically renewed within 30 days of expiration
-- **Secure storage**: Platform-specific file permissions for certificate protection
-
-### Quick Start: HTTPS in 3 Commands
+Portless searches for `portless.config.yaml` in the current directory and parent directories. You can also specify a custom path:
 
 ```bash
-# 1. Install the CA certificate (Windows only, requires admin)
-portless cert install
-
-# 2. Start proxy with HTTPS enabled
-portless proxy start --https
-
-# 3. Run your app
-portless run myapp dotnet run
-
-# Access via HTTPS:
-# https://myapp.localhost:1356
+portless up -f ./deploy/local-routes.yaml
 ```
 
-### Certificate Management Commands
+---
+
+## Docker
+
+Portless.NET can be containerized alongside your services:
+
+### Dockerfile
+
+```dockerfile
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+COPY . .
+RUN dotnet publish Portless.Proxy/Portless.Proxy.csproj -c Release -o /app/publish
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+WORKDIR /app
+COPY --from=build /app/publish .
+EXPOSE 1355
+ENTRYPOINT ["dotnet", "Portless.Proxy.dll", "--urls", "http://0.0.0.0:1355"]
+```
+
+### Docker Compose
+
+```yaml
+version: "3.8"
+services:
+  proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "1355:1355"
+    volumes:
+      - ./portless.config.yaml:/app/portless.config.yaml
+
+  api:
+    build: ./src/MyApi
+    environment:
+      - PORT=5000
+
+  frontend:
+    build: ./src/Frontend
+    environment:
+      - PORT=3000
+```
+
+### Use with External Containers
 
 ```bash
-# Check certificate status
-portless cert status
+# Start your containers
+docker compose up -d
 
-# Check certificate expiration
-portless cert check
+# Alias external services
+portless alias api 5000
+portless alias frontend 3000
+portless alias redis 6379 --host docker-host
 
-# Renew certificate manually
-portless cert renew
-
-# Force renewal (even if valid)
-portless cert renew --force
-
-# Uninstall CA certificate (Windows only)
-portless cert uninstall
+# Or use TCP proxying for databases
+portless tcp postgres localhost:5432 --listen 15432
 ```
 
-### Platform Support
+---
 
-**Windows 10+**
-- ✅ Automated trust installation with one command
-- ✅ Windows Certificate Store integration
-- ✅ Administrator privileges required
+## Architecture
 
-**macOS 12+**
-- ✅ Automated trust installation with one command
-- ✅ System Keychain integration
-- ✅ Administrator privileges required
+```
+  Browser / Client
+        |
+        v
+  ┌─────────────────────────────────────┐
+  │        Portless.NET Proxy           │
+  │        (Kestrel + YARP)             │
+  │        :1355 (HTTP) / :1356 (HTTPS) │
+  │                                     │
+  │  ┌───────────────────────────────┐  │
+  │  │       Route Table             │  │
+  │  │  myapi.localhost   -> :5024   │  │
+  │  │  frontend.localhost -> :3001  │  │
+  │  │  db.localhost (TCP) -> :5432  │  │
+  │  └───────────────────────────────┘  │
+  └──────────┬──────────┬───────────────┘
+             │          │
+        ┌────v───┐ ┌───v────┐
+        │  API   │ │Frontend│
+        │ :5024  │ │ :3001  │
+        └────────┘ └────────┘
+```
 
-**Linux (Ubuntu/Debian, Fedora/RHEL, Arch)**
-- ✅ Automated trust installation with one command
-- ✅ Distribution-specific certificate store integration
-- ✅ Root privileges required
+### Tech Stack
 
-### HTTPS Configuration
+| Component | Technology |
+|-----------|-----------|
+| CLI | Spectre.Console.Cli 0.53 |
+| Proxy Engine | YARP 2.3 (Yet Another Reverse Proxy) |
+| HTTP Server | Kestrel (.NET 10) |
+| Metrics | prometheus-net 8.2 |
+| Language | C# 14 / .NET 10 |
+| AOT | Native AOT published binaries |
 
-**Environment Variables**
+### Project Structure
+
+```
+portless-dotnet/
+├── Portless.Core/              # Shared core logic (routing, ports, persistence)
+├── Portless.Cli/               # CLI entry point (dotnet tool)
+├── Portless.Proxy/             # YARP proxy server (Kestrel)
+├── Portless.Tests/             # Unit tests (xUnit)
+├── Portless.IntegrationTests/  # Integration tests (CLI, processes)
+├── Portless.E2ETests/          # End-to-end tests (tool install, workflows)
+├── Examples/                   # Sample apps (WebApi, SignalR, WebSocket, Blazor)
+├── TestApi/                    # Test API for development
+└── docs/                       # Documentation
+```
+
+---
+
+## Environment Variables
 
 | Variable | Description | Default |
 |----------|-------------|---------|
+| `PORTLESS_PORT` | Proxy HTTP port | `1355` |
 | `PORTLESS_HTTPS_ENABLED` | Enable HTTPS endpoint | `false` |
 | `PORTLESS_CERT_WARNING_DAYS` | Days before expiration warning | `30` |
 | `PORTLESS_CERT_CHECK_INTERVAL_HOURS` | Hours between certificate checks | `6` |
 | `PORTLESS_AUTO_RENEW` | Auto-renew expiring certificates | `true` |
 | `PORTLESS_ENABLE_MONITORING` | Enable background monitoring | `false` |
 
-**Example: Enable HTTPS with custom thresholds**
+---
+
+## Development
+
+### Prerequisites
+
+- .NET 10 SDK
+- Git
+
+### Build
 
 ```bash
-export PORTLESS_HTTPS_ENABLED=true
-export PORTLESS_CERT_WARNING_DAYS=60
-export PORTLESS_ENABLE_MONITORING=true
-portless proxy start
+dotnet build Portless.slnx --configuration Release
 ```
 
-### Certificate Lifecycle
-
-Portless.NET manages the complete certificate lifecycle:
-
-1. **Generation**: Automatic on first HTTPS proxy start
-2. **Installation**: One-click Windows trust store integration
-3. **Monitoring**: Background service checks expiration periodically
-4. **Renewal**: Automatic renewal within 30-day window
-5. **Cleanup**: Secure removal when uninstalled
-
-### Mixed Protocol Routing
-
-Portless.NET supports simultaneous HTTP and HTTPS backend routing:
+### Run Tests
 
 ```bash
-# HTTP backend
-portless run http-api dotnet run --project HttpApi
-
-# HTTPS backend
-portless run https-api dotnet run --project HttpsApi
-
-# Both routes work simultaneously
-# http://http-api.localhost:1355  -> HTTP backend
-# https://https-api.localhost:1356 -> HTTPS backend
-```
-
-**Headers Preserved:**
-- `X-Forwarded-Proto: http` for HTTP backends
-- `X-Forwarded-Proto: https` for HTTPS backends
-- Full `X-Forwarded-*` header suite for proper backend request context
-
-### Security Considerations
-
-**Development Certificates**
-- ✅ Perfect for local development and testing
-- ⚠️ **NOT suitable for production use**
-- ✅ Self-signed with local CA trust
-- ✅ Private keys protected with platform-specific permissions
-
-**Best Practices:**
-- Install CA certificate only on development machines
-- Use environment variable `PORTLESS=0` to bypass HTTPS when needed
-- Keep certificates updated with automatic renewal enabled
-- Review certificate status periodically with `portless cert check`
-
-### Troubleshooting
-
-**Certificate warnings in browser?**
-```bash
-# Check trust status
-portless cert status
-
-# Reinstall certificate (Windows)
-portless cert uninstall
-portless cert install
-```
-
-**Certificate expired?**
-```bash
-# Check expiration
-portless cert check
-
-# Renew manually
-portless cert renew --force
-
-# Restart proxy
-portless proxy stop
-portless proxy start --https
-```
-
-**Platform-specific issues?**
-- Windows: Ensure running as Administrator
-- macOS/Linux: Follow manual installation guides
-- See [Certificate Lifecycle Management](docs/certificate-lifecycle.md)
-
-For comprehensive documentation, see:
-- [Certificate Lifecycle Management](docs/certificate-lifecycle.md) - Complete guide
-- [Certificate Security Considerations](docs/certificate-security.md) - Security best practices
-- [Migration Guide v1.1 to v1.2](docs/migration-v1.1-to-v1.2.md) - Upgrade instructions
-- [Platform-Specific Troubleshooting](docs/certificate-troubleshooting-macos-linux.md) - macOS/Linux setup
-
-### ✨ Ventajas
-
-- ✅ **HTTPS automático** con certificados generados on-the-fly
-- ✅ **Soporte Windows nativo** (a diferencia de Portless original)
-- ✅ **Mejor rendimiento** con .NET 10 + Kestrel + HTTP/2
-- ✅ **Integración nativa** con ecosistema .NET
-- ✅ **HTTP/2** con multiplexing y header compression
-- ✅ **WebSocket** para comunicación en tiempo real
-- ✅ **SignalR** soporte completo para ASP.NET Core SignalR
-- ✅ **Gestión automática de certificados** con renovación y monitoreo
-- ✅ **Mixed protocol routing** (HTTP/HTTPS backends simultáneos)
-
-## 🚀 Quick Start
-
-### Instalación
-
-```bash
-# Instalar desde NuGet.org (cuando esté publicado)
-dotnet tool install -g portless.dotnet
-
-# O instalar desde fuente local
-dotnet tool install --add-source . -g portless.dotnet
-```
-
-### Uso Básico
-
-```bash
-# Inicia el proxy (una sola vez)
-portless proxy start
-
-# Ejecuta tu app con un nombre
-portless run miapi dotnet run
-
-# Accede a tu app en:
-# http://miapi.localhost:1355
-```
-
-### Múltiples Servicios
-
-```bash
-# Monorepo con múltiples servicios
-portless run orders dotnet run --project services/Orders
-portless run products dotnet run --project services/Products
-portless run frontend dotnet run --project web/Frontend
-
-# Accede a cada servicio:
-# http://orders.localhost:1355
-# http://products.localhost:1355
-# http://frontend.localhost:1355
-```
-
-### Listar Apps Activas
-
-```bash
-portless list
-```
-
-Output:
-
-```
-Active routes:
-
-  http://orders.localhost:1355    ->    localhost:4234    (pid 12345)
-  http://products.localhost:1355  ->    localhost:4456    (pid 12346)
-  http://frontend.localhost:1355  ->    localhost:4123    (pid 12347)
-```
-
-## 📚 Comandos
-
-```bash
-# Proxy Management
-portless proxy start [--https]           # Inicia proxy (HTTP: 1355, HTTPS: 1356)
-portless proxy stop                      # Detiene proxy
-
-# App Management
-portless run <name> <command...>         # Ejecuta app con URL nombrada
-portless r <name> <command...>           # Alias corto de 'run'
-portless list                            # Lista apps activas
-
-# Certificate Management (NEW in v1.2)
-portless cert install                    # Instala certificado CA (Windows)
-portless cert status [--verbose]         # Verifica estado de confianza
-portless cert check [--verbose]          # Verifica expiración de certificado
-portless cert renew [--force]            # Renueva certificado manualmente
-portless cert uninstall                  # Desinstala certificado CA (Windows)
-```
-
-## 🔧 Integración con ASP.NET Core
-
-Portless.NET inyecta la variable de entorno `PORT` con el puerto asignado. Tu aplicación debe configurarse para usar esta variable.
-
-### En `launchSettings.json`
-
-```json
-{
-  "profiles": {
-    "http": {
-      "commandName": "Project",
-      "environmentVariables": {
-        "ASPNETCORE_URLS": "http://0.0.0.0:${PORT}"
-      }
-    }
-  }
-}
-```
-
-### En `appsettings.json`
-
-```json
-{
-  "Kestrel": {
-    "Endpoints": {
-      "Http": {
-        "Url": "http://0.0.0.0:${PORT}",
-        "Protocols": "Http1AndHttp2"
-      }
-    }
-  }
-}
-```
-
-## 🏗️ Arquitectura
-
-Portless.NET está construido con:
-
-- **.NET 10** con C# 14
-- **YARP 2.3.0** - Reverse proxy de Microsoft
-- **Spectre.Console.Cli 0.53.1** - CLI framework
-- **Microsoft.Extensions.Logging** - Logging estructurado
-
-### Estructura del Proyecto
-
-```
-portless-dotnet/
-├── Portless.Core/              # Lógica central compartida
-├── Portless.Cli/               # CLI entry point (dotnet tool)
-├── Portless.Proxy/             # Proxy YARP (Kestrel)
-├── Portless.Tests/             # Unit tests (xUnit)
-├── Portless.IntegrationTests/  # Integration tests (CLI, procesos, puertos)
-├── Portless.E2ETests/          # E2E tests (instalación, workflows)
-├── TestApi/                    # API de prueba para desarrollo
-├── CLAUDE.md                   # Guía para Claude Code
-├── PRD.md                      # Product Requirements Document
-├── PLAN.md                     # Plan técnico
-└── README.md
-```
-
-## 🧪 Testing
-
-Portless.NET tiene tres suites de tests para validación completa:
-
-### Unit Tests (Portless.Tests)
-
-Tests de nivel de componente con WebApplicationFactory para routing YARP.
-
-```bash
-# Ejecutar tests unitarios
-dotnet test Portless.Tests/Portless.Tests.csproj
-
-# Ejecutar tests específicos
-dotnet test --filter "FullyQualifiedName~ProxyRoutingTests"
-dotnet test --filter "FullyQualifiedName~YarpProxyIntegrationTests"
-dotnet test --filter "FullyQualifiedName~RoutePersistenceIntegrationTests"
-```
-
-### Integration Tests (Portless.IntegrationTests)
-
-Tests in-process de comandos CLI y gestión de procesos.
-
-```bash
-# Ejecutar tests de integración
-dotnet test Portless.IntegrationTests/Portless.IntegrationTests.csproj
-
-# Ejecutar por categoría
-dotnet test --filter "FullyQualifiedName~CliCommandTests"
-dotnet test --filter "FullyQualifiedName~ProxyProcessTests"
-dotnet test --filter "FullyQualifiedName~PortAllocatorTests"
-```
-
-### E2E Tests (Portless.E2ETests)
-
-Tests de instalación completa de herramienta y workflows CLI.
-
-```bash
-# Ejecutar tests E2E
-dotnet test Portless.E2ETests/Portless.E2ETests.csproj
-
-# Ejecutar por categoría
-dotnet test --filter "FullyQualifiedName~CrossPlatformTests"
-dotnet test --filter "FullyQualifiedName~ToolInstallationTests"
-dotnet test --filter "FullyQualifiedName~CommandLineE2ETests"
-```
-
-### Ejecutar Todos los Tests
-
-```bash
-# Ejecutar todas las suites de tests
+# All tests
 dotnet test
 
-# Con coverage
+# By suite
+dotnet test Portless.Tests/Portless.Tests.csproj                    # Unit
+dotnet test Portless.IntegrationTests/Portless.IntegrationTests.csproj  # Integration
+dotnet test Portless.E2ETests/Portless.E2ETests.csproj              # E2E
+
+# With coverage
 dotnet test --collect:"XPlat Code Coverage"
-
-# Con output detallado
-dotnet test --logger "console;verbosity=detailed"
 ```
 
-### Organización de Tests
-
-- **Unit Tests**: Component-level con WebApplicationFactory para YARP routing
-- **Integration Tests**: In-process CLI y process management
-- **E2E Tests**: Full tool installation y workflow validation
-
-### Cross-Platform Testing
-
-Tests validados en Windows y Linux (Ubuntu/Debian). Cada test es independiente con directorio temporal único y cleanup después de la ejecución.
-
-### Testing Manual
-
-Antes de cada release, ejecutar tests E2E para validar instalación de herramienta:
+### Pack & Install Locally
 
 ```bash
-# Build
-dotnet build Portless.slnx
+dotnet pack Portless.Cli/Portless.Cli.csproj -o ./nupkg --configuration Release
+dotnet tool install --add-source ./nupkg -g Portless.NET.Tool
+```
 
-# Pack
-dotnet pack Portless.Cli/Portless.Cli.csproj -o ./nupkg
+### Manual Smoke Test
 
-# Install (local)
-dotnet tool install --add-source ./nupkg portless.dotnet
-
-# Verify
+```bash
 portless --help
-portless proxy status
+portless proxy start
+portless run testapi dotnet run --project TestApi
 portless list
+curl http://testapi.localhost
+portless proxy stop
 ```
 
-## 🔌 SignalR Support
+### Contributing
 
-Portless.NET supports **SignalR real-time communication** through the proxy using WebSocket transport.
+Contributions are welcome! This project is under active development.
 
-### Features
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/my-feature`)
+3. Commit your changes (`git commit -m 'Add my feature'`)
+4. Push to the branch (`git push origin feature/my-feature`)
+5. Open a Pull Request
 
-- **Automatic WebSocket negotiation** - SignalR negotiates WebSocket connections through proxy without special configuration
-- **Bidirectional messaging** - Server can push messages to clients instantly
-- **Broadcast patterns** - Hub broadcasts to all connected clients through proxy
-- **Multiple clients** - Concurrent connections supported (configurable limit)
-
-### Quick Start
-
-1. Start the proxy:
-   ```bash
-   portless proxy start
-   ```
-
-2. Run your SignalR app:
-   ```bash
-   portless mychat -- dotnet run --project MySignalRApp/
-   ```
-
-3. Connect clients to `http://mychat.localhost:1355`
-
-### Example
-
-See [SignalR Chat Example](Examples/SignalRChat/) for a working demonstration of real-time chat through the proxy.
-
-### Troubleshooting
-
-For common SignalR issues and solutions, see [SignalR Troubleshooting Guide](docs/signalr-troubleshooting.md).
-
-## 🔍 Troubleshooting
-
-### Protocol Issues
-
-**HTTP/2 not working?**
-- Check [Protocol Troubleshooting Guide](docs/protocol-troubleshooting.md#silent-http2-downgrade)
-- Try with prior knowledge: `curl --http2-prior-knowledge http://miapp.localhost:1355`
-
-**WebSocket connection dropping?**
-- See [WebSocket Timeout Issues](docs/protocol-troubleshooting.md#websocket-connection-timeout)
-- Check proxy logs: `portless proxy logs`
-
-### Common Issues
-
-**Port already in use:**
-```bash
-# Windows
-netstat -ano | findstr :PORT
-taskkill /PID <pid> /F
-
-# macOS/Linux
-lsof -ti:PORT | xargs kill -9
-```
-
-**Proxy not responding:**
-```bash
-portless proxy status
-portless proxy logs
-```
-
-For more troubleshooting, see the [Protocol Troubleshooting Guide](docs/protocol-troubleshooting.md).
-
-## 🎯 Casos de Uso
-
-### Desarrollo Full-Stack
+Please ensure all tests pass before submitting:
 
 ```bash
-# Frontend + Backend
-portless run web npm run dev
-portless run api dotnet run
+dotnet test
 ```
-
-### Microservicios
-
-```bash
-# Múltiples servicios independientes
-portless run auth dotnet run --project src/Auth
-portless run users dotnet run --project src/Users
-portless run payments dotnet run --project src/Payments
-```
-
-### Testing E2E
-
-```bash
-# URLs predecibles para tests automatizados
-portless run test-e2e dotnet test
-# Test usa: http://test-e2e.localhost:1355
-```
-
-## 🌍 Cross-Platform
-
-Portless.NET funciona en:
-
-- ✅ **Windows 10+**
-- ✅ **macOS 12+**
-- ✅ **Linux** (Ubuntu 20.04+, Debian 11+, Fedora 35+)
-
-## 🔄 Variables de Entorno
-
-| Variable | Descripción | Default |
-|----------|-------------|---------|
-| `PORTLESS_PORT` | Puerto del proxy | `1355` |
-| `PORTLESS_HTTPS_ENABLED` | Habilitar endpoint HTTPS | `false` |
-| `PORTLESS_CERT_WARNING_DAYS` | Días antes de expiración para advertencia | `30` |
-| `PORTLESS_CERT_CHECK_INTERVAL_HOURS` | Horas entre verificaciones de certificado | `6` |
-| `PORTLESS_AUTO_RENEW` | Renovar certificado automáticamente | `true` |
-| `PORTLESS_ENABLE_MONITORING` | Habilitar monitoreo en segundo plano | `false` |
-
-Para más detalles sobre gestión de certificados, ver [Certificate Lifecycle](docs/certificate-lifecycle.md).
-
-## 🤝 Contribuyendo
-
-¡Contribuciones bienvenidas! Este proyecto está en desarrollo activo.
-
-### Roadmap
-
-- [x] v1.0 - MVP (HTTP/1.1, routing, CLI, process management)
-- [x] v1.1 - Advanced Protocols (HTTP/2, WebSocket, SignalR)
-- [x] v1.2 - HTTPS with Automatic Certificates (certificate management, mixed protocol routing)
-- [ ] v1.3 - Platform Expansion (macOS/Linux automated trust, advanced certificate features)
-- [ ] v2.0 - Production Features (authentication, monitoring, high availability)
-
-Ver [PRD.md](PRD.md) para roadmap completo.
-
-## 📖 Recursos
-
-- [Portless original](https://github.com/portless/portless)
-- [YARP Documentation](https://microsoft.github.io/reverse-proxy/)
-- [.NET 10 Documentation](https://docs.microsoft.com/en-us/dotnet/core/)
-
-## 📄 Licencia
-
-MIT License - ver [LICENSE](LICENSE) para detalles.
-
-## 🙏 Agradecimientos
-
-- [Portless](https://github.com/portless/portless) por la inspiración y diseño original
-- [YARP team](https://microsoft.github.io/reverse-proxy/) por el excelente reverse proxy
-- Comunidad .NET por el feedback y soporte
 
 ---
 
-**Nota:** Portless.NET es actualmente un trabajo en progreso. En desarrollo activo. 🚧
+## Cross-Platform Support
+
+| Platform | Status | Notes |
+|----------|--------|-------|
+| Windows 10+ | ✅ Full support | Certificate auto-trust, full CLI |
+| macOS 12+ | ✅ Full support | Keychain integration |
+| Linux (Ubuntu/Debian) | ✅ Full support | systemd daemon mode |
+| Linux (Fedora/RHEL) | ✅ Full support | certutil-based trust |
+| Linux (Arch) | ✅ Full support | Manual trust install |
+
+---
+
+## License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+---
+
+## Credits
+
+- **[Portless](https://github.com/portless/portless)** — Original Node.js project and design inspiration
+- **[YARP](https://microsoft.github.io/reverse-proxy/)** — Microsoft's reverse proxy engine powering the routing
+- **[Spectre.Console](https://spectreconsole.net/)** — Beautiful console CLI framework
+- .NET community for feedback and support
+
+---
+
+<p align="center">
+  Built with ❤️ by <a href="https://github.com/SergioTenza">Sergio Tenza</a> and contributors
+</p>

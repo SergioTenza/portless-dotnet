@@ -86,6 +86,7 @@ builder.Services.AddSingleton<IProxyConfigProvider>(sp => sp.GetRequiredService<
 // Add persistence layer
 builder.Services.AddPortlessPersistence();
 builder.Services.AddRouteFileWatcher();
+builder.Services.AddConfigFileWatcher();
 
 // Prometheus metrics
 builder.Services.AddSingleton<IMetricsService, PrometheusMetricsService>();
@@ -236,6 +237,12 @@ if (fileConfig.Routes.Count > 0)
             var (routeConfig, clusterConfig) = configFactory.CreateRouteClusterPair(
                 route.Hostname, urls, route.Path);
 
+            // Prefix with "config-" to identify config-file routes
+            var configRouteId = $"config-{routeConfig.RouteId}";
+            var configClusterId = $"config-{clusterConfig.ClusterId}";
+            routeConfig = routeConfig with { RouteId = configRouteId, ClusterId = configClusterId };
+            clusterConfig = clusterConfig with { ClusterId = configClusterId };
+
             // Apply load balancing policy for multi-backend clusters
             if (urls.Length > 1)
             {
@@ -271,7 +278,7 @@ if (fileConfig.Routes.Count > 0)
             if (route.TcpListenPort.HasValue && route.Port > 0)
             {
                 await tcpForwarding.StartListenerAsync(
-                    route.Hostname,
+                    $"config-{route.Hostname}",
                     route.TcpListenPort.Value,
                     "localhost",
                     route.Port);
