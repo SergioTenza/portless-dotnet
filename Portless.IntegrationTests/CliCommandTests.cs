@@ -1,4 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Portless.Core.Extensions;
 using Portless.Core.Models;
 using Portless.Core.Services;
@@ -56,7 +58,9 @@ public class CliCommandTests : IDisposable
         // Create CommandApp with TypeRegistrar
         var registrar = new TypeRegistrar(new ServiceCollection()
             .AddPortlessPersistence()
-            .AddSingleton<IRouteStore>(routeStore));
+            .AddSingleton<IRouteStore>(routeStore)
+            .AddSingleton<IProcessLivenessChecker, ProcessLivenessChecker>()
+            .AddLogging());
 
         var app = new CommandApp(registrar);
         app.Configure(config =>

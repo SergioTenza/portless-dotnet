@@ -1,8 +1,8 @@
 using Portless.Core.Models;
+using Portless.Core.Serialization;
 using Portless.Core.Services;
 using Spectre.Console;
 using Spectre.Console.Cli;
-using System.Diagnostics;
 using System.Text.Json;
 
 namespace Portless.Cli.Commands.ListCommand;
@@ -10,10 +10,12 @@ namespace Portless.Cli.Commands.ListCommand;
 public class ListCommand : AsyncCommand<ListSettings>
 {
     private readonly IRouteStore _routeStore;
+    private readonly IProcessLivenessChecker _processLivenessChecker;
 
-    public ListCommand(IRouteStore routeStore)
+    public ListCommand(IRouteStore routeStore, IProcessLivenessChecker processLivenessChecker)
     {
         _routeStore = routeStore;
+        _processLivenessChecker = processLivenessChecker;
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, ListSettings settings, CancellationToken cancellationToken)
@@ -74,7 +76,7 @@ public class ListCommand : AsyncCommand<ListSettings>
             var pid = route.Pid.ToString();
 
             // Add status indicator based on PID liveness
-            var isAlive = IsProcessAlive(route.Pid);
+            var isAlive = _processLivenessChecker.IsAlive(route);
             var status = isAlive ? "[green]●[/]" : "[red]○[/]";
 
             table.AddRow($"{status} {name}", url, port, pid);
@@ -86,37 +88,25 @@ public class ListCommand : AsyncCommand<ListSettings>
 
     private void RenderJson(RouteInfo[] routes)
     {
-        var jsonRoutes = routes.Select(r => new
-        {
-            name = r.Hostname.Replace(".localhost", ""),
-            hostname = r.Hostname,
-            url = $"http://{r.Hostname}",
-            port = r.Port,
-            pid = r.Pid,
-            created_at = r.CreatedAt.ToString("o"), // ISO 8601
-            last_seen = r.LastSeen?.ToString("o")
-        });
+        var jsonRoutes = routes.Select(r => new RouteListEntry(
+            Name: r.Hostname.Replace(".localhost", ""),
+            Hostname: r.Hostname,
+            Url: $"http://{r.Hostname}",
+            Port: r.Port,
+            Pid: r.Pid,
+            CreatedAt: r.CreatedAt.ToString("o"),
+            LastSeen: r.LastSeen?.ToString("o")
+        )).ToArray();
 
-        var options = new JsonSerializerOptions
+        // Use source-generated context with indented option
+        var options = new JsonSerializerOptions(PortlessJsonContext.Default.Options)
         {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             WriteIndented = true
         };
+        var context = new PortlessJsonContext(options);
 
-        var json = JsonSerializer.Serialize(jsonRoutes, options);
+        var json = JsonSerializer.Serialize(jsonRoutes, context.RouteListEntryArray);
         Console.WriteLine(json);
     }
 
-    private static bool IsProcessAlive(int pid)
-    {
-        try
-        {
-            var process = Process.GetProcessById(pid);
-            return !process.HasExited;
-        }
-        catch (ArgumentException)
-        {
-            return false;
-        }
-    }
 }

@@ -14,15 +14,39 @@ namespace Portless.Tests;
 /// Tests verify advanced routing scenarios, header forwarding, and API endpoints.
 /// </summary>
 [Collection("Integration Tests")]
-public class YarpProxyIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
+public class YarpProxyIntegrationTests : IAsyncLifetime
 {
-    private readonly WebApplicationFactory<Program> _factory;
-    private readonly HttpClient _client;
+    private WebApplicationFactory<Program> _factory = null!;
+    private HttpClient _client = null!;
+    private string _tempDir = null!;
 
-    public YarpProxyIntegrationTests(WebApplicationFactory<Program> factory)
+    public async Task InitializeAsync()
     {
-        _factory = factory;
-        _client = factory.CreateClient();
+        // Use isolated temp state directory to prevent interference from other tests
+        _tempDir = Path.Combine(Path.GetTempPath(), $"portless-yarp-test-{Guid.NewGuid():N}");
+        Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", _tempDir);
+        Directory.CreateDirectory(_tempDir);
+        await File.WriteAllTextAsync(Path.Combine(_tempDir, "routes.json"), "[]");
+
+        _factory = new WebApplicationFactory<Program>();
+        _client = _factory.CreateClient();
+    }
+
+    public async Task DisposeAsync()
+    {
+        _client?.Dispose();
+        _factory?.Dispose();
+        Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", null);
+        // Cleanup only our own temp dir
+        try
+        {
+            if (_tempDir != null && Directory.Exists(_tempDir))
+            {
+                Directory.Delete(_tempDir, true);
+            }
+        }
+        catch { }
+        await Task.CompletedTask;
     }
 
     [Fact]
@@ -58,6 +82,9 @@ public class YarpProxyIntegrationTests : IClassFixture<WebApplicationFactory<Pro
         };
 
         config.Update(routes, clusters);
+
+        // Allow YARP to process the configuration change
+        await Task.Delay(200);
 
         // Act - Send request with custom headers
         var request = new HttpRequestMessage(HttpMethod.Get, "/");
@@ -128,6 +155,9 @@ public class YarpProxyIntegrationTests : IClassFixture<WebApplicationFactory<Pro
         };
 
         config.Update(routes, clusters);
+
+        // Allow YARP to process the configuration change
+        await Task.Delay(200);
 
         // Act - Request to api.localhost
         var request1 = new HttpRequestMessage(HttpMethod.Get, "/");
@@ -247,6 +277,9 @@ public class YarpProxyIntegrationTests : IClassFixture<WebApplicationFactory<Pro
         };
 
         config.Update(initialRoutes, initialClusters);
+
+        // Allow YARP to process the configuration change
+        await Task.Delay(200);
 
         // Verify first route works
         var request1 = new HttpRequestMessage(HttpMethod.Get, "/");

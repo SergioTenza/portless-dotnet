@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 
 namespace Portless.Tests;
 
-[Collection("RouteStore Tests")]
+[Collection("Integration Tests")]
 public class HotReloadTests : IAsyncLifetime
 {
     private readonly string _testDirectory;
@@ -104,10 +104,12 @@ public class HotReloadTests : IAsyncLifetime
         watcher.Dispose();
     }
 
-    [Fact]
+    [Fact(Skip = "Requires RouteFileWatcher reload counter integration")]
     public async Task DebounceTimer_PreventsMultipleRapidReloads()
     {
-        // Arrange
+        // Arrange - This test verifies that rapid file changes are debounced
+        // so only one reload happens after the debounce window elapses.
+        // Requires RouteFileWatcher to expose a reload counter for testing.
         var configProvider = new DynamicConfigProvider();
 
         // Act - Simulate rapid file changes
@@ -120,9 +122,7 @@ public class HotReloadTests : IAsyncLifetime
         // Wait for debounce to complete
         await Task.Delay(1000);
 
-        // Assert - Should have triggered fewer reloads than writes due to debounce
-        // (This requires actual RouteFileWatcher integration, simplified here)
-        Assert.True(true); // Placeholder for actual debounce test
+        // TODO: Assert that configProvider.Update was called exactly once
     }
 
     [Fact]

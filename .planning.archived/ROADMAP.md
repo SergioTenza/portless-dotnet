@@ -8,7 +8,8 @@ Portless.NET delivers stable `.localhost` URLs for Windows .NET development thro
 
 - ✅ **v1.0 MVP** - Phases 1-8 (shipped 2026-02-21)
 - ✅ **v1.1 Advanced Protocols** - Phases 9-12 (shipped 2026-02-22)
-- 🟡 **v1.2 HTTPS with Automatic Certificates** - Phases 13-19 (Phases 13-14 complete, 2/7 phases done, certificate management complete)
+- ✅ **v1.2 HTTPS with Automatic Certificates** - Phases 13-19 (shipped 2026-03-02)
+- ✅ **v1.3 Platform Parity** - Phases 20-23 (shipped 2026-03-17)
 
 ## Phases
 

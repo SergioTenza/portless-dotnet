@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 
 namespace Portless.Tests;
 
-[Collection("RouteStore Tests")]
+[Collection("Integration Tests")]
 public class RoutePersistenceTests : IAsyncLifetime
 {
     private readonly string _testDirectory;

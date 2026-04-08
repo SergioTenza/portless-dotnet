@@ -4,6 +4,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Portless.Core.Models;
+using Portless.Core.Serialization;
 
 namespace Portless.Core.Services;
 
@@ -162,10 +163,12 @@ public class CertificateStorageService : ICertificateStorageService
             _permissionService.CreateSecureDirectoryAsync(_stateDirectory, cancellationToken).Wait(cancellationToken);
 
             // Serialize metadata to JSON with indentation for readability
-            var json = JsonSerializer.Serialize(metadata, new JsonSerializerOptions
+            var indentedOptions = new JsonSerializerOptions(PortlessJsonContext.Default.Options)
             {
                 WriteIndented = true
-            });
+            };
+            var indentedContext = new PortlessJsonContext(indentedOptions);
+            var json = JsonSerializer.Serialize(metadata, indentedContext.CertificateInfo);
 
             // Write JSON file
             File.WriteAllText(_metadataPath, json);
@@ -194,7 +197,7 @@ public class CertificateStorageService : ICertificateStorageService
 
                 // Read and deserialize JSON
                 var json = File.ReadAllText(_metadataPath);
-                var metadata = JsonSerializer.Deserialize<CertificateInfo>(json);
+                var metadata = JsonSerializer.Deserialize(json, PortlessJsonContext.Default.CertificateInfo);
 
                 if (metadata == null)
                 {

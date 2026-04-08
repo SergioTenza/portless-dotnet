@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using Portless.Core.Serialization;
 using Portless.Core.Services;
 
 namespace Portless.Cli.Services;
@@ -39,9 +40,8 @@ public class ProxyProcessManager : IProxyProcessManager
             Console.WriteLine($"Warning: PORTLESS_PORT environment variable is deprecated. Fixed ports: HTTP=1355, HTTPS=1356");
         }
 
-        // Build path to Portless.Proxy.csproj
-        var assemblyLocation = typeof(ProxyProcessManager).Assembly.Location;
-        var assemblyDirectory = Path.GetDirectoryName(assemblyLocation) ?? ".";
+        // Build path to Portless.Proxy.csproj using AppContext.BaseDirectory (AOT-safe)
+        var assemblyDirectory = AppContext.BaseDirectory;
         // Navigate from bin/Debug/net10.0/ up to solution root (4 levels up)
         var solutionRoot = Path.GetFullPath(Path.Combine(assemblyDirectory, "../../../../"));
         var proxyProjectPath = Path.Combine(solutionRoot, "Portless.Proxy", "Portless.Proxy.csproj");
@@ -59,21 +59,25 @@ public class ProxyProcessManager : IProxyProcessManager
             {
                 FileName = "cmd.exe",
                 Arguments = $"/c set PORTLESS_PORT={DefaultPort} && set PORTLESS_HTTPS_ENABLED={enableHttps.ToString().ToLower()} && set DOTNET_MODIFIABLE_ASSEMBLIES=debug && dotnet run --project \"{proxyProjectPath}\" --urls http://*:{DefaultPort}",
-                UseShellExecute = true,  // Required for detached execution on Windows
+                UseShellExecute = true,
                 CreateNoWindow = true,
                 WindowStyle = ProcessWindowStyle.Hidden
             };
         }
         else
         {
-            // Linux/macOS: use sh for detached execution
+            // Linux/macOS: use dotnet directly as the executable
+            var dotnetExe = "dotnet";
             startInfo = new ProcessStartInfo
             {
-                FileName = "/bin/sh",
-                Arguments = $"-c \"PORTLESS_PORT={DefaultPort} PORTLESS_HTTPS_ENABLED={enableHttps.ToString().ToLower()} DOTNET_MODIFIABLE_ASSEMBLIES=debug dotnet run --project '{proxyProjectPath}' --urls http://*:{DefaultPort}\"",
+                FileName = dotnetExe,
+                Arguments = $"run --project \"{proxyProjectPath}\" --urls http://*:{DefaultPort}",
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
+            startInfo.Environment["PORTLESS_PORT"] = DefaultPort;
+            startInfo.Environment["PORTLESS_HTTPS_ENABLED"] = enableHttps.ToString().ToLower();
+            startInfo.Environment["DOTNET_MODIFIABLE_ASSEMBLIES"] = "debug";
         }
 
         // Start the process
@@ -238,7 +242,7 @@ public class ProxyProcessManager : IProxyProcessManager
         {
             var json = await File.ReadAllTextAsync(_managedPidsFilePath);
             _managedPids.Clear();
-            var loaded = JsonSerializer.Deserialize<HashSet<int>>(json);
+            var loaded = JsonSerializer.Deserialize(json, PortlessJsonContext.Default.HashSetInt32);
             if (loaded != null)
             {
                 foreach (var pid in loaded)
@@ -255,7 +259,7 @@ public class ProxyProcessManager : IProxyProcessManager
 
     private async Task SaveManagedPidsAsync()
     {
-        var json = JsonSerializer.Serialize(_managedPids);
+        var json = JsonSerializer.Serialize(_managedPids, PortlessJsonContext.Default.HashSetInt32);
         await File.WriteAllTextAsync(_managedPidsFilePath, json);
     }
 }

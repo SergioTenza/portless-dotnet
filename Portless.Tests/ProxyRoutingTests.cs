@@ -18,16 +18,40 @@ namespace Portless.Tests
     /// invalid hostname handling, and dynamic configuration updates.
 [Collection("Integration Tests")]
     /// </summary>
-    public class ProxyRoutingTests : IClassFixture<WebApplicationFactory<Program>>
+    public class ProxyRoutingTests : IAsyncLifetime
     {
-        private readonly WebApplicationFactory<Program> _factory;
-        private readonly HttpClient _client;
+    private WebApplicationFactory<Program> _factory = null!;
+    private HttpClient _client = null!;
+    private string _tempDir = null!;
 
-        public ProxyRoutingTests(WebApplicationFactory<Program> factory)
+    public async Task InitializeAsync()
+    {
+        // Use isolated temp state directory to prevent interference from other tests
+        _tempDir = Path.Combine(Path.GetTempPath(), $"portless-routing-test-{Guid.NewGuid():N}");
+        Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", _tempDir);
+        Directory.CreateDirectory(_tempDir);
+        await File.WriteAllTextAsync(Path.Combine(_tempDir, "routes.json"), "[]");
+
+        _factory = new WebApplicationFactory<Program>();
+        _client = _factory.CreateClient();
+    }
+
+    public async Task DisposeAsync()
+    {
+        _client?.Dispose();
+        _factory?.Dispose();
+        Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", null);
+        // Cleanup only our own temp dir
+        try
         {
-            _factory = factory;
-            _client = factory.CreateClient();
+            if (_tempDir != null && Directory.Exists(_tempDir))
+            {
+                Directory.Delete(_tempDir, true);
+            }
         }
+        catch { }
+        await Task.CompletedTask;
+    }
 
         [Fact]
         public async Task SingleHostname_RoutesToCorrectBackend()
@@ -63,6 +87,9 @@ namespace Portless.Tests
             };
 
             config.Update(routes, clusters);
+
+            // Allow YARP to process the configuration change
+            await Task.Delay(200);
 
             // Act - Make request with custom Host header
             var request = new HttpRequestMessage(HttpMethod.Get, "/");
@@ -137,6 +164,9 @@ namespace Portless.Tests
 
             config.Update(routes, clusters);
 
+            // Allow YARP to process the configuration change
+            await Task.Delay(200);
+
             // Act & Assert - Test first hostname
             var request1 = new HttpRequestMessage(HttpMethod.Get, "/");
             request1.Headers.Add("Host", "api1.localhost");
@@ -199,6 +229,9 @@ namespace Portless.Tests
 
             config.Update(routes, clusters);
 
+            // Allow YARP to process the configuration change
+            await Task.Delay(200);
+
             // Act - Make request with unknown hostname
             var request = new HttpRequestMessage(HttpMethod.Get, "/");
             request.Headers.Add("Host", "unknown.localhost");
@@ -242,6 +275,9 @@ namespace Portless.Tests
             };
 
             config.Update(initialRoutes, initialClusters);
+
+            // Allow YARP to process the configuration change
+            await Task.Delay(200);
 
             // Verify first route works
             var request1 = new HttpRequestMessage(HttpMethod.Get, "/");

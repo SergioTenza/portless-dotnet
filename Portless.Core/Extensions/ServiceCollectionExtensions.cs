@@ -30,6 +30,22 @@ public static class ServiceCollectionExtensions
         // Register process health monitor as hosted service
         services.AddHostedService<ProcessHealthMonitor>();
 
+        // Register project name detector
+        services.AddSingleton<IProjectNameDetector, ProjectNameDetector>();
+
+        // Register framework detector
+        services.AddSingleton<IFrameworkDetector, FrameworkDetector>();
+
+        // Register YARP config factory
+        services.AddSingleton<IYarpConfigFactory, YarpConfigFactory>();
+
+        // Register config loader
+        services.AddSingleton<IPortlessConfigLoader, PortlessConfigLoader>();
+
+        // Register TCP forwarding service
+        services.AddSingleton<ITcpForwardingService, TcpForwardingService>();
+        services.AddHostedService(sp => (TcpForwardingService)sp.GetRequiredService<ITcpForwardingService>());
+
         return services;
     }
 
@@ -48,7 +64,7 @@ public static class ServiceCollectionExtensions
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddPortlessCertificates(this IServiceCollection services)
     {
-        // Register platform detector as singleton
+        // Register platform detector service as singleton
         services.TryAddSingleton<IPlatformDetectorService, PlatformDetectorService>();
 
         // Register certificate permission service as singleton
@@ -63,22 +79,15 @@ public static class ServiceCollectionExtensions
         // Register certificate manager as singleton
         services.AddSingleton<ICertificateManager, CertificateManager>();
 
-        // Register factory for platform-specific trust services
+        // Register certificate trust service (Windows-only)
+        services.AddSingleton<ICertificateTrustService, CertificateTrustService>();
+
+        // Register certificate trust service factory as singleton
         services.TryAddSingleton<ICertificateTrustServiceFactory, CertificateTrustServiceFactory>();
 
-        // Register platform-specific trust service implementations
-        // CA1416: These types have [SupportedOSPlatform] attributes but are registered
-        // conditionally at runtime via CertificateTrustServiceFactory.
-#pragma warning disable CA1416
-        services.TryAddSingleton<CertificateTrustService>();
-        services.TryAddSingleton<CertificateTrustServiceMacOS>();
-        services.TryAddSingleton<CertificateTrustServiceLinux>();
-#pragma warning restore CA1416
-
-        // Register ICertificateTrustService with factory for backward compatibility
-        // This allows existing code that injects ICertificateTrustService to work
-        services.TryAddSingleton<ICertificateTrustService>(sp =>
-            sp.GetRequiredService<ICertificateTrustServiceFactory>().CreateTrustService());
+        // Register platform-specific certificate trust services
+        services.AddTransient<CertificateTrustServiceMacOS>();
+        services.AddTransient<CertificateTrustServiceLinux>();
 
         return services;
     }
@@ -123,7 +132,7 @@ public static class ServiceCollectionExtensions
 
         // Register monitoring service as singleton and hosted service
         services.AddSingleton<ICertificateMonitoringService, CertificateMonitoringService>();
-        services.AddHostedService(sp => (CertificateMonitoringService)sp.GetRequiredService<ICertificateMonitoringService>());
+        services.AddHostedService<CertificateMonitoringService>(sp => (CertificateMonitoringService)sp.GetRequiredService<ICertificateMonitoringService>());
 
         return services;
     }

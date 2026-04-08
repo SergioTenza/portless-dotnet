@@ -17,9 +17,22 @@ public class Http2IntegrationTests : IClassFixture<WebApplicationFactory<Program
 {
     private readonly WebApplicationFactory<Program> _factory;
     private readonly HttpClient _client;
+    private readonly string? _originalHttpsEnabled;
 
     public Http2IntegrationTests(WebApplicationFactory<Program> factory)
     {
+        // Clear HTTPS env var BEFORE creating the client to prevent redirect middleware
+        // from interfering. Other tests (HttpsEndpointTests, XForwardedProtoTests) set
+        // PORTLESS_HTTPS_ENABLED=true and since env vars are process-wide, they leak here.
+        _originalHttpsEnabled = Environment.GetEnvironmentVariable("PORTLESS_HTTPS_ENABLED");
+        Environment.SetEnvironmentVariable("PORTLESS_HTTPS_ENABLED", null);
+
+        // Use isolated temp directory to prevent stale routes.json from interfering
+        var tempStateDir = Path.Combine(Path.GetTempPath(), $"portless-test-http2-{Guid.NewGuid():N}");
+        Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", tempStateDir);
+        Directory.CreateDirectory(tempStateDir);
+        File.WriteAllText(Path.Combine(tempStateDir, "routes.json"), "[]");
+
         _factory = factory;
         // Note: WebApplicationFactory defaults to HTTP/1.1
         // HTTP/2 testing requires either HTTPS or HTTP/2 prior knowledge
