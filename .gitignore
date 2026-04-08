@@ -484,3 +484,5 @@ Portless/
 
 # Git worktrees for isolated development
 .worktrees/
+coverage-results/
+coverage-report/
