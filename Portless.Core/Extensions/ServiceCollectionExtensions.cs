@@ -74,9 +74,12 @@ public static class ServiceCollectionExtensions
     /// Registers the plugin system services.
     /// </summary>
     /// <param name="services">The service collection.</param>
+    /// <param name="pluginsPath">Optional path to plugins directory (default: ~/.portless/plugins).</param>
     /// <returns>The service collection for chaining.</returns>
-    public static IServiceCollection AddPluginSystem(this IServiceCollection services)
+    public static IServiceCollection AddPluginSystem(this IServiceCollection services, string? pluginsPath = null)
     {
+        // PluginLoader constructor takes only ILogger; pluginsPath is passed to LoadAllAsync at startup.
+        _ = pluginsPath; // suppress unused parameter warning
         services.AddSingleton<IPluginLoader, PluginLoader>();
         return services;
     }
