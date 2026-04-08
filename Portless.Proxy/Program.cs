@@ -97,6 +97,11 @@ builder.Services.AddPluginSystem();
 // Request inspector (ring buffer capacity: 1000)
 builder.Services.AddRequestInspector();
 
+// Dashboard services
+builder.Services.AddSingleton<IEventBus, EventBus>();
+builder.Services.AddSingleton<IRouteHealthChecker, RouteHealthChecker>();
+builder.Services.AddHostedService(sp => (RouteHealthChecker)sp.GetRequiredService<IRouteHealthChecker>());
+
 // Health checks
 builder.Services.AddHealthChecks();
 
@@ -297,6 +302,13 @@ if (fileConfig.Routes.Count > 0)
 // Enable WebSockets for inspector live stream (must be before middleware that uses WS)
 app.UseWebSockets();
 
+// Serve dashboard static files (must be before proxy middleware)
+app.UseStaticFiles(new StaticFileOptions
+{
+    ServeUnknownFileTypes = true,
+    DefaultContentType = "text/html"
+});
+
 app.UseMiddleware<RequestLoggingMiddleware>();
 
 // Inspector middleware: captures all proxied traffic into ring buffer
@@ -326,6 +338,9 @@ app.UseMetricServer("/metrics");
 app.MapHealthChecks("/health");
 
 app.MapPortlessApi(configProvider, routeStore, configFactory);
+
+// Dashboard API endpoints
+app.MapDashboardApi();
 
 // Use ForwardedHeaders middleware to add X-Forwarded-* headers
 app.UseForwardedHeaders(new ForwardedHeadersOptions
@@ -444,12 +459,14 @@ public class RequestLoggingMiddleware
     private readonly RequestDelegate _next;
     private readonly ILogger<RequestLoggingMiddleware> _logger;
     private readonly IMetricsService? _metricsService;
+    private readonly IEventBus? _eventBus;
 
-    public RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggingMiddleware> logger, IMetricsService? metricsService = null)
+    public RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggingMiddleware> logger, IMetricsService? metricsService = null, IEventBus? eventBus = null)
     {
         _next = next;
         _logger = logger;
         _metricsService = metricsService;
+        _eventBus = eventBus;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -471,6 +488,9 @@ public class RequestLoggingMiddleware
                 method, host, path, statusCode, duration, protocol);
 
             _metricsService?.RecordProxyRequest(host.Split(':')[0], method, statusCode, duration);
+
+            // Publish event for dashboard live stream
+            _eventBus?.Publish("request.completed", new { hostname = host.Split(':')[0], method, statusCode, durationMs = duration });
 
             // Detect silent protocol downgrades (HTTP/2 requested but HTTP/1.1 used)
             var http2Requested = context.Request.Headers["Upgrade-Insecure-Requests"].Count > 0 ||

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portless Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <div class="header-left">
+            <h1 class="logo">⬡ Portless</h1>
+            <span class="version">v4.0</span>
+        </div>
+        <div class="header-right">
+            <span id="status-badge" class="badge badge-green">● Running</span>
+            <span id="uptime" class="meta">--</span>
+        </div>
+    </header>
+
+    <nav class="tabs">
+        <button class="tab active" data-tab="overview">Overview</button>
+        <button class="tab" data-tab="routes">Routes</button>
+        <button class="tab" data-tab="inspector">Inspector</button>
+        <button class="tab" data-tab="metrics">Metrics</button>
+        <button class="tab" data-tab="plugins">Plugins</button>
+    </nav>
+
+    <main id="content">
+        <!-- Tab content injected by JS -->
+    </main>
+
+    <script src="js/app.js"></script>
+    <script src="js/overview.js"></script>
+    <script src="js/routes.js"></script>
+    <script src="js/inspector.js"></script>
+    <script src="js/metrics.js"></script>
+    <script src="js/plugins.js"></script>
+</body>
+</html>
