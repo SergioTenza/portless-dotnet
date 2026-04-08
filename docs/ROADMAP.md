@@ -290,7 +290,7 @@ Native integration with VS Code for the best developer experience.
 | v2.1 ✅ | Publish & Polish | NuGet, hot reload, CI/CD, README | Done |
 | v3.0 ✅ | Extensibility | Plugin system, request inspector | Done |
 | v3.x | Polish | Config validation, includes, rewriting | 2-3 semanas |
-| v4.0 | Visual | Web dashboard, VS Code extension | 6-8 semanas |
+| v4.0 ✅ | Visual | Web dashboard, route health, SSE events | Done |
 | v4.x | Ecosystem | Docker Compose gen, K8s, migrations | 3-4 semanas |
 
 ---

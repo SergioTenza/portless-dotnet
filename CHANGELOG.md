@@ -5,6 +5,42 @@ All notable changes to Portless.NET will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] - 2026-04-08
+
+### Added - Web Dashboard
+
+- **Real-time monitoring dashboard** at `http://proxy.localhost:1355/_dashboard/`
+  - Dark theme UI with 5 tabs: Overview, Routes, Inspector, Metrics, Plugins
+  - Zero dependencies: vanilla HTML/CSS/JS, Chart.js from CDN
+  - Server-Sent Events (SSE) for live updates
+
+- **Dashboard API endpoints**
+  - `GET /api/v1/dashboard/summary` - Aggregated stats (routes, RPM, error rate)
+  - `GET /api/v1/dashboard/routes` - Routes with health status
+  - `GET /api/v1/dashboard/events` - SSE stream for live events
+
+- **Route Health Checker** (`IRouteHealthChecker`)
+  - Background service polling backend health every 10s
+  - HTTP HEAD probe with 2s timeout
+  - Healthy/Unhealthy/Unknown status per route
+
+- **Event Bus** (`IEventBus`)
+  - Pub/sub pattern with fan-out to multiple subscribers
+  - Bounded channels (1000 capacity, DropOldest)
+  - Graceful cancellation handling
+
+- **Dashboard tabs**
+  - Overview: stats cards, recent events feed
+  - Routes: table with health indicators, remove action
+  - Inspector: live request stream with filters (host, method, status)
+  - Metrics: Chart.js charts (RPM, response time, status codes, top routes)
+  - Plugins: list with reload action
+
+### Tests
+
+- 11 new tests: EventBus (5), RouteHealthChecker (3), Dashboard API integration (3)
+- Total: 293 tests, 0 failures
+
 ## [3.0.0] - 2026-04-08
 
 ### Added - Plugin System
