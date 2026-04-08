@@ -6,9 +6,9 @@ This document outlines the planned evolution of Portless.NET across upcoming maj
 
 ---
 
-## Current Release: v2.1.0 ✅
+## Current Release: v3.0.0 ✅
 
-**Theme: Publish & Polish**
+**Theme: Extensibility & Observability**
 
 | Feature | Status |
 |---------|--------|
@@ -22,10 +22,13 @@ This document outlines the planned evolution of Portless.NET across upcoming maj
 | Daemon mode (systemd) | ✅ |
 | Native AOT CLI | ✅ |
 | Shell completion (bash/zsh/fish/ps) | ✅ |
+| Plugin System (SDK, Loader, Middleware, CLI) | ✅ |
+| Request Inspector (Middleware, API, CLI, WebSocket) | ✅ |
+| 20 new tests (plugin + inspector) | ✅ |
 
 ---
 
-## v3.0 - Extensibility & Observability
+## v3.0 - Extensibility & Observability ✅
 
 **Theme: Make the proxy hackable and transparent**
 
@@ -285,7 +288,7 @@ Native integration with VS Code for the best developer experience.
 | Version | Theme | Key Deliverables | ETA |
 |---------|-------|-----------------|-----|
 | v2.1 ✅ | Publish & Polish | NuGet, hot reload, CI/CD, README | Done |
-| v3.0 | Extensibility | Plugin system, request inspector | 4-6 semanas |
+| v3.0 ✅ | Extensibility | Plugin system, request inspector | Done |
 | v3.x | Polish | Config validation, includes, rewriting | 2-3 semanas |
 | v4.0 | Visual | Web dashboard, VS Code extension | 6-8 semanas |
 | v4.x | Ecosystem | Docker Compose gen, K8s, migrations | 3-4 semanas |

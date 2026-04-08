@@ -5,6 +5,40 @@ All notable changes to Portless.NET will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-04-08
+
+### Added - Plugin System
+- **Portless.Plugin.SDK**: NuGet package for building custom plugins (dependency-free, AOT-compatible)
+- **PluginLoader**: Runtime plugin loading with AssemblyLoadContext (collectible for hot-reload)
+- **PluginMiddleware**: Before/after proxy hooks, route management hooks, error hooks
+- **Plugin CLI**: `portless plugin list/install/uninstall/create/enable/disable`
+- **Plugin API**: GET /api/v1/plugins, POST /api/v1/plugins/reload
+- **Built-in plugin**: header-injector as reference implementation
+- Plugin manifests via plugin.yaml (name, version, hooks, config, entry assembly)
+- Plugin sandboxing: one bad plugin doesn't crash the proxy
+
+### Added - Request Inspector
+- **InspectorMiddleware**: Captures every proxied request/response into in-memory ring buffer
+- **RequestInspectorService**: Thread-safe ring buffer (default 1000 requests, configurable)
+- **Inspector API**: GET/DELETE /api/v1/inspect/sessions, GET /api/v1/inspect/stats
+- **Inspector WebSocket**: GET /api/v1/inspect/stream for real-time request streaming
+- **Inspector CLI**: `portless inspect` with Spectre.Console TUI table, filtering, JSONL export
+- Body capture for text-based content types (JSON, HTML, XML, < 1MB)
+- Header sanitization (Authorization header masked in plugin context)
+- Status color coding (2xx green, 3xx blue, 4xx yellow, 5xx red)
+
+### Changed
+- Updated middleware pipeline order: WebSockets → Inspector → Plugin → Logging → Proxy
+- Plugin types moved to dedicated Portless.Plugin.SDK package
+- 20 new unit tests (10 plugin + 10 inspector)
+
+### Project Structure
+- New project: `Portless.Plugin.SDK/` (plugin author SDK)
+- New project: `Portless.BuiltinPlugins/HeaderInjectorPlugin/` (reference plugin)
+- New services: PluginLoader, RequestInspectorService
+- New middleware: PluginMiddleware, InspectorMiddleware
+- New CLI commands: plugin, inspect
+
 ## [2.1.0] - 2026-04-08
 
 ### Added
