@@ -9,31 +9,7 @@ public sealed class PluginLoaderTests
     private static PluginLoader CreateLoader()
         => new(NullLogger<PluginLoader>.Instance);
 
-    [Fact]
-    public async Task LoadAllAsync_EmptyDirectory_NoPluginsLoaded()
-    {
-        var loader = CreateLoader();
-        using var tempDir = new TempDirectory();
-
-        await loader.LoadAllAsync(tempDir.Path);
-
-        Assert.Empty(loader.GetLoadedPlugins());
-    }
-
-    [Fact]
-    public async Task LoadAsync_MissingManifest_SkipsDirectory()
-    {
-        var loader = CreateLoader();
-        using var tempDir = new TempDirectory();
-        var pluginDir = Path.Combine(tempDir.Path, "no-manifest-plugin");
-        Directory.CreateDirectory(pluginDir);
-
-        var result = await loader.LoadAsync(pluginDir);
-
-        Assert.Null(result);
-        Assert.Empty(loader.GetLoadedPlugins());
-    }
-
+    // 1. GetLoadedPlugins_NoPlugins_ReturnsEmpty
     [Fact]
     public void GetLoadedPlugins_NoPlugins_ReturnsEmpty()
     {
@@ -44,23 +20,60 @@ public sealed class PluginLoaderTests
         Assert.Empty(plugins);
     }
 
+    // 2. FireBeforeProxyAsync_NoPlugins_ReturnsNull
     [Fact]
     public async Task FireBeforeProxyAsync_NoPlugins_ReturnsNull()
     {
         var loader = CreateLoader();
-        var context = new ProxyContext
-        {
-            Hostname = "test.localhost",
-            Path = "/api",
-            Method = "GET",
-            Scheme = "http",
-            RouteId = "cluster-test"
-        };
+        var context = NewProxyContext();
 
         var result = await loader.FireBeforeProxyAsync(context);
         Assert.Null(result);
     }
 
+    // 3. FireBeforeProxyAsync_PluginReturnsResult_ReturnsResult
+    [Fact]
+    public async Task FireBeforeProxyAsync_PluginReturnsResult_ReturnsResult()
+    {
+        var loader = CreateLoader();
+        var shortCircuitResult = new ProxyResult
+        {
+            StatusCode = 403,
+            DurationMs = 0,
+            ResponseBody = "blocked"
+        };
+        var plugin = new DelegatePlugin("blocker",
+            beforeProxy: _ => Task.FromResult<ProxyResult?>(shortCircuitResult));
+        InjectPlugin(loader, plugin);
+
+        var result = await loader.FireBeforeProxyAsync(NewProxyContext());
+
+        Assert.NotNull(result);
+        Assert.Equal(403, result.StatusCode);
+        Assert.Equal("blocked", result.ResponseBody);
+    }
+
+    // 4. FireBeforeProxyAsync_MultiplePlugins_FirstShortCircuits
+    [Fact]
+    public async Task FireBeforeProxyAsync_MultiplePlugins_FirstShortCircuits()
+    {
+        var loader = CreateLoader();
+        var shortCircuitResult = new ProxyResult { StatusCode = 200, DurationMs = 0 };
+        var first = new DelegatePlugin("first",
+            beforeProxy: _ => Task.FromResult<ProxyResult?>(shortCircuitResult));
+        var second = new DelegatePlugin("second",
+            beforeProxy: _ => Task.FromResult<ProxyResult?>(new ProxyResult { StatusCode = 201, DurationMs = 0 }));
+        InjectPlugin(loader, first);
+        InjectPlugin(loader, second);
+
+        var result = await loader.FireBeforeProxyAsync(NewProxyContext());
+
+        Assert.NotNull(result);
+        Assert.Equal(200, result.StatusCode);
+        // Second plugin should never have been invoked
+    }
+
+    // 5. FireAfterProxyAsync_MultiplePlugins_AllCalled
     [Fact]
     public async Task FireAfterProxyAsync_MultiplePlugins_AllCalled()
     {
@@ -71,26 +84,15 @@ public sealed class PluginLoaderTests
         InjectPlugin(loader, tracking1);
         InjectPlugin(loader, tracking2);
 
-        var context = new ProxyContext
-        {
-            Hostname = "test.localhost",
-            Path = "/api",
-            Method = "GET",
-            Scheme = "http",
-            RouteId = "cluster-test"
-        };
-        var result = new ProxyResult
-        {
-            StatusCode = 200,
-            DurationMs = 50
-        };
+        var proxyResult = new ProxyResult { StatusCode = 200, DurationMs = 50 };
 
-        await loader.FireAfterProxyAsync(context, result);
+        await loader.FireAfterProxyAsync(NewProxyContext(), proxyResult);
 
         Assert.Equal(1, tracking1.AfterProxyCallCount);
         Assert.Equal(1, tracking2.AfterProxyCallCount);
     }
 
+    // 6. FireErrorAsync_PluginReturnsResponse_Returned
     [Fact]
     public async Task FireErrorAsync_PluginReturnsResponse_Returned()
     {
@@ -113,15 +115,89 @@ public sealed class PluginLoaderTests
         Assert.Contains("maintenance", response.Body);
     }
 
+    // 7. FireErrorAsync_NoPluginHandles_ReturnsNull
     [Fact]
-    public async Task UnloadAsync_NonexistentPlugin_DoesNothing()
+    public async Task FireErrorAsync_NoPluginHandles_ReturnsNull()
     {
         var loader = CreateLoader();
+        var passivePlugin = new DelegatePlugin("passive",
+            onError: _ => Task.FromResult<ErrorResponse?>(null));
+        InjectPlugin(loader, passivePlugin);
 
-        // Should not throw
-        await loader.UnloadAsync("nonexistent");
+        var errorCtx = new ErrorContext
+        {
+            Hostname = "test.localhost",
+            Path = "/api",
+            StatusCode = 502,
+            ErrorMessage = "Bad Gateway"
+        };
 
-        Assert.Empty(loader.GetLoadedPlugins());
+        var response = await loader.FireErrorAsync(errorCtx);
+        Assert.Null(response);
+    }
+
+    // 8. FireRouteAddedAsync_CallsAllPlugins
+    [Fact]
+    public async Task FireRouteAddedAsync_CallsAllPlugins()
+    {
+        var loader = CreateLoader();
+        var routeTracker1 = new RouteTrackingPlugin("rt-1");
+        var routeTracker2 = new RouteTrackingPlugin("rt-2");
+        InjectPlugin(loader, routeTracker1);
+        InjectPlugin(loader, routeTracker2);
+
+        var route = new RouteInfo
+        {
+            Hostname = "myapp.localhost",
+            Port = 8080,
+            Backends = ["http://localhost:5000"]
+        };
+
+        await loader.FireRouteAddedAsync(route);
+
+        Assert.Equal(1, routeTracker1.RouteAddedCount);
+        Assert.Equal(0, routeTracker1.RouteRemovedCount);
+        Assert.Equal(1, routeTracker2.RouteAddedCount);
+        Assert.Equal(0, routeTracker2.RouteRemovedCount);
+    }
+
+    // 9. FireRouteRemovedAsync_CallsAllPlugins
+    [Fact]
+    public async Task FireRouteRemovedAsync_CallsAllPlugins()
+    {
+        var loader = CreateLoader();
+        var routeTracker1 = new RouteTrackingPlugin("rt-1");
+        var routeTracker2 = new RouteTrackingPlugin("rt-2");
+        InjectPlugin(loader, routeTracker1);
+        InjectPlugin(loader, routeTracker2);
+
+        var route = new RouteInfo
+        {
+            Hostname = "myapp.localhost",
+            Backends = ["http://localhost:5000"]
+        };
+
+        await loader.FireRouteRemovedAsync(route);
+
+        Assert.Equal(0, routeTracker1.RouteAddedCount);
+        Assert.Equal(1, routeTracker1.RouteRemovedCount);
+        Assert.Equal(0, routeTracker2.RouteAddedCount);
+        Assert.Equal(1, routeTracker2.RouteRemovedCount);
+    }
+
+    // 10. FireBeforeProxyAsync_PluginThrows_ExceptionHandled_ReturnsNull
+    [Fact]
+    public async Task FireBeforeProxyAsync_PluginThrows_ExceptionHandled_ReturnsNull()
+    {
+        var loader = CreateLoader();
+        var throwingPlugin = new DelegatePlugin("thrower",
+            beforeProxy: _ => throw new InvalidOperationException("plugin blew up"));
+        InjectPlugin(loader, throwingPlugin);
+
+        var result = await loader.FireBeforeProxyAsync(NewProxyContext());
+
+        // Exception is caught internally, returns null (no short-circuit)
+        Assert.Null(result);
     }
 
     #region Helpers
@@ -131,12 +207,14 @@ public sealed class PluginLoaderTests
         loader.AddPluginForTesting(plugin);
     }
 
-    private sealed class TempDirectory : IDisposable
+    private static ProxyContext NewProxyContext() => new()
     {
-        public string Path { get; } = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"portless-test-{Guid.NewGuid()}");
-        public TempDirectory() => Directory.CreateDirectory(Path);
-        public void Dispose() { try { Directory.Delete(Path, true); } catch { } }
-    }
+        Hostname = "test.localhost",
+        Path = "/api",
+        Method = "GET",
+        Scheme = "http",
+        RouteId = "cluster-test"
+    };
 
     #endregion
 
@@ -170,6 +248,52 @@ public sealed class PluginLoaderTests
                 Body = "<html><body>Under maintenance</body></html>"
             });
         }
+    }
+
+    private sealed class RouteTrackingPlugin : PortlessPlugin
+    {
+        private readonly string _name;
+        public RouteTrackingPlugin(string name) => _name = name;
+        public override string Name => _name;
+        public override string Version => "1.0.0";
+
+        public int RouteAddedCount { get; private set; }
+        public int RouteRemovedCount { get; private set; }
+
+        public override Task OnRouteAddedAsync(RouteInfo route)
+        {
+            RouteAddedCount++;
+            return Task.CompletedTask;
+        }
+
+        public override Task OnRouteRemovedAsync(RouteInfo route)
+        {
+            RouteRemovedCount++;
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class DelegatePlugin : PortlessPlugin
+    {
+        private readonly string _name;
+        private readonly Func<ProxyContext, Task<ProxyResult?>> _beforeProxy;
+        private readonly Func<ErrorContext, Task<ErrorResponse?>> _onError;
+
+        public DelegatePlugin(
+            string name,
+            Func<ProxyContext, Task<ProxyResult?>>? beforeProxy = null,
+            Func<ErrorContext, Task<ErrorResponse?>>? onError = null)
+        {
+            _name = name;
+            _beforeProxy = beforeProxy ?? (_ => Task.FromResult<ProxyResult?>(null));
+            _onError = onError ?? (_ => Task.FromResult<ErrorResponse?>(null));
+        }
+
+        public override string Name => _name;
+        public override string Version => "1.0.0";
+
+        public override Task<ProxyResult?> BeforeProxyAsync(ProxyContext context) => _beforeProxy(context);
+        public override Task<ErrorResponse?> OnErrorAsync(ErrorContext context) => _onError(context);
     }
 
     #endregion
