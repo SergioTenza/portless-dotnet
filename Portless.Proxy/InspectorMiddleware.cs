@@ -38,7 +38,8 @@ public sealed class InspectorMiddleware
             (path.StartsWith("/api/v1", StringComparison.OrdinalIgnoreCase) ||
              path.StartsWith("/_dashboard", StringComparison.OrdinalIgnoreCase) ||
              path.StartsWith("/metrics", StringComparison.OrdinalIgnoreCase) ||
-             path.StartsWith("/health", StringComparison.OrdinalIgnoreCase)))
+             path.StartsWith("/health", StringComparison.OrdinalIgnoreCase) ||
+             path.StartsWith("/testhub", StringComparison.OrdinalIgnoreCase)))
         {
             await _next(context);
             return;
