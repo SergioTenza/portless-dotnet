@@ -409,11 +409,21 @@ public static class PortlessApiEndpoints
         // GET /api/v1/plugins - List loaded plugins
         endpoints.MapGet("/api/v1/plugins", (IPluginLoader pluginLoader) =>
         {
+            var stateDir = Environment.GetEnvironmentVariable("PORTLESS_STATE_DIR")
+                ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".portless");
+            var pluginsDir = Path.Combine(stateDir, "plugins");
+
             var plugins = pluginLoader.GetLoadedPlugins();
-            return Results.Ok(plugins.Select(p => new
+            return Results.Ok(plugins.Select(p =>
             {
-                p.Name,
-                p.Version
+                var disabledFile = Path.Combine(pluginsDir, p.Name, ".disabled");
+                var status = File.Exists(disabledFile) ? "disabled" : "enabled";
+                return new
+                {
+                    p.Name,
+                    p.Version,
+                    Status = status
+                };
             }));
         });
 

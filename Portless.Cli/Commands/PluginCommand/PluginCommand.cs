@@ -4,15 +4,6 @@ using System.Net.Http.Json;
 
 namespace Portless.Cli.Commands.PluginCommand;
 
-public sealed class PluginSettings : CommandSettings
-{
-    [CommandArgument(0, "[action]")]
-    public string? Action { get; set; }
-
-    [CommandArgument(1, "[target]")]
-    public string? Target { get; set; }
-}
-
 public sealed class PluginCommand : AsyncCommand<PluginSettings>
 {
     private static readonly string ProxyBaseUrl = $"http://localhost:{Environment.GetEnvironmentVariable("PORTLESS_PORT") ?? "1355"}";
@@ -22,9 +13,11 @@ public sealed class PluginCommand : AsyncCommand<PluginSettings>
         return settings.Action?.ToLowerInvariant() switch
         {
             "list" or "ls" => await ListPlugins(),
-            "install" => await InstallPlugin(settings.Target),
+            "install" => await InstallPlugin(settings.Target, settings.Enable),
             "uninstall" or "remove" => await UninstallPlugin(settings.Target),
             "create" => await CreatePlugin(settings.Target),
+            "enable" => await EnablePlugin(settings.Target),
+            "disable" => await DisablePlugin(settings.Target),
             "reload" => await ReloadPlugins(),
             _ => ShowHelp()
         };
@@ -49,13 +42,22 @@ public sealed class PluginCommand : AsyncCommand<PluginSettings>
                 .Border(TableBorder.Rounded)
                 .Title("[bold]Loaded Plugins[/]")
                 .AddColumn("Name")
-                .AddColumn("Version");
+                .AddColumn("Version")
+                .AddColumn("Status");
 
             foreach (var p in plugins)
             {
+                var statusMarkup = p.Status switch
+                {
+                    "enabled" => "[green]enabled[/]",
+                    "disabled" => "[yellow]disabled[/]",
+                    _ => Markup.Escape(p.Status ?? "unknown")
+                };
+
                 table.AddRow(
                     Markup.Escape(p.Name),
-                    Markup.Escape(p.Version)
+                    Markup.Escape(p.Version),
+                    statusMarkup
                 );
             }
 
@@ -69,7 +71,7 @@ public sealed class PluginCommand : AsyncCommand<PluginSettings>
         }
     }
 
-    private async Task<int> InstallPlugin(string? path)
+    private async Task<int> InstallPlugin(string? path, bool enableAfterInstall)
     {
         if (string.IsNullOrWhiteSpace(path))
         {
@@ -98,6 +100,16 @@ public sealed class PluginCommand : AsyncCommand<PluginSettings>
         }
 
         CopyDirectory(path, destDir);
+
+        // If --enable flag is set, ensure no .disabled marker exists
+        if (enableAfterInstall)
+        {
+            var disabledFile = Path.Combine(destDir, ".disabled");
+            if (File.Exists(disabledFile))
+            {
+                File.Delete(disabledFile);
+            }
+        }
 
         // Reload plugins
         using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
@@ -131,6 +143,86 @@ public sealed class PluginCommand : AsyncCommand<PluginSettings>
         await http.PostAsync($"{ProxyBaseUrl}/api/v1/plugins/reload", null);
 
         AnsiConsole.MarkupLine($"[green]Plugin '{Markup.Escape(name)}' uninstalled.[/]");
+        return 0;
+    }
+
+    private async Task<int> EnablePlugin(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            AnsiConsole.MarkupLine("[red]Error: Specify a plugin name to enable.[/]");
+            AnsiConsole.MarkupLine("[dim]Usage: portless plugin enable <name>[/]");
+            return 1;
+        }
+
+        var stateDir = Environment.GetEnvironmentVariable("PORTLESS_STATE_DIR")
+            ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".portless");
+        var pluginDir = Path.Combine(stateDir, "plugins", name);
+
+        if (!Directory.Exists(pluginDir))
+        {
+            AnsiConsole.MarkupLine($"[red]Error: Plugin directory '{Markup.Escape(name)}' not found.[/]");
+            return 1;
+        }
+
+        var disabledFile = Path.Combine(pluginDir, ".disabled");
+        if (File.Exists(disabledFile))
+        {
+            File.Delete(disabledFile);
+        }
+
+        // Reload plugins via API
+        try
+        {
+            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+            await http.PostAsync($"{ProxyBaseUrl}/api/v1/plugins/reload", null);
+        }
+        catch (HttpRequestException)
+        {
+            // Proxy may not be running; still mark as enabled locally
+        }
+
+        AnsiConsole.MarkupLine($"[green]Plugin '{Markup.Escape(name)}' enabled.[/]");
+        return 0;
+    }
+
+    private async Task<int> DisablePlugin(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            AnsiConsole.MarkupLine("[red]Error: Specify a plugin name to disable.[/]");
+            AnsiConsole.MarkupLine("[dim]Usage: portless plugin disable <name>[/]");
+            return 1;
+        }
+
+        var stateDir = Environment.GetEnvironmentVariable("PORTLESS_STATE_DIR")
+            ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".portless");
+        var pluginDir = Path.Combine(stateDir, "plugins", name);
+
+        if (!Directory.Exists(pluginDir))
+        {
+            AnsiConsole.MarkupLine($"[red]Error: Plugin directory '{Markup.Escape(name)}' not found.[/]");
+            return 1;
+        }
+
+        var disabledFile = Path.Combine(pluginDir, ".disabled");
+        if (!File.Exists(disabledFile))
+        {
+            await File.WriteAllTextAsync(disabledFile, string.Empty);
+        }
+
+        // Reload plugins via API
+        try
+        {
+            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+            await http.PostAsync($"{ProxyBaseUrl}/api/v1/plugins/reload", null);
+        }
+        catch (HttpRequestException)
+        {
+            // Proxy may not be running; still mark as disabled locally
+        }
+
+        AnsiConsole.MarkupLine($"[yellow]Plugin '{Markup.Escape(name)}' disabled.[/]");
         return 0;
     }
 
@@ -216,7 +308,7 @@ public sealed class PluginCommand : AsyncCommand<PluginSettings>
               </ItemGroup>
             </Project>
             """;
-        await File.WriteAllTextAsync(Path.Combine(dir, $"{className}Plugin.csproj"), csproj);
+        await File.WriteAllTextAsync(Path.Combine(dir, $"{slug}.csproj"), csproj);
 
         AnsiConsole.MarkupLine($"[green]Plugin scaffold created in ./{Markup.Escape(slug)}[/]");
         AnsiConsole.MarkupLine("[dim]Build with: dotnet build, then install with: portless plugin install ./" + slug + "[/]");
@@ -249,6 +341,8 @@ public sealed class PluginCommand : AsyncCommand<PluginSettings>
         AnsiConsole.MarkupLine("  [bold]install[/] <path>    Install a plugin from directory");
         AnsiConsole.MarkupLine("  [bold]uninstall[/] <name>  Uninstall a plugin");
         AnsiConsole.MarkupLine("  [bold]create[/] <name>     Scaffold a new plugin project");
+        AnsiConsole.MarkupLine("  [bold]enable[/] <name>     Enable a plugin");
+        AnsiConsole.MarkupLine("  [bold]disable[/] <name>    Disable a plugin");
         AnsiConsole.MarkupLine("  [bold]reload[/]            Hot-reload all plugins");
         return 0;
     }
@@ -266,4 +360,4 @@ public sealed class PluginCommand : AsyncCommand<PluginSettings>
     }
 }
 
-internal record PluginInfo(string Name, string Version);
+internal record PluginInfo(string Name, string Version, string? Status = null);

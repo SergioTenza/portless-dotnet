@@ -124,10 +124,12 @@ app.Configure(config =>
     });
 
     config.AddCommand<PluginCommand>("plugin")
-        .WithDescription("Manage plugins (list, install, uninstall, create, reload)")
+        .WithDescription("Manage plugins (list, install, uninstall, create, enable, disable)")
         .WithExample("plugin", "list")
         .WithExample("plugin", "install", "./my-plugin")
-        .WithExample("plugin", "create", "my-plugin");
+        .WithExample("plugin", "create", "my-plugin")
+        .WithExample("plugin", "enable", "my-plugin")
+        .WithExample("plugin", "disable", "my-plugin");
 
     config.AddCommand<InspectCommand>("inspect")
         .WithDescription("Inspect proxied requests (request inspector)")
