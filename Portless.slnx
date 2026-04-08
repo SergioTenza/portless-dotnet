@@ -1,6 +1,10 @@
 <Solution>
+  <Folder Name="/Portless.BuiltinPlugins/">
+    <Project Path="Portless.BuiltinPlugins/HeaderInjectorPlugin/HeaderInjectorPlugin.csproj" />
+  </Folder>
   <Project Path="Portless.Cli/Portless.Cli.csproj" />
   <Project Path="Portless.Core/Portless.Core.csproj" />
+  <Project Path="Portless.Plugin.SDK/Portless.Plugin.SDK.csproj" />
   <Project Path="Portless.Proxy/Portless.Proxy.csproj" />
   <Project Path="Portless.Tests/Portless.Tests.csproj" />
   <Project Path="Portless.IntegrationTests/Portless.IntegrationTests.csproj" />

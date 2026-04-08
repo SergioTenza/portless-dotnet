@@ -80,6 +80,54 @@ That's it. The proxy starts automatically on first use.
 
 ---
 
+## Plugin System
+
+Portless v3.0 introduces a plugin system for extending the proxy with custom middleware.
+
+### Creating a Plugin
+
+```bash
+portless plugin create my-plugin
+cd my-plugin
+# Edit MyPlugin.cs to implement your logic
+dotnet build
+portless plugin install .
+```
+
+### Plugin Hooks
+
+| Hook | When | Use Case |
+|------|------|----------|
+| `BeforeProxyAsync` | Before request is forwarded | Auth, rate limiting, request modification |
+| `AfterProxyAsync` | After response is received | Logging, metrics, response modification |
+| `OnRouteAddedAsync` | When a route is registered | Audit, validation |
+| `OnRouteRemovedAsync` | When a route is removed | Cleanup |
+| `OnErrorAsync` | On 4xx/5xx errors | Custom error pages |
+
+## Request Inspector
+
+Inspect proxy traffic in real-time:
+
+```bash
+# Show recent requests
+portless inspect
+
+# Filter by hostname
+portless inspect --filter host:api.*
+
+# Filter by method and status
+portless inspect --filter method:POST,status:5xx
+
+# Export to file
+portless inspect --save captured.jsonl
+
+# Inspector API
+curl http://localhost:1355/api/v1/inspect/sessions
+curl http://localhost:1355/api/v1/inspect/stats
+```
+
+---
+
 ## Installation
 
 ### From NuGet (recommended)
