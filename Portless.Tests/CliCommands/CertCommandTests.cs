@@ -236,12 +236,12 @@ internal static class CertCertificateGenerator
 public class CertInstallCommandTests
 {
     private readonly Mock<ICertificateManager> _certManagerMock;
-    private readonly Mock<ICertificateTrustService> _trustServiceMock;
+    private readonly Mock<ICertificateTrustServiceFactory> _trustServiceMock;
 
     public CertInstallCommandTests()
     {
         _certManagerMock = new Mock<ICertificateManager>();
-        _trustServiceMock = new Mock<ICertificateTrustService>();
+        _trustServiceMock = new Mock<ICertificateTrustServiceFactory>();
     }
 
     private CertInstallCommand CreateCommand() => new(
@@ -411,12 +411,12 @@ public class CertRenewCommandTests
 public class CertStatusCommandTests
 {
     private readonly Mock<ICertificateManager> _certManagerMock;
-    private readonly Mock<ICertificateTrustService> _trustServiceMock;
+    private readonly Mock<ICertificateTrustServiceFactory> _trustServiceMock;
 
     public CertStatusCommandTests()
     {
         _certManagerMock = new Mock<ICertificateManager>();
-        _trustServiceMock = new Mock<ICertificateTrustService>();
+        _trustServiceMock = new Mock<ICertificateTrustServiceFactory>();
     }
 
     private CertStatusCommand CreateCommand() => new(
@@ -487,12 +487,12 @@ public class CertStatusCommandTests
 public class CertUninstallCommandTests
 {
     private readonly Mock<ICertificateManager> _certManagerMock;
-    private readonly Mock<ICertificateTrustService> _trustServiceMock;
+    private readonly Mock<ICertificateTrustServiceFactory> _trustServiceMock;
 
     public CertUninstallCommandTests()
     {
         _certManagerMock = new Mock<ICertificateManager>();
-        _trustServiceMock = new Mock<ICertificateTrustService>();
+        _trustServiceMock = new Mock<ICertificateTrustServiceFactory>();
     }
 
     private CertUninstallCommand CreateCommand() => new(
