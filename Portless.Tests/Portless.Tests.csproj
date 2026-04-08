@@ -19,6 +19,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Portless.Cli\Portless.Cli.csproj">
+      <Aliases>Cli</Aliases>
+    </ProjectReference>
     <ProjectReference Include="..\Portless.Core\Portless.Core.csproj" />
     <ProjectReference Include="..\Portless.Proxy\Portless.Proxy.csproj" />
   </ItemGroup>
