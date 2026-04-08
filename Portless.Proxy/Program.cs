@@ -91,6 +91,12 @@ builder.Services.AddConfigFileWatcher();
 // Prometheus metrics
 builder.Services.AddSingleton<IMetricsService, PrometheusMetricsService>();
 
+// Plugin system
+builder.Services.AddPluginSystem();
+
+// Request inspector (ring buffer capacity: 1000)
+builder.Services.AddRequestInspector();
+
 // Health checks
 builder.Services.AddHealthChecks();
 
@@ -290,6 +296,18 @@ if (fileConfig.Routes.Count > 0)
 
 app.UseMiddleware<RequestLoggingMiddleware>();
 
+// Inspector middleware: captures all proxied traffic into ring buffer
+app.UseMiddleware<InspectorMiddleware>();
+
+// Plugin middleware: fires BeforeProxy/AfterProxy hooks
+app.UseMiddleware<PluginMiddleware>();
+
+// Load plugins on startup
+var pluginLoader = app.Services.GetRequiredService<IPluginLoader>();
+var stateDir = builder.Configuration["PORTLESS_STATE_DIR"] ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".portless");
+var pluginsPath = Path.Combine(stateDir, "plugins");
+await pluginLoader.LoadAllAsync(pluginsPath);
+
 // Prometheus metrics endpoint (excluded from proxy routing)
 app.UseMetricServer("/metrics");
 
@@ -297,6 +315,9 @@ app.UseMetricServer("/metrics");
 app.MapHealthChecks("/health");
 
 app.MapPortlessApi(configProvider, routeStore, configFactory);
+
+// Enable WebSockets for inspector live stream
+app.UseWebSockets();
 
 // Use ForwardedHeaders middleware to add X-Forwarded-* headers
 app.UseForwardedHeaders(new ForwardedHeadersOptions

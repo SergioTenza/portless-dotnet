@@ -13,6 +13,8 @@ using Portless.Cli.Commands.UpCommand;
 using Portless.Cli.Commands.TcpCommand;
 using Portless.Cli.Commands.CompletionCommand;
 using Portless.Cli.Commands.DaemonCommand;
+using Portless.Cli.Commands.PluginCommand;
+using Portless.Cli.Commands.InspectCommand;
 using Portless.Cli.DependencyInjection;
 using Portless.Cli.Services;
 using Portless.Core.Extensions;
@@ -120,6 +122,19 @@ app.Configure(config =>
         daemon.AddCommand<DaemonDisableCommand>("disable")
             .WithDescription("Disable auto-start on boot");
     });
+
+    config.AddCommand<PluginCommand>("plugin")
+        .WithDescription("Manage plugins (list, install, uninstall, create, reload)")
+        .WithExample("plugin", "list")
+        .WithExample("plugin", "install", "./my-plugin")
+        .WithExample("plugin", "create", "my-plugin");
+
+    config.AddCommand<InspectCommand>("inspect")
+        .WithDescription("Inspect proxied requests (request inspector)")
+        .WithExample("inspect")
+        .WithExample("inspect", "--live")
+        .WithExample("inspect", "--filter", "host:api.*,method:POST")
+        .WithExample("inspect", "--save", "output.jsonl");
 });
 
 // Run the app

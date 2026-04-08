@@ -70,6 +70,29 @@ public static class ServiceCollectionExtensions
     /// </summary>
     /// <param name="services">The service collection.</param>
     /// <returns>The service collection for chaining.</returns>
+    /// <summary>
+    /// Registers the plugin system services.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <returns>The service collection for chaining.</returns>
+    public static IServiceCollection AddPluginSystem(this IServiceCollection services)
+    {
+        services.AddSingleton<IPluginLoader, PluginLoader>();
+        return services;
+    }
+
+    /// <summary>
+    /// Registers the request inspector with a configurable ring buffer capacity.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <param name="capacity">Ring buffer capacity (default: 1000).</param>
+    /// <returns>The service collection for chaining.</returns>
+    public static IServiceCollection AddRequestInspector(this IServiceCollection services, int capacity = 1000)
+    {
+        services.AddSingleton<IRequestInspector>(sp => new RequestInspectorService(capacity));
+        return services;
+    }
+
     public static IServiceCollection AddPortlessCertificates(this IServiceCollection services)
     {
         // Register platform detector service as singleton

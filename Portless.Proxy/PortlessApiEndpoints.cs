@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Net.WebSockets;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -6,7 +7,9 @@ using Microsoft.Extensions.Logging;
 using Portless.Core.Configuration;
 using Portless.Core.Models;
 using Portless.Core.Services;
+using Portless.Plugin.SDK;
 using Yarp.ReverseProxy.Configuration;
+using CoreRouteInfo = Portless.Core.Models.RouteInfo;
 
 namespace Portless.Proxy;
 
@@ -146,7 +149,7 @@ public static class PortlessApiEndpoints
                     var uri = new Uri(request.BackendUrl);
                     var port = uri.Port;
 
-                    var newRouteInfo = new RouteInfo
+                    var newRouteInfo = new CoreRouteInfo
                     {
                         Hostname = request.Hostname,
                         Port = port,
@@ -286,6 +289,143 @@ public static class PortlessApiEndpoints
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error stopping TCP listener");
+                return Results.Problem(ex.Message, statusCode: 500);
+            }
+        });
+
+        // ── Inspector API ──────────────────────────────────────────────────
+
+        // GET /api/v1/inspect/sessions - List recent captured requests
+        endpoints.MapGet("/api/v1/inspect/sessions", (IRequestInspector? inspector, int count = 100) =>
+        {
+            if (inspector == null) return Results.Ok(Array.Empty<object>());
+            var sessions = inspector.GetRecent(count);
+            return Results.Ok(sessions.Select(s => new
+            {
+                s.Id,
+                s.Timestamp,
+                s.Method,
+                s.Hostname,
+                s.Path,
+                s.Scheme,
+                s.StatusCode,
+                s.DurationMs,
+                s.RouteId,
+                RequestBodySize = s.RequestBody?.Length,
+                ResponseBodySize = s.ResponseBody?.Length
+            }));
+        });
+
+        // GET /api/v1/inspect/sessions/{id} - Get single request detail
+        endpoints.MapGet("/api/v1/inspect/sessions/{id:guid}", (Guid id, IRequestInspector? inspector) =>
+        {
+            if (inspector == null) return Results.NotFound();
+            var session = inspector.GetById(id);
+            return session == null ? Results.NotFound() : Results.Ok(session);
+        });
+
+        // DELETE /api/v1/inspect/sessions - Clear all captured data
+        endpoints.MapDelete("/api/v1/inspect/sessions", (IRequestInspector? inspector) =>
+        {
+            inspector?.Clear();
+            return Results.Ok(new { success = true });
+        });
+
+        // GET /api/v1/inspect/stats - Inspector statistics
+        endpoints.MapGet("/api/v1/inspect/stats", (IRequestInspector? inspector) =>
+        {
+            if (inspector == null)
+            {
+                return Results.Ok(new { totalCaptured = 0, avgDurationMs = 0.0, errorRate = 0.0 });
+            }
+
+            var recent = inspector.GetRecent(100);
+            var avgDuration = recent.Count > 0 ? recent.Average(r => r.DurationMs) : 0;
+            var errorRate = recent.Count > 0 ? recent.Count(r => r.StatusCode >= 400) / (double)recent.Count : 0;
+
+            return Results.Ok(new
+            {
+                totalCaptured = inspector.Count,
+                avgDurationMs = Math.Round(avgDuration, 2),
+                errorRate = Math.Round(errorRate, 4)
+            });
+        });
+
+        // GET /api/v1/inspect/stream - WebSocket for live request stream
+        endpoints.MapGet("/api/v1/inspect/stream", async (HttpContext context, IRequestInspector? inspector) =>
+        {
+            if (!context.WebSockets.IsWebSocketRequest)
+            {
+                return;
+            }
+
+            using var ws = await context.WebSockets.AcceptWebSocketAsync();
+
+            // Simple polling-based streaming (1 second interval)
+            var lastCount = inspector?.Count ?? 0;
+            try
+            {
+                while (ws.State == WebSocketState.Open)
+                {
+                    await Task.Delay(1000, context.RequestAborted);
+
+                    if (inspector == null) continue;
+
+                    var currentCount = inspector.Count;
+                    if (currentCount > lastCount)
+                    {
+                        var newRequests = inspector.GetRecent(currentCount - lastCount);
+                        foreach (var req in newRequests)
+                        {
+                            var json = System.Text.Json.JsonSerializer.Serialize(new
+                            {
+                                type = "request",
+                                data = req
+                            });
+                            var bytes = System.Text.Encoding.UTF8.GetBytes(json);
+                            await ws.SendAsync(bytes, WebSocketMessageType.Text, true, context.RequestAborted);
+                        }
+                        lastCount = currentCount;
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Client disconnected
+            }
+            catch (WebSocketException)
+            {
+                // Client disconnected
+            }
+        });
+
+        // ── Plugin API ─────────────────────────────────────────────────────
+
+        // GET /api/v1/plugins - List loaded plugins
+        endpoints.MapGet("/api/v1/plugins", (IPluginLoader pluginLoader) =>
+        {
+            var plugins = pluginLoader.GetLoadedPlugins();
+            return Results.Ok(plugins.Select(p => new
+            {
+                p.Name,
+                p.Version
+            }));
+        });
+
+        // POST /api/v1/plugins/reload - Hot-reload all plugins
+        endpoints.MapPost("/api/v1/plugins/reload", async (IPluginLoader pluginLoader, ILogger<Program> logger) =>
+        {
+            try
+            {
+                var stateDir2 = Environment.GetEnvironmentVariable("PORTLESS_STATE_DIR")
+                    ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".portless");
+                var pluginsPath2 = Path.Combine(stateDir2, "plugins");
+                await pluginLoader.LoadAllAsync(pluginsPath2);
+                return Results.Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error reloading plugins");
                 return Results.Problem(ex.Message, statusCode: 500);
             }
         });
