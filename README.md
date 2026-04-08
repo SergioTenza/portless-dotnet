@@ -1,11 +1,15 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet" alt=".NET 10" />
+  <img src="docs/assets/logo.jpg" alt="Portless.NET Logo" width="200" />
 </p>
 
 <h1 align="center">Portless.NET</h1>
 
 <p align="center">
   <strong>Stable <code>.localhost</code> URLs for local development — no more port numbers.</strong>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet" alt=".NET 10" />
 </p>
 
 <p align="center">
