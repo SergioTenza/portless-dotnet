@@ -4,21 +4,6 @@ using System.Net.Http.Json;
 
 namespace Portless.Cli.Commands.InspectCommand;
 
-public sealed class InspectSettings : CommandSettings
-{
-    [CommandOption("-f|--filter <filter>")]
-    public string? Filter { get; set; }
-
-    [CommandOption("-s|--save <path>")]
-    public string? SavePath { get; set; }
-
-    [CommandOption("-n|--number <count>")]
-    public int Count { get; set; } = 50;
-
-    [CommandOption("--live")]
-    public bool Live { get; set; }
-}
-
 public sealed class InspectCommand : AsyncCommand<InspectSettings>
 {
     private static readonly string ProxyBaseUrl = $"http://localhost:{Environment.GetEnvironmentVariable("PORTLESS_PORT") ?? "1355"}";
