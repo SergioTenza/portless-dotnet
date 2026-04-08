@@ -3,194 +3,208 @@ using Portless.Core.Services;
 
 namespace Portless.Tests;
 
-public class RequestInspectorTests
+public sealed class RequestInspectorTests
 {
     private static CapturedRequest CreateRequest(
         string method = "GET",
+        string host = "test.localhost",
         string path = "/",
-        string hostname = "localhost",
-        int statusCode = 200,
-        long durationMs = 50)
+        int status = 200,
+        long duration = 50) => new()
     {
-        return new CapturedRequest
-        {
-            Method = method,
-            Path = path,
-            Hostname = hostname,
-            Scheme = "https",
-            StatusCode = statusCode,
-            DurationMs = durationMs,
-            Timestamp = DateTime.UtcNow,
-        };
-    }
+        Method = method,
+        Hostname = host,
+        Path = path,
+        StatusCode = status,
+        DurationMs = duration,
+        Timestamp = DateTime.UtcNow
+    };
 
+    // 1. Capture one request → Count==1, GetRecent returns it
     [Fact]
     public void Capture_SingleRequest_StoredInBuffer()
     {
-        // Arrange
-        var inspector = new RequestInspectorService(capacity: 10);
-        var request = CreateRequest(method: "POST", path: "/api/test");
+        var sut = new RequestInspectorService(capacity: 10);
+        var req = CreateRequest();
 
-        // Act
-        inspector.Capture(request);
+        sut.Capture(req);
 
-        // Assert
-        Assert.Equal(1, inspector.Count);
-        var recent = inspector.GetRecent();
+        Assert.Equal(1, sut.Count);
+        var recent = sut.GetRecent();
         Assert.Single(recent);
-        Assert.Equal(request.Id, recent[0].Id);
-        Assert.Equal("POST", recent[0].Method);
-        Assert.Equal("/api/test", recent[0].Path);
+        Assert.Equal(req.Id, recent[0].Id);
     }
 
+    // 2. Capture 5 requests → Count==5, GetRecent returns all
+    [Fact]
+    public void Capture_MultipleRequests_AllStored()
+    {
+        var sut = new RequestInspectorService(capacity: 10);
+        var requests = Enumerable.Range(0, 5).Select(_ => CreateRequest()).ToList();
+
+        foreach (var r in requests)
+            sut.Capture(r);
+
+        Assert.Equal(5, sut.Count);
+        var recent = sut.GetRecent();
+        Assert.Equal(5, recent.Count);
+    }
+
+    // 3. Capacity=3, capture 5 → Count==3, first two evicted
     [Fact]
     public void Capture_ExceedsCapacity_OldestEvicted()
     {
-        // Arrange
-        const int capacity = 3;
-        var inspector = new RequestInspectorService(capacity: capacity);
+        var sut = new RequestInspectorService(capacity: 3);
+        var requests = Enumerable.Range(0, 5).Select(i => CreateRequest(path: $"/r{i}")).ToList();
 
-        var request1 = CreateRequest(path: "/first");
-        var request2 = CreateRequest(path: "/second");
-        var request3 = CreateRequest(path: "/third");
-        var request4 = CreateRequest(path: "/fourth");
+        foreach (var r in requests)
+            sut.Capture(r);
 
-        // Act
-        inspector.Capture(request1);
-        inspector.Capture(request2);
-        inspector.Capture(request3);
-        // Buffer is full (capacity=3), next capture evicts the oldest
-        inspector.Capture(request4);
+        Assert.Equal(3, sut.Count);
 
-        // Assert
-        Assert.Equal(capacity, inspector.Count);
+        // The last 3 requests should remain in the buffer
+        var remaining = sut.GetRecent();
+        var remainingPaths = remaining.Select(r => r.Path).ToHashSet();
+        Assert.Contains("/r2", remainingPaths);
+        Assert.Contains("/r3", remainingPaths);
+        Assert.Contains("/r4", remainingPaths);
 
-        // request1 should have been evicted
-        Assert.Null(inspector.GetById(request1.Id));
+        // The first two should have been evicted from the index
+        Assert.Null(sut.GetById(requests[0].Id));
+        Assert.Null(sut.GetById(requests[1].Id));
 
-        // request2, request3, request4 should still be present
-        Assert.NotNull(inspector.GetById(request2.Id));
-        Assert.NotNull(inspector.GetById(request3.Id));
-        Assert.NotNull(inspector.GetById(request4.Id));
+        // The remaining three should still be accessible by id
+        Assert.NotNull(sut.GetById(requests[2].Id));
+        Assert.NotNull(sut.GetById(requests[3].Id));
+        Assert.NotNull(sut.GetById(requests[4].Id));
     }
 
+    // 4. Capture one, GetById returns it
     [Fact]
     public void GetById_ExistingRequest_ReturnsRequest()
     {
-        // Arrange
-        var inspector = new RequestInspectorService(capacity: 10);
-        var request = CreateRequest(method: "PUT", path: "/api/items/42", statusCode: 204);
-        inspector.Capture(request);
+        var sut = new RequestInspectorService(capacity: 10);
+        var req = CreateRequest(method: "POST", path: "/api/data");
+        sut.Capture(req);
 
-        // Act
-        var result = inspector.GetById(request.Id);
+        var result = sut.GetById(req.Id);
 
-        // Assert
         Assert.NotNull(result);
-        Assert.Equal(request.Id, result!.Id);
-        Assert.Equal("PUT", result.Method);
-        Assert.Equal("/api/items/42", result.Path);
-        Assert.Equal(204, result.StatusCode);
+        Assert.Equal(req.Id, result!.Id);
+        Assert.Equal("POST", result.Method);
+        Assert.Equal("/api/data", result.Path);
     }
 
+    // 5. GetById with random Guid returns null
     [Fact]
     public void GetById_Nonexistent_ReturnsNull()
     {
-        // Arrange
-        var inspector = new RequestInspectorService(capacity: 10);
-        var request = CreateRequest();
-        inspector.Capture(request);
+        var sut = new RequestInspectorService(capacity: 10);
 
-        // Act
-        var result = inspector.GetById(Guid.NewGuid());
+        var result = sut.GetById(Guid.NewGuid());
 
-        // Assert
         Assert.Null(result);
     }
 
+    // 6. Capture 5, Clear, Count==0
     [Fact]
     public void Clear_RemovesAllRequests()
     {
-        // Arrange
-        var inspector = new RequestInspectorService(capacity: 10);
-        inspector.Capture(CreateRequest());
-        inspector.Capture(CreateRequest());
-        inspector.Capture(CreateRequest());
-        Assert.Equal(3, inspector.Count);
+        var sut = new RequestInspectorService(capacity: 10);
+        foreach (var _ in Enumerable.Range(0, 5))
+            sut.Capture(CreateRequest());
 
-        // Act
-        inspector.Clear();
+        Assert.Equal(5, sut.Count);
 
-        // Assert
-        Assert.Equal(0, inspector.Count);
-        Assert.Empty(inspector.GetRecent());
+        sut.Clear();
+
+        Assert.Equal(0, sut.Count);
+        Assert.Empty(sut.GetRecent());
     }
 
+    // 7. Capture 3 with staggered timestamps → GetRecent returns newest first
     [Fact]
-    public void GetRecent_ReturnsLatestFirst()
+    public void GetRecent_ReturnsNewestFirst()
     {
-        // Arrange
-        var inspector = new RequestInspectorService(capacity: 10);
+        var sut = new RequestInspectorService(capacity: 10);
+        var baseTime = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
-        var request1 = new CapturedRequest
-        {
-            Path = "/oldest",
-            Method = "GET",
-            Hostname = "localhost",
-            Scheme = "https",
-            Timestamp = DateTime.UtcNow.AddSeconds(-3),
-        };
+        var req1 = CreateTimestampedRequest(path: "/oldest", baseTime);
+        var req2 = CreateTimestampedRequest(path: "/middle", baseTime.AddSeconds(1));
+        var req3 = CreateTimestampedRequest(path: "/newest", baseTime.AddSeconds(2));
 
-        var request2 = new CapturedRequest
-        {
-            Path = "/middle",
-            Method = "GET",
-            Hostname = "localhost",
-            Scheme = "https",
-            Timestamp = DateTime.UtcNow.AddSeconds(-2),
-        };
+        sut.Capture(req1);
+        sut.Capture(req2);
+        sut.Capture(req3);
 
-        var request3 = new CapturedRequest
-        {
-            Path = "/newest",
-            Method = "GET",
-            Hostname = "localhost",
-            Scheme = "https",
-            Timestamp = DateTime.UtcNow.AddSeconds(-1),
-        };
+        var recent = sut.GetRecent();
 
-        inspector.Capture(request1);
-        inspector.Capture(request2);
-        inspector.Capture(request3);
-
-        // Act
-        var recent = inspector.GetRecent(count: 10);
-
-        // Assert
         Assert.Equal(3, recent.Count);
         Assert.Equal("/newest", recent[0].Path);
         Assert.Equal("/middle", recent[1].Path);
         Assert.Equal("/oldest", recent[2].Path);
     }
 
+    private static CapturedRequest CreateTimestampedRequest(string path, DateTime timestamp) => new()
+    {
+        Method = "GET",
+        Hostname = "test.localhost",
+        Path = path,
+        StatusCode = 200,
+        DurationMs = 50,
+        Timestamp = timestamp
+    };
+
+    // 8. Capture 10, GetRecent(3) returns exactly 3
+    [Fact]
+    public void GetRecent_RespectsCount()
+    {
+        var sut = new RequestInspectorService(capacity: 20);
+        foreach (var i in Enumerable.Range(0, 10))
+            sut.Capture(CreateRequest(path: $"/r{i}"));
+
+        var recent = sut.GetRecent(3);
+
+        Assert.Equal(3, recent.Count);
+    }
+
+    // 9. Count reflects buffer size at each stage
     [Fact]
     public void Count_ReflectsBufferSize()
     {
-        // Arrange
-        var inspector = new RequestInspectorService(capacity: 5);
+        var sut = new RequestInspectorService(capacity: 10);
 
-        // Assert initial
-        Assert.Equal(0, inspector.Count);
+        Assert.Equal(0, sut.Count);
 
-        // Act & Assert - add requests one by one
         for (int i = 0; i < 5; i++)
-        {
-            inspector.Capture(CreateRequest(path: $"/item/{i}"));
-            Assert.Equal(i + 1, inspector.Count);
-        }
+            sut.Capture(CreateRequest());
 
-        // Buffer is full, adding more should not increase count beyond capacity
-        inspector.Capture(CreateRequest(path: "/overflow"));
-        Assert.Equal(5, inspector.Count);
+        Assert.Equal(5, sut.Count);
+    }
+
+    // 10. Concurrent captures from multiple threads → no corruption, all items accounted for
+    [Fact]
+    public void Capture_ThreadIdSafe()
+    {
+        const int capacity = 500;
+        const int totalWrites = 1000;
+        var sut = new RequestInspectorService(capacity: capacity);
+
+        Parallel.For(0, totalWrites, _ =>
+        {
+            sut.Capture(CreateRequest());
+        });
+
+        // Count must never exceed capacity
+        Assert.True(sut.Count <= capacity);
+        Assert.Equal(capacity, sut.Count);
+
+        // GetRecent with explicit count must return all items in buffer
+        var recent = sut.GetRecent(capacity);
+        Assert.Equal(capacity, recent.Count);
+
+        // No duplicates in the index
+        var distinctIds = recent.Select(r => r.Id).Distinct().Count();
+        Assert.Equal(capacity, distinctIds);
     }
 }
