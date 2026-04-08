@@ -12,6 +12,7 @@ using Portless.Cli.Commands.HostsCommand;
 using Portless.Cli.Commands.UpCommand;
 using Portless.Cli.Commands.TcpCommand;
 using Portless.Cli.Commands.CompletionCommand;
+using Portless.Cli.Commands.DaemonCommand;
 using Portless.Cli.DependencyInjection;
 using Portless.Cli.Services;
 using Portless.Core.Extensions;
@@ -29,6 +30,7 @@ services.AddPortlessCertificates();
 // Register CLI services
 services.AddSingleton<IProxyProcessManager, ProxyProcessManager>();
 services.AddSingleton<IProxyRouteRegistrar, ProxyRouteRegistrar>();
+services.AddSingleton<IDaemonService, DaemonService>();
 services.AddHttpClient();
 
 // Configure command app with dependency injection
@@ -101,6 +103,22 @@ app.Configure(config =>
             .WithDescription("Check certificate expiration and validity");
         cert.AddCommand<CertRenewCommand>("renew")
             .WithDescription("Renew certificate (auto-renews if expiring soon)");
+    });
+
+    config.AddBranch("daemon", daemon =>
+    {
+        daemon.SetDescription("Manage daemon mode (systemd user service)");
+        daemon.AddCommand<DaemonInstallCommand>("install")
+            .WithDescription("Install and start the proxy as a systemd user service")
+            .WithExample("daemon", "install", "--https", "--enable");
+        daemon.AddCommand<DaemonUninstallCommand>("uninstall")
+            .WithDescription("Stop and remove the systemd user service");
+        daemon.AddCommand<DaemonStatusCommand>("status")
+            .WithDescription("Show daemon service status");
+        daemon.AddCommand<DaemonEnableCommand>("enable")
+            .WithDescription("Enable auto-start on boot");
+        daemon.AddCommand<DaemonDisableCommand>("disable")
+            .WithDescription("Disable auto-start on boot");
     });
 });
 
