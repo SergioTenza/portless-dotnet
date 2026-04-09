@@ -1,3 +1,4 @@
+using Portless.Cli.Services;
 using Portless.Core.Services;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -7,7 +8,12 @@ namespace Portless.Cli.Commands.InspectCommand;
 
 public sealed class InspectCommand : AsyncCommand<InspectSettings>
 {
-    private static readonly string ProxyBaseUrl = ProxyConstants.GetProxyBaseUrl();
+    private readonly IProxyHttpClient _proxyHttp;
+
+    public InspectCommand(IProxyHttpClient proxyHttp)
+    {
+        _proxyHttp = proxyHttp;
+    }
 
     public override async Task<int> ExecuteAsync(CommandContext context, InspectSettings settings, CancellationToken cancellationToken)
     {
@@ -28,8 +34,8 @@ public sealed class InspectCommand : AsyncCommand<InspectSettings>
     {
         try
         {
-            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
-            var response = await http.GetAsync($"{ProxyBaseUrl}/api/v1/inspect/sessions?count={settings.Count}");
+            using var http = _proxyHttp.CreateClient();
+            var response = await http.GetAsync($"{ProxyConstants.GetProxyBaseUrl()}/api/v1/inspect/sessions?count={settings.Count}");
             response.EnsureSuccessStatusCode();
 
             var sessions = await response.Content.ReadFromJsonAsync<List<SessionSummary>>();
@@ -43,7 +49,7 @@ public sealed class InspectCommand : AsyncCommand<InspectSettings>
             var filtered = ApplyFilters(sessions, settings.Filter);
 
             // Get stats
-            var statsResponse = await http.GetAsync($"{ProxyBaseUrl}/api/v1/inspect/stats");
+            var statsResponse = await http.GetAsync($"{ProxyConstants.GetProxyBaseUrl()}/api/v1/inspect/stats");
             var stats = statsResponse.IsSuccessStatusCode
                 ? await statsResponse.Content.ReadFromJsonAsync<InspectStats>()
                 : null;
@@ -97,8 +103,8 @@ public sealed class InspectCommand : AsyncCommand<InspectSettings>
     {
         try
         {
-            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
-            var response = await http.GetAsync($"{ProxyBaseUrl}/api/v1/inspect/sessions?count={settings.Count}");
+            using var http = _proxyHttp.CreateClient();
+            var response = await http.GetAsync($"{ProxyConstants.GetProxyBaseUrl()}/api/v1/inspect/sessions?count={settings.Count}");
             response.EnsureSuccessStatusCode();
 
             var sessions = await response.Content.ReadFromJsonAsync<List<SessionSummary>>();
@@ -135,13 +141,13 @@ public sealed class InspectCommand : AsyncCommand<InspectSettings>
         try
         {
             // Use polling for live mode (simpler than WebSocket in CLI)
-            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+            using var http = _proxyHttp.CreateClient();
             var seen = new HashSet<Guid>();
             var running = true;
             Console.CancelKeyPress += (_, e) => { e.Cancel = true; running = false; };
 
             // Initial load
-            var response = await http.GetAsync($"{ProxyBaseUrl}/api/v1/inspect/sessions?count={settings.Count}");
+            var response = await http.GetAsync($"{ProxyConstants.GetProxyBaseUrl()}/api/v1/inspect/sessions?count={settings.Count}");
             var sessions = await response.Content.ReadFromJsonAsync<List<SessionSummary>>() ?? [];
             foreach (var s in sessions) seen.Add(s.Id);
 
@@ -165,7 +171,7 @@ public sealed class InspectCommand : AsyncCommand<InspectSettings>
 
                         try
                         {
-                            var resp = await http.GetAsync($"{ProxyBaseUrl}/api/v1/inspect/sessions?count={settings.Count}");
+                            var resp = await http.GetAsync($"{ProxyConstants.GetProxyBaseUrl()}/api/v1/inspect/sessions?count={settings.Count}");
                             if (!resp.IsSuccessStatusCode) continue;
 
                             var all = await resp.Content.ReadFromJsonAsync<List<SessionSummary>>() ?? [];
