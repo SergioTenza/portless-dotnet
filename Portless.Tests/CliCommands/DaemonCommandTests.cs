@@ -16,6 +16,9 @@ using DaemonDisableSettings = Cli::Portless.Cli.Commands.DaemonCommand.DaemonDis
 
 namespace Portless.Tests.CliCommands;
 
+[CollectionDefinition("SpectreConsoleTests", DisableParallelization = true)]
+public class SpectreConsoleTestCollection { }
+
 [Collection("SpectreConsoleTests")]
 public class DaemonInstallCommandTests
 {
