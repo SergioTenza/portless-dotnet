@@ -123,8 +123,10 @@ public class ToolPackE2ETests : IAsyncLifetime
             return;
         }
 
-        // Act - Invoke the tool using dotnet portless (global tool invocation)
-        var runResult = await RunDotnetAsync("portless", "--help");
+        // Act - Invoke the tool via full path (dotnet tools install to ~/.dotnet/tools)
+        var toolsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".dotnet", "tools");
+        var portlessExe = Path.Combine(toolsPath, "portless");
+        var runResult = await RunDotnetAsync($"\"{portlessExe}\"", "--help");
 
         _output.WriteLine($"Run exit code: {runResult.ExitCode}");
         _output.WriteLine($"Run output: {runResult.StandardOutput}");
