@@ -78,16 +78,21 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create ${{ github.ref_name }} \
-            ./artifacts/*.nupkg \
-            --title "Release ${{ github.ref_name }}" \
-            --notes "## Changes
+          if gh release view ${{ github.ref_name }} >/dev/null 2>&1; then
+            echo "Release ${{ github.ref_name }} already exists, uploading assets..."
+            gh release upload ${{ github.ref_name }} ./artifacts/*.nupkg --clobber
+          else
+            gh release create ${{ github.ref_name }} \
+              ./artifacts/*.nupkg \
+              --title "Release ${{ github.ref_name }}" \
+              --notes "## Changes
           ${{ steps.changelog.outputs.CHANGES }}
 
           ## Installation
           \`\`\`bash
           dotnet tool install --global Portless.NET.Tool --version ${{ steps.version.outputs.VERSION }}
           \`\`\`"
+          fi
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
