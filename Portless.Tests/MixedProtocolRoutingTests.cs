@@ -30,50 +30,14 @@ public class MixedProtocolRoutingTests : IClassFixture<WebApplicationFactory<Pro
         // Arrange - Create routes for HTTP and HTTPS backends
         var routes = new List<RouteConfig>
         {
-            new RouteConfig
-            {
-                RouteId = "route-http-backend.localhost",
-                ClusterId = "cluster-http-backend.localhost",
-                Match = new RouteMatch
-                {
-                    Hosts = new[] { "http-backend.localhost" },
-                    Path = "/{**catch-all}"
-                }
-            },
-            new RouteConfig
-            {
-                RouteId = "route-https-backend.localhost",
-                ClusterId = "cluster-https-backend.localhost",
-                Match = new RouteMatch
-                {
-                    Hosts = new[] { "https-backend.localhost" },
-                    Path = "/{**catch-all}"
-                }
-            }
+            YarpTestFactory.CreateRoute("route-http-backend.localhost", "cluster-http-backend.localhost", new[] { "http-backend.localhost" }),
+            YarpTestFactory.CreateRoute("route-https-backend.localhost", "cluster-https-backend.localhost", new[] { "https-backend.localhost" })
         };
 
         var clusters = new List<ClusterConfig>
         {
-            new ClusterConfig
-            {
-                ClusterId = "cluster-http-backend.localhost",
-                Destinations = new Dictionary<string, DestinationConfig>
-                {
-                    ["http-backend"] = new DestinationConfig { Address = "http://localhost:5000" }
-                }
-            },
-            new ClusterConfig
-            {
-                ClusterId = "cluster-https-backend.localhost",
-                Destinations = new Dictionary<string, DestinationConfig>
-                {
-                    ["https-backend"] = new DestinationConfig
-                    {
-                        Address = "https://localhost:6000"
-                    }
-                }
-                // Note: SSL validation options would be configured via metadata or config
-            }
+            YarpTestFactory.CreateCluster("cluster-http-backend.localhost", "http://localhost:5000", "http-backend"),
+            YarpTestFactory.CreateCluster("cluster-https-backend.localhost", "https://localhost:6000", "https-backend")
         };
 
         // Act - Update configuration with mixed HTTP/HTTPS backends
@@ -117,33 +81,12 @@ public class MixedProtocolRoutingTests : IClassFixture<WebApplicationFactory<Pro
         // Arrange - Configure cluster with HTTPS backend destination
         var routes = new List<RouteConfig>
         {
-            new RouteConfig
-            {
-                RouteId = "route-selfsigned.localhost",
-                ClusterId = "cluster-selfsigned.localhost",
-                Match = new RouteMatch
-                {
-                    Hosts = new[] { "selfsigned.localhost" },
-                    Path = "/{**catch-all}"
-                }
-            }
+            YarpTestFactory.CreateRoute("route-selfsigned.localhost", "cluster-selfsigned.localhost", new[] { "selfsigned.localhost" })
         };
 
         var clusters = new List<ClusterConfig>
         {
-            new ClusterConfig
-            {
-                ClusterId = "cluster-selfsigned.localhost",
-                Destinations = new Dictionary<string, DestinationConfig>
-                {
-                    ["backend"] = new DestinationConfig
-                    {
-                        Address = "https://localhost:7000"
-                    }
-                }
-                // Note: In production, SSL validation options would be configured
-                // via YARP's HttpClientOptions or metadata
-            }
+            YarpTestFactory.CreateCluster("cluster-selfsigned.localhost", "https://localhost:7000", "backend")
         };
 
         // Act - Update configuration with self-signed certificate acceptance
@@ -178,82 +121,18 @@ public class MixedProtocolRoutingTests : IClassFixture<WebApplicationFactory<Pro
         // Arrange - Configure 4 routes (2 HTTP backends, 2 HTTPS backends)
         var routes = new List<RouteConfig>
         {
-            new RouteConfig
-            {
-                RouteId = "route-http1.localhost",
-                ClusterId = "cluster-http1.localhost",
-                Match = new RouteMatch
-                {
-                    Hosts = new[] { "http1.localhost" },
-                    Path = "/{**catch-all}"
-                }
-            },
-            new RouteConfig
-            {
-                RouteId = "route-http2.localhost",
-                ClusterId = "cluster-http2.localhost",
-                Match = new RouteMatch
-                {
-                    Hosts = new[] { "http2.localhost" },
-                    Path = "/{**catch-all}"
-                }
-            },
-            new RouteConfig
-            {
-                RouteId = "route-https1.localhost",
-                ClusterId = "cluster-https1.localhost",
-                Match = new RouteMatch
-                {
-                    Hosts = new[] { "https1.localhost" },
-                    Path = "/{**catch-all}"
-                }
-            },
-            new RouteConfig
-            {
-                RouteId = "route-https2.localhost",
-                ClusterId = "cluster-https2.localhost",
-                Match = new RouteMatch
-                {
-                    Hosts = new[] { "https2.localhost" },
-                    Path = "/{**catch-all}"
-                }
-            }
+            YarpTestFactory.CreateRoute("route-http1.localhost", "cluster-http1.localhost", new[] { "http1.localhost" }),
+            YarpTestFactory.CreateRoute("route-http2.localhost", "cluster-http2.localhost", new[] { "http2.localhost" }),
+            YarpTestFactory.CreateRoute("route-https1.localhost", "cluster-https1.localhost", new[] { "https1.localhost" }),
+            YarpTestFactory.CreateRoute("route-https2.localhost", "cluster-https2.localhost", new[] { "https2.localhost" })
         };
 
         var clusters = new List<ClusterConfig>
         {
-            new ClusterConfig
-            {
-                ClusterId = "cluster-http1.localhost",
-                Destinations = new Dictionary<string, DestinationConfig>
-                {
-                    ["backend"] = new DestinationConfig { Address = "http://localhost:8001" }
-                }
-            },
-            new ClusterConfig
-            {
-                ClusterId = "cluster-http2.localhost",
-                Destinations = new Dictionary<string, DestinationConfig>
-                {
-                    ["backend"] = new DestinationConfig { Address = "http://localhost:8002" }
-                }
-            },
-            new ClusterConfig
-            {
-                ClusterId = "cluster-https1.localhost",
-                Destinations = new Dictionary<string, DestinationConfig>
-                {
-                    ["backend"] = new DestinationConfig { Address = "https://localhost:9001" }
-                }
-            },
-            new ClusterConfig
-            {
-                ClusterId = "cluster-https2.localhost",
-                Destinations = new Dictionary<string, DestinationConfig>
-                {
-                    ["backend"] = new DestinationConfig { Address = "https://localhost:9002" }
-                }
-            }
+            YarpTestFactory.CreateCluster("cluster-http1.localhost", "http://localhost:8001", "backend"),
+            YarpTestFactory.CreateCluster("cluster-http2.localhost", "http://localhost:8002", "backend"),
+            YarpTestFactory.CreateCluster("cluster-https1.localhost", "https://localhost:9001", "backend"),
+            YarpTestFactory.CreateCluster("cluster-https2.localhost", "https://localhost:9002", "backend")
         };
 
         // Act - Update configuration with all 4 routes
@@ -292,29 +171,12 @@ public class MixedProtocolRoutingTests : IClassFixture<WebApplicationFactory<Pro
         // Arrange - Create HTTPS backend without DangerousAcceptAnyServerCertificate
         var routes = new List<RouteConfig>
         {
-            new RouteConfig
-            {
-                RouteId = "route-strict-ssl.localhost",
-                ClusterId = "cluster-strict-ssl.localhost",
-                Match = new RouteMatch
-                {
-                    Hosts = new[] { "strict-ssl.localhost" },
-                    Path = "/{**catch-all}"
-                }
-            }
+            YarpTestFactory.CreateRoute("route-strict-ssl.localhost", "cluster-strict-ssl.localhost", new[] { "strict-ssl.localhost" })
         };
 
         var clusters = new List<ClusterConfig>
         {
-            new ClusterConfig
-            {
-                ClusterId = "cluster-strict-ssl.localhost",
-                Destinations = new Dictionary<string, DestinationConfig>
-                {
-                    ["backend"] = new DestinationConfig { Address = "https://localhost:7500" }
-                }
-                // Note: No DangerousAcceptAnyServerCertificate set
-            }
+            YarpTestFactory.CreateCluster("cluster-strict-ssl.localhost", "https://localhost:7500", "backend")
         };
 
         // Act - Try to update configuration

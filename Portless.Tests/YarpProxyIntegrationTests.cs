@@ -34,28 +34,12 @@ public class YarpProxyIntegrationTests : IntegrationTestBase
 
         var routes = new List<RouteConfig>
         {
-            new RouteConfig
-            {
-                RouteId = "route-test.localhost",
-                ClusterId = "cluster-test.localhost",
-                Match = new RouteMatch
-                {
-                    Hosts = new[] { "test.localhost" },
-                    Path = "/{**catch-all}"
-                }
-            }
+            YarpTestFactory.CreateRoute("route-test.localhost", "cluster-test.localhost", new[] { "test.localhost" })
         };
 
         var clusters = new List<ClusterConfig>
         {
-            new ClusterConfig
-            {
-                ClusterId = "cluster-test.localhost",
-                Destinations = new Dictionary<string, DestinationConfig>
-                {
-                    ["backend1"] = new DestinationConfig { Address = "http://localhost:5000" }
-                }
-            }
+            YarpTestFactory.CreateCluster("cluster-test.localhost", "http://localhost:5000")
         };
 
         config.Update(routes, clusters);
@@ -89,46 +73,14 @@ public class YarpProxyIntegrationTests : IntegrationTestBase
 
         var routes = new List<RouteConfig>
         {
-            new RouteConfig
-            {
-                RouteId = "route-api.localhost",
-                ClusterId = "cluster-api.localhost",
-                Match = new RouteMatch
-                {
-                    Hosts = new[] { "api.localhost" },
-                    Path = "/{**catch-all}"
-                }
-            },
-            new RouteConfig
-            {
-                RouteId = "route-web.localhost",
-                ClusterId = "cluster-web.localhost",
-                Match = new RouteMatch
-                {
-                    Hosts = new[] { "web.localhost" },
-                    Path = "/{**catch-all}"
-                }
-            }
+            YarpTestFactory.CreateRoute("route-api.localhost", "cluster-api.localhost", new[] { "api.localhost" }),
+            YarpTestFactory.CreateRoute("route-web.localhost", "cluster-web.localhost", new[] { "web.localhost" })
         };
 
         var clusters = new List<ClusterConfig>
         {
-            new ClusterConfig
-            {
-                ClusterId = "cluster-api.localhost",
-                Destinations = new Dictionary<string, DestinationConfig>
-                {
-                    ["api-backend"] = new DestinationConfig { Address = "http://localhost:5001" }
-                }
-            },
-            new ClusterConfig
-            {
-                ClusterId = "cluster-web.localhost",
-                Destinations = new Dictionary<string, DestinationConfig>
-                {
-                    ["web-backend"] = new DestinationConfig { Address = "http://localhost:3000" }
-                }
-            }
+            YarpTestFactory.CreateCluster("cluster-api.localhost", "http://localhost:5001", "api-backend"),
+            YarpTestFactory.CreateCluster("cluster-web.localhost", "http://localhost:3000", "web-backend")
         };
 
         config.Update(routes, clusters);
@@ -229,28 +181,12 @@ public class YarpProxyIntegrationTests : IntegrationTestBase
         // Step 1: Add initial route
         var initialRoutes = new List<RouteConfig>
         {
-            new RouteConfig
-            {
-                RouteId = "route-persistent.localhost",
-                ClusterId = "cluster-persistent.localhost",
-                Match = new RouteMatch
-                {
-                    Hosts = new[] { "persistent.localhost" },
-                    Path = "/{**catch-all}"
-                }
-            }
+            YarpTestFactory.CreateRoute("route-persistent.localhost", "cluster-persistent.localhost", new[] { "persistent.localhost" })
         };
 
         var initialClusters = new List<ClusterConfig>
         {
-            new ClusterConfig
-            {
-                ClusterId = "cluster-persistent.localhost",
-                Destinations = new Dictionary<string, DestinationConfig>
-                {
-                    ["backend1"] = new DestinationConfig { Address = "http://localhost:5000" }
-                }
-            }
+            YarpTestFactory.CreateCluster("cluster-persistent.localhost", "http://localhost:5000")
         };
 
         config.Update(initialRoutes, initialClusters);

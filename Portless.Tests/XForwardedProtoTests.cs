@@ -80,28 +80,12 @@ public class XForwardedProtoTests : IntegrationTestBase
 
         var routes = new List<RouteConfig>
         {
-            new RouteConfig
-            {
-                RouteId = "route-xfp-http.localhost",
-                ClusterId = "cluster-xfp-http.localhost",
-                Match = new RouteMatch
-                {
-                    Hosts = new[] { "xfp-http.localhost" },
-                    Path = "/{**catch-all}"
-                }
-            }
+            YarpTestFactory.CreateRoute("route-xfp-http.localhost", "cluster-xfp-http.localhost", new[] { "xfp-http.localhost" })
         };
 
         var clusters = new List<ClusterConfig>
         {
-            new ClusterConfig
-            {
-                ClusterId = "cluster-xfp-http.localhost",
-                Destinations = new Dictionary<string, DestinationConfig>
-                {
-                    ["backend"] = new DestinationConfig { Address = _echoServer.BaseUrl }
-                }
-            }
+            YarpTestFactory.CreateCluster("cluster-xfp-http.localhost", _echoServer.BaseUrl, "backend")
         };
 
         config.Update(routes, clusters);
@@ -167,28 +151,12 @@ public class XForwardedProtoTests : IntegrationTestBase
 
             var routes = new List<RouteConfig>
             {
-                new RouteConfig
-                {
-                    RouteId = "route-xfp-https.localhost",
-                    ClusterId = "cluster-xfp-https.localhost",
-                    Match = new RouteMatch
-                    {
-                        Hosts = new[] { "xfp-https.localhost" },
-                        Path = "/{**catch-all}"
-                    }
-                }
+                YarpTestFactory.CreateRoute("route-xfp-https.localhost", "cluster-xfp-https.localhost", new[] { "xfp-https.localhost" })
             };
 
             var clusters = new List<ClusterConfig>
             {
-                new ClusterConfig
-                {
-                    ClusterId = "cluster-xfp-https.localhost",
-                    Destinations = new Dictionary<string, DestinationConfig>
-                    {
-                        ["backend"] = new DestinationConfig { Address = _echoServer.BaseUrl }
-                    }
-                }
+                YarpTestFactory.CreateCluster("cluster-xfp-https.localhost", _echoServer.BaseUrl, "backend")
             };
 
             config.Update(routes, clusters);
@@ -262,28 +230,12 @@ public class XForwardedProtoTests : IntegrationTestBase
 
         var routes = new List<RouteConfig>
         {
-            new RouteConfig
-            {
-                RouteId = "route-xfp-scheme.localhost",
-                ClusterId = "cluster-xfp-scheme.localhost",
-                Match = new RouteMatch
-                {
-                    Hosts = new[] { "xfp-scheme.localhost" },
-                    Path = "/{**catch-all}"
-                }
-            }
+            YarpTestFactory.CreateRoute("route-xfp-scheme.localhost", "cluster-xfp-scheme.localhost", new[] { "xfp-scheme.localhost" })
         };
 
         var clusters = new List<ClusterConfig>
         {
-            new ClusterConfig
-            {
-                ClusterId = "cluster-xfp-scheme.localhost",
-                Destinations = new Dictionary<string, DestinationConfig>
-                {
-                    ["backend"] = new DestinationConfig { Address = _echoServer.BaseUrl }
-                }
-            }
+            YarpTestFactory.CreateCluster("cluster-xfp-scheme.localhost", _echoServer.BaseUrl, "backend")
         };
 
         config.Update(routes, clusters);
