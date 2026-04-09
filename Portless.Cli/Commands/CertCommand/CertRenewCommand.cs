@@ -44,14 +44,7 @@ public class CertRenewCommand : AsyncCommand<CertRenewSettings>
                 );
 
                 AnsiConsole.MarkupLine("[green]✓ Certificate renewed successfully[/]");
-                if (newStatus.Thumbprint != null)
-                {
-                    AnsiConsole.MarkupLine("[dim]New thumbprint: {0}[/]", newStatus.Thumbprint);
-                }
-                if (newStatus.ExpiresAt.HasValue)
-                {
-                    AnsiConsole.MarkupLine("[dim]Expires: {0}[/]", newStatus.ExpiresAt.Value.ToString("yyyy-MM-dd"));
-                }
+                CertFormatter.WriteRenewalInfo(newStatus.Thumbprint, newStatus.ExpiresAt);
 
                 // Display restart warning
                 AnsiConsole.MarkupLine("\n[yellow]⚠ Restart required:[/] The proxy must be restarted to use the new certificate");
@@ -65,15 +58,7 @@ public class CertRenewCommand : AsyncCommand<CertRenewSettings>
             {
                 AnsiConsole.MarkupLine("[green]✓ Certificate is valid and does not need renewal[/]");
                 AnsiConsole.MarkupLine("[dim]Status: {0}[/]", status.Message ?? "No message");
-                if (status.ExpiresAt.HasValue)
-                {
-                    AnsiConsole.MarkupLine("[dim]Expires: {0}[/]", status.ExpiresAt.Value.ToString("yyyy-MM-dd"));
-                }
-
-                if (status.Thumbprint != null)
-                {
-                    AnsiConsole.MarkupLine("[dim]Thumbprint: {0}[/]", status.Thumbprint);
-                }
+                CertFormatter.WriteRenewalInfo(status.Thumbprint, status.ExpiresAt);
 
                 AnsiConsole.MarkupLine("\n[dim]Use --force to renew anyway[/]");
 
@@ -104,14 +89,7 @@ public class CertRenewCommand : AsyncCommand<CertRenewSettings>
             );
 
             AnsiConsole.MarkupLine("[green]✓ Certificate renewed successfully[/]");
-            if (renewedStatus.Thumbprint != null)
-            {
-                AnsiConsole.MarkupLine("[dim]New thumbprint: {0}[/]", renewedStatus.Thumbprint);
-            }
-            if (renewedStatus.ExpiresAt.HasValue)
-            {
-                AnsiConsole.MarkupLine("[dim]Expires: {0}[/]", renewedStatus.ExpiresAt.Value.ToString("yyyy-MM-dd"));
-            }
+            CertFormatter.WriteRenewalInfo(renewedStatus.Thumbprint, renewedStatus.ExpiresAt);
 
             // Display restart warning
             AnsiConsole.MarkupLine("\n[yellow]⚠ Restart required:[/] The proxy must be restarted to use the new certificate");

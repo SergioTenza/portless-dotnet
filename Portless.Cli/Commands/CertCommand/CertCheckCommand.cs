@@ -85,20 +85,20 @@ public class CertCheckCommand : AsyncCommand<CertCheckSettings>
             // Display expiration information
             if (isExpired)
             {
-                AnsiConsole.MarkupLine("[red]✗ Certificate expired on {0}[/]", cert.NotAfter.ToString("yyyy-MM-dd"));
+                AnsiConsole.MarkupLine("[red]✗ Certificate expired on {0}[/]", CertFormatter.FormatDate(cert.NotAfter));
                 AnsiConsole.MarkupLine("\n[yellow]Action required:[/] Run 'portless cert renew' to generate a new certificate");
                 return 2; // Exit code 2 indicates expired certificate
             }
             else if (isExpiringSoon)
             {
                 AnsiConsole.MarkupLine("[yellow]⚠ Certificate expires in {0} days ({1})[/]",
-                    daysUntilExpiration, cert.NotAfter.ToString("yyyy-MM-dd"));
+                    daysUntilExpiration, CertFormatter.FormatDate(cert.NotAfter));
                 AnsiConsole.MarkupLine("\n[yellow]Recommended:[/] Run 'portless cert renew' to renew before expiration");
             }
             else
             {
                 AnsiConsole.MarkupLine("[green]✓ Certificate valid for {0} days ({1})[/]",
-                    daysUntilExpiration, cert.NotAfter.ToString("yyyy-MM-dd"));
+                    daysUntilExpiration, CertFormatter.FormatDate(cert.NotAfter));
             }
 
             // Display verbose information if requested
@@ -110,9 +110,9 @@ public class CertCheckCommand : AsyncCommand<CertCheckSettings>
                 AnsiConsole.MarkupLine("  [dim]Issuer:[/]");
                 AnsiConsole.MarkupLine("    {0}", cert.Issuer);
                 AnsiConsole.MarkupLine("  [dim]Valid From:[/]");
-                AnsiConsole.MarkupLine("    {0}", cert.NotBefore.ToString("yyyy-MM-dd HH:mm:ss"));
+                AnsiConsole.MarkupLine("    {0}", CertFormatter.FormatDateTime(cert.NotBefore));
                 AnsiConsole.MarkupLine("  [dim]Valid To:[/]");
-                AnsiConsole.MarkupLine("    {0}", cert.NotAfter.ToString("yyyy-MM-dd HH:mm:ss"));
+                AnsiConsole.MarkupLine("    {0}", CertFormatter.FormatDateTime(cert.NotAfter));
                 AnsiConsole.MarkupLine("  [dim]SHA-256 Thumbprint:[/]");
                 AnsiConsole.MarkupLine("    {0}", cert.GetCertHashString(System.Security.Cryptography.HashAlgorithmName.SHA256));
                 AnsiConsole.MarkupLine("  [dim]Serial Number:[/]");
