@@ -147,8 +147,8 @@ public class E2ETestFixture : IAsyncLifetime
         _proxyProcess.BeginOutputReadLine();
         _proxyProcess.BeginErrorReadLine();
 
-        // Wait for proxy to be healthy
-        await WaitForHealthAsync(timeout: TimeSpan.FromSeconds(45));
+        // Wait for proxy to be healthy (increased timeout for slow CI runners)
+        await WaitForHealthAsync(timeout: TimeSpan.FromSeconds(90));
     }
 
     /// <summary>
