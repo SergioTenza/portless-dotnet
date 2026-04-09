@@ -23,6 +23,7 @@ public class RunCommandTests
     private readonly Mock<IFrameworkDetector> _frameworkDetectorMock;
     private readonly Mock<IProjectNameDetector> _projectNameDetectorMock;
     private readonly Mock<IProxyRouteRegistrar> _registrarMock;
+    private readonly Mock<IProxyConnectionHelper> _proxyConnectionMock;
     private readonly RunCommand _command;
 
     public RunCommandTests()
@@ -34,6 +35,7 @@ public class RunCommandTests
         _frameworkDetectorMock = new Mock<IFrameworkDetector>();
         _projectNameDetectorMock = new Mock<IProjectNameDetector>();
         _registrarMock = new Mock<IProxyRouteRegistrar>();
+        _proxyConnectionMock = new Mock<IProxyConnectionHelper>();
 
         _command = new RunCommand(
             _portAllocatorMock.Object,
@@ -43,7 +45,8 @@ public class RunCommandTests
             _frameworkDetectorMock.Object,
             _projectNameDetectorMock.Object,
             NullLogger<RunCommand>.Instance,
-            _registrarMock.Object);
+            _registrarMock.Object,
+            _proxyConnectionMock.Object);
     }
 
     [Fact]
@@ -116,79 +119,46 @@ public class RunCommandTests
         Assert.Equal(1, result);
     }
 
-    /// <summary>
-    /// Tries to acquire port 1355 for the proxy simulation. Returns null if port is busy (skip test).
-    /// </summary>
-    private static System.Net.Sockets.TcpListener? TryListenOnPort(int port)
-    {
-        try
-        {
-            var listener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, port);
-            listener.Start();
-            return listener;
-        }
-        catch (System.Net.Sockets.SocketException)
-        {
-            return null; // Port busy, test will be skipped
-        }
-    }
-
     [Fact]
     public async Task ExecuteAsync_FrameworkDetected_Called()
     {
-        // Start a TCP listener so RunCommand's proxy check (localhost:1355) succeeds
-        var tcpListener = TryListenOnPort(1355);
-        if (tcpListener == null) return; // Skip if port unavailable (CI environment)
-        try
-        {
-            var settings = new RunSettings { Name = "myapp" };
-            var context = new CommandContext(["myapp", "dotnet", "run"], new TestRemainingArguments(), "run", null);
+        _proxyConnectionMock.Setup(x => x.IsProxyRunningAsync()).ReturnsAsync(true);
 
-            _routeStoreMock.Setup(x => x.LoadRoutesAsync())
-                .ReturnsAsync(Array.Empty<RouteInfo>());
-            _frameworkDetectorMock.Setup(x => x.Detect(It.IsAny<string?>()))
-                .Returns(new DetectedFramework
-                {
-                    Name = "dotnet",
-                    DisplayName = ".NET",
-                    InjectedEnvVars = ["ASPNETCORE_URLS=http://localhost:{port}"],
-                    InjectedFlags = Array.Empty<string>()
-                });
+        var settings = new RunSettings { Name = "myapp" };
+        var context = new CommandContext(["myapp", "dotnet", "run"], new TestRemainingArguments(), "run", null);
 
-            await _command.ExecuteAsync(context, settings, CancellationToken.None);
+        _routeStoreMock.Setup(x => x.LoadRoutesAsync())
+            .ReturnsAsync(Array.Empty<RouteInfo>());
+        _frameworkDetectorMock.Setup(x => x.Detect(It.IsAny<string?>()))
+            .Returns(new DetectedFramework
+            {
+                Name = "dotnet",
+                DisplayName = ".NET",
+                InjectedEnvVars = ["ASPNETCORE_URLS=http://localhost:{port}"],
+                InjectedFlags = Array.Empty<string>()
+            });
 
-            _frameworkDetectorMock.Verify(x => x.Detect(It.IsAny<string?>()), Times.Once);
-        }
-        finally
-        {
-            tcpListener.Stop();
-        }
+        await _command.ExecuteAsync(context, settings, CancellationToken.None);
+
+        _frameworkDetectorMock.Verify(x => x.Detect(It.IsAny<string?>()), Times.Once);
     }
 
     [Fact]
     public async Task ExecuteAsync_NoFrameworkDetected_Called()
     {
-        // Start a TCP listener so RunCommand's proxy check (localhost:1355) succeeds
-        var tcpListener = TryListenOnPort(1355);
-        if (tcpListener == null) return; // Skip if port unavailable (CI environment)
-        try
-        {
-            var settings = new RunSettings { Name = "myapp" };
-            var context = new CommandContext(["myapp", "node", "server.js"], new TestRemainingArguments(), "run", null);
+        _proxyConnectionMock.Setup(x => x.IsProxyRunningAsync()).ReturnsAsync(true);
 
-            _routeStoreMock.Setup(x => x.LoadRoutesAsync())
-                .ReturnsAsync(Array.Empty<RouteInfo>());
-            _frameworkDetectorMock.Setup(x => x.Detect(It.IsAny<string?>()))
-                .Returns((DetectedFramework?)null);
+        var settings = new RunSettings { Name = "myapp" };
+        var context = new CommandContext(["myapp", "node", "server.js"], new TestRemainingArguments(), "run", null);
 
-            await _command.ExecuteAsync(context, settings, CancellationToken.None);
+        _routeStoreMock.Setup(x => x.LoadRoutesAsync())
+            .ReturnsAsync(Array.Empty<RouteInfo>());
+        _frameworkDetectorMock.Setup(x => x.Detect(It.IsAny<string?>()))
+            .Returns((DetectedFramework?)null);
 
-            _frameworkDetectorMock.Verify(x => x.Detect(It.IsAny<string?>()), Times.Once);
-        }
-        finally
-        {
-            tcpListener.Stop();
-        }
+        await _command.ExecuteAsync(context, settings, CancellationToken.None);
+
+        _frameworkDetectorMock.Verify(x => x.Detect(It.IsAny<string?>()), Times.Once);
     }
 
     [Fact]

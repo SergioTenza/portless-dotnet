@@ -1,3 +1,4 @@
+using Portless.Core.Services;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -55,7 +56,7 @@ public class TcpCommand : AsyncCommand<TcpSettings>
             var json = JsonSerializer.Serialize(payload, PortlessJsonContext.Default.TcpProxyPayload);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await client.PostAsync("http://localhost:1355/api/v1/tcp/add", content, ct);
+            var response = await client.PostAsync($"{ProxyConstants.GetProxyBaseUrl()}/api/v1/tcp/add", content, ct);
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync(ct);
@@ -84,7 +85,7 @@ public class TcpCommand : AsyncCommand<TcpSettings>
         try
         {
             var client = _httpClientFactory.CreateClient();
-            await client.DeleteAsync($"http://localhost:1355/api/v1/tcp/remove?name={name}", ct);
+            await client.DeleteAsync($"{ProxyConstants.GetProxyBaseUrl()}/api/v1/tcp/remove?name={name}", ct);
             AnsiConsole.MarkupLine($"[green]TCP proxy '{name}' removed[/]");
             return 0;
         }

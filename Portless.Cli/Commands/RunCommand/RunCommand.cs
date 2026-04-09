@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Net.Sockets;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using Portless.Core.Services;
@@ -19,6 +18,7 @@ public class RunCommand : AsyncCommand<RunSettings>
     private readonly IProjectNameDetector _projectNameDetector;
     private readonly ILogger<RunCommand> _logger;
     private readonly IProxyRouteRegistrar _registrar;
+    private readonly IProxyConnectionHelper _proxyConnection;
     private Process? _spawnedProcess;
 
     public RunCommand(
@@ -29,7 +29,8 @@ public class RunCommand : AsyncCommand<RunSettings>
         IFrameworkDetector frameworkDetector,
         IProjectNameDetector projectNameDetector,
         ILogger<RunCommand> logger,
-        IProxyRouteRegistrar registrar)
+        IProxyRouteRegistrar registrar,
+        IProxyConnectionHelper proxyConnection)
     {
         _portAllocator = portAllocator;
         _routeStore = routeStore;
@@ -39,6 +40,7 @@ public class RunCommand : AsyncCommand<RunSettings>
         _projectNameDetector = projectNameDetector;
         _logger = logger;
         _registrar = registrar;
+        _proxyConnection = proxyConnection;
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, RunSettings settings, CancellationToken cancellationToken)
@@ -80,8 +82,8 @@ public class RunCommand : AsyncCommand<RunSettings>
                 return 1;
             }
 
-            // Step 1: Check if proxy is running, start it if needed
-            if (!await IsProxyRunningAsync())
+            // Step 1: Ensure proxy is running
+            if (!await _proxyConnection.IsProxyRunningAsync())
             {
                 AnsiConsole.MarkupLine("[yellow]Proxy not running, starting automatically...[/]");
 
@@ -91,13 +93,12 @@ public class RunCommand : AsyncCommand<RunSettings>
                         .Spinner(Spinner.Known.Dots)
                         .StartAsync("Starting proxy...", async _ =>
                         {
-                            await _proxyManager.StartAsync(1355); // Default port
+                            await _proxyManager.StartAsync(ProxyConstants.GetHttpPort());
                         });
 
-                    // Wait a bit for proxy to be ready
                     await Task.Delay(1000);
 
-                    if (!await IsProxyRunningAsync())
+                    if (!await _proxyConnection.IsProxyRunningAsync())
                     {
                         AnsiConsole.MarkupLine("[red]Error:[/] Failed to start proxy");
                         return 1;
@@ -209,20 +210,6 @@ public class RunCommand : AsyncCommand<RunSettings>
             AnsiConsole.MarkupLine("[red]Error:[/] Failed to run command");
             AnsiConsole.MarkupLine($"[dim]{ex.Message}[/]");
             return 1;
-        }
-    }
-
-    private async Task<bool> IsProxyRunningAsync()
-    {
-        try
-        {
-            using var tcpClient = new TcpClient();
-            await tcpClient.ConnectAsync("localhost", 1355);
-            return true;
-        }
-        catch
-        {
-            return false;
         }
     }
 

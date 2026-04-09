@@ -33,6 +33,7 @@ services.AddPortlessCertificates();
 services.AddSingleton<IProxyProcessManager, ProxyProcessManager>();
 services.AddSingleton<IProxyRouteRegistrar, ProxyRouteRegistrar>();
 services.AddSingleton<IDaemonService, DaemonService>();
+services.AddSingleton<IProxyConnectionHelper, ProxyConnectionHelper>();
 services.AddHttpClient();
 
 // Configure command app with dependency injection

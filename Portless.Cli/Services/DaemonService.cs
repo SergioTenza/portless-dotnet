@@ -1,3 +1,4 @@
+using Portless.Core.Services;
 using System.Diagnostics;
 using Spectre.Console;
 
@@ -42,7 +43,7 @@ After=network.target
 Type=simple
 WorkingDirectory={workingDir}
 ExecStart={execPath}
-Environment=PORTLESS_PORT=1355
+Environment=PORTLESS_PORT={ProxyConstants.DefaultHttpPort}
 Environment=PORTLESS_STATE_DIR={stateDir}
 Environment=PORTLESS_HTTPS_ENABLED={httpsEnv}
 Environment=DOTNET_ENVIRONMENT=Production

@@ -1,8 +1,7 @@
-using Portless.Cli.Services;
 using Portless.Core.Services;
+using Portless.Cli.Services;
 using Spectre.Console;
 using Spectre.Console.Cli;
-using System.Net.Sockets;
 
 namespace Portless.Cli.Commands.UpCommand;
 
@@ -11,15 +10,18 @@ public class UpCommand : AsyncCommand<UpSettings>
     private readonly IPortlessConfigLoader _configLoader;
     private readonly IProxyRouteRegistrar _registrar;
     private readonly IProxyProcessManager _proxyManager;
+    private readonly IProxyConnectionHelper _proxyConnection;
 
     public UpCommand(
         IPortlessConfigLoader configLoader,
         IProxyRouteRegistrar registrar,
-        IProxyProcessManager proxyManager)
+        IProxyProcessManager proxyManager,
+        IProxyConnectionHelper proxyConnection)
     {
         _configLoader = configLoader;
         _registrar = registrar;
         _proxyManager = proxyManager;
+        _proxyConnection = proxyConnection;
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, UpSettings settings, CancellationToken ct)
@@ -33,14 +35,14 @@ public class UpCommand : AsyncCommand<UpSettings>
         }
 
         // Ensure proxy is running
-        if (!await IsProxyRunningAsync())
+        if (!await _proxyConnection.IsProxyRunningAsync())
         {
             AnsiConsole.MarkupLine("[yellow]Proxy not running, starting automatically...[/]");
             try
             {
-                await _proxyManager.StartAsync(1355);
+                await _proxyManager.StartAsync(ProxyConstants.GetHttpPort());
                 await Task.Delay(1000);
-                if (!await IsProxyRunningAsync())
+                if (!await _proxyConnection.IsProxyRunningAsync())
                 {
                     AnsiConsole.MarkupLine("[red]Error:[/] Failed to start proxy");
                     return 1;
@@ -84,19 +86,5 @@ public class UpCommand : AsyncCommand<UpSettings>
 
         AnsiConsole.MarkupLine($"[blue]{registered}[/] routes registered, [red]{failed}[/] failed");
         return failed > 0 ? 1 : 0;
-    }
-
-    private static async Task<bool> IsProxyRunningAsync()
-    {
-        try
-        {
-            using var tcpClient = new TcpClient();
-            await tcpClient.ConnectAsync("localhost", 1355);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
     }
 }

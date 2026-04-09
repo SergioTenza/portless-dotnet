@@ -18,7 +18,7 @@ public class ProxyRouteRegistrar : IProxyRouteRegistrar
     {
         _httpClientFactory = httpClientFactory;
         _logger = logger;
-        _proxyBaseUrl = "http://localhost:1355";
+        _proxyBaseUrl = ProxyConstants.GetProxyBaseUrl();
     }
 
     public async Task<bool> RegisterRouteAsync(string hostname, string backendUrl, string? path = null)

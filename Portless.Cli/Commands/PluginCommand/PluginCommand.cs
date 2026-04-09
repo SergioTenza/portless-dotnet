@@ -1,3 +1,4 @@
+using Portless.Core.Services;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System.Net.Http.Json;
@@ -6,7 +7,7 @@ namespace Portless.Cli.Commands.PluginCommand;
 
 public sealed class PluginCommand : AsyncCommand<PluginSettings>
 {
-    private static readonly string ProxyBaseUrl = $"http://localhost:{Environment.GetEnvironmentVariable("PORTLESS_PORT") ?? "1355"}";
+    private static readonly string ProxyBaseUrl = ProxyConstants.GetProxyBaseUrl();
 
     public override async Task<int> ExecuteAsync(CommandContext context, PluginSettings settings, CancellationToken cancellationToken)
     {
