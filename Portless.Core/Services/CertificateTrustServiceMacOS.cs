@@ -2,7 +2,6 @@
 using System.Runtime.Versioning;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
-using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Portless.Core.Models;
 
@@ -63,32 +62,19 @@ public class CertificateTrustServiceMacOS : ICertificateTrustService
 
             try
             {
-                // Import certificate to System Keychain
-                using var process = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = "security",
-                        Arguments = $"add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain \"{pemPath}\"",
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        UseShellExecute = false
-                    }
-                };
+                var result = await ProcessHelper.RunAsync(
+                    "security",
+                    $"add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain \"{pemPath}\"",
+                    cancellationToken);
 
-                process.Start();
-                var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
-                var error = await process.StandardError.ReadToEndAsync(cancellationToken);
-                await process.WaitForExitAsync(cancellationToken);
-
-                if (process.ExitCode != 0)
+                if (!result.Success)
                 {
-                    _logger.LogError("Failed to install certificate: {Error}", error);
+                    _logger.LogError("Failed to install certificate: {Error}", result.StandardError);
                     return new TrustInstallResult(
                         Success: false,
                         AlreadyInstalled: false,
                         StoreAccessDenied: false,
-                        ErrorMessage: $"Failed to install certificate: {error}"
+                        ErrorMessage: $"Failed to install certificate: {result.StandardError}"
                     );
                 }
 
@@ -102,11 +88,7 @@ public class CertificateTrustServiceMacOS : ICertificateTrustService
             }
             finally
             {
-                // Clean up temporary PEM file
-                if (File.Exists(pemPath))
-                {
-                    File.Delete(pemPath);
-                }
+                if (File.Exists(pemPath)) File.Delete(pemPath);
             }
         }
         catch (Exception ex)
@@ -127,16 +109,10 @@ public class CertificateTrustServiceMacOS : ICertificateTrustService
         try
         {
             var cert = await FindCertificateAsync(thumbprint, cancellationToken);
-            if (cert == null)
-            {
-                return TrustStatus.NotTrusted;
-            }
+            if (cert == null) return TrustStatus.NotTrusted;
 
             var daysUntilExpiration = (cert.NotAfter - DateTime.UtcNow).Days;
-            if (daysUntilExpiration <= 30)
-            {
-                return TrustStatus.ExpiringSoon;
-            }
+            if (daysUntilExpiration <= 30) return TrustStatus.ExpiringSoon;
 
             return TrustStatus.Trusted;
         }
@@ -153,31 +129,19 @@ public class CertificateTrustServiceMacOS : ICertificateTrustService
         {
             _logger.LogInformation("Uninstalling certificate from System Keychain");
 
-            using var process = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = "security",
-                    Arguments = $"delete-certificate -Z {thumbprint} /Library/Keychains/System.keychain",
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false
-                }
-            };
+            var result = await ProcessHelper.RunAsync(
+                "security",
+                $"delete-certificate -Z {thumbprint} /Library/Keychains/System.keychain",
+                cancellationToken);
 
-            process.Start();
-            var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
-            var error = await process.StandardError.ReadToEndAsync(cancellationToken);
-            await process.WaitForExitAsync(cancellationToken);
-
-            if (process.ExitCode == 0)
+            if (result.Success)
             {
                 _logger.LogInformation("Successfully uninstalled certificate from System Keychain");
                 return true;
             }
             else
             {
-                _logger.LogWarning("Failed to uninstall certificate: {Error}", error);
+                _logger.LogWarning("Failed to uninstall certificate: {Error}", result.StandardError);
                 return false;
             }
         }
@@ -211,27 +175,15 @@ public class CertificateTrustServiceMacOS : ICertificateTrustService
             await File.WriteAllBytesAsync(pfxPath, pfxBytes, ct);
 
             // Convert PFX to PEM using openssl
-            using var process = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = "openssl",
-                    Arguments = $"pkcs12 -in \"{pfxPath}\" -out \"{pemPath}\" -nodes -passin pass:password",
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false
-                }
-            };
+            var result = await ProcessHelper.RunAsync(
+                "openssl",
+                $"pkcs12 -in \"{pfxPath}\" -out \"{pemPath}\" -nodes -passin pass:password",
+                ct);
 
-            process.Start();
-            var output = await process.StandardOutput.ReadToEndAsync(ct);
-            var error = await process.StandardError.ReadToEndAsync(ct);
-            await process.WaitForExitAsync(ct);
-
-            if (process.ExitCode != 0)
+            if (!result.Success)
             {
-                _logger.LogError("Failed to convert certificate to PEM: {Error}", error);
-                throw new InvalidOperationException($"Failed to convert certificate to PEM format: {error}");
+                _logger.LogError("Failed to convert certificate to PEM: {Error}", result.StandardError);
+                throw new InvalidOperationException($"Failed to convert certificate to PEM format: {result.StandardError}");
             }
 
             _logger.LogDebug("Certificate converted to PEM format: {Path}", pemPath);
@@ -239,24 +191,13 @@ public class CertificateTrustServiceMacOS : ICertificateTrustService
         }
         catch
         {
-            // Clean up on failure
-            if (File.Exists(pfxPath))
-            {
-                File.Delete(pfxPath);
-            }
-            if (File.Exists(pemPath))
-            {
-                File.Delete(pemPath);
-            }
+            if (File.Exists(pfxPath)) File.Delete(pfxPath);
+            if (File.Exists(pemPath)) File.Delete(pemPath);
             throw;
         }
         finally
         {
-            // Clean up temporary PFX file
-            if (File.Exists(pfxPath))
-            {
-                File.Delete(pfxPath);
-            }
+            if (File.Exists(pfxPath)) File.Delete(pfxPath);
         }
     }
 
@@ -267,33 +208,17 @@ public class CertificateTrustServiceMacOS : ICertificateTrustService
     {
         try
         {
-            // Use security command to find certificate
-            using var process = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = "security",
-                    Arguments = $"find-certificate -c /Library/Keychains/System.keychain -Z \"{thumbprint}\"",
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false
-                }
-            };
+            var result = await ProcessHelper.RunAsync(
+                "security",
+                $"find-certificate -c /Library/Keychains/System.keychain -Z \"{thumbprint}\"",
+                ct);
 
-            process.Start();
-            var output = await process.StandardOutput.ReadToEndAsync(ct);
-            var error = await process.StandardError.ReadToEndAsync(ct);
-            await process.WaitForExitAsync(ct);
-
-            // Check if certificate was found
-            if (string.IsNullOrEmpty(output) || output.Contains("0 certificates found") || process.ExitCode != 0)
+            if (string.IsNullOrEmpty(result.StandardOutput) || result.StandardOutput.Contains("0 certificates found") || !result.Success)
             {
                 _logger.LogDebug("Certificate not found in System Keychain");
                 return null;
             }
 
-            // For now, we'll create a minimal certificate to indicate it exists
-            // A full implementation would parse the output to get the actual certificate
             _logger.LogDebug("Certificate found in System Keychain");
             return null; // Would return actual certificate if parsed
         }
