@@ -9,6 +9,7 @@ using Xunit;
 
 namespace Portless.Tests.CliCommands;
 
+[Collection("SpectreConsoleTests")]
 public class ListCommandTests
 {
     private readonly Mock<IRouteStore> _routeStoreMock;

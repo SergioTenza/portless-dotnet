@@ -12,6 +12,7 @@ using IProxyProcessManager = Cli::Portless.Cli.Services.IProxyProcessManager;
 
 namespace Portless.Tests.CliCommands;
 
+[Collection("SpectreConsoleTests")]
 public class AliasCommandTests
 {
     private readonly Mock<IRouteStore> _routeStoreMock;

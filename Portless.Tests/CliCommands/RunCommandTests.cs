@@ -13,6 +13,7 @@ using IProxyProcessManager = Cli::Portless.Cli.Services.IProxyProcessManager;
 
 namespace Portless.Tests.CliCommands;
 
+[Collection("SpectreConsoleTests")]
 public class RunCommandTests
 {
     private readonly Mock<IPortAllocator> _portAllocatorMock;

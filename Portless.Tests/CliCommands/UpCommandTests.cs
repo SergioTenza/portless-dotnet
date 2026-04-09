@@ -11,6 +11,7 @@ using IProxyProcessManager = Cli::Portless.Cli.Services.IProxyProcessManager;
 
 namespace Portless.Tests.CliCommands;
 
+[Collection("SpectreConsoleTests")]
 public class UpCommandTests
 {
     private readonly Mock<IPortlessConfigLoader> _configLoaderMock;
