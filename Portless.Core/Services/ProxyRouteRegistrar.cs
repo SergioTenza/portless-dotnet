@@ -21,31 +21,10 @@ public class ProxyRouteRegistrar : IProxyRouteRegistrar
         _proxyBaseUrl = ProxyConstants.GetProxyBaseUrl();
     }
 
-    public async Task<bool> RegisterRouteAsync(string hostname, string backendUrl, string? path = null)
+    public Task<bool> RegisterRouteAsync(string hostname, string backendUrl, string? path = null)
     {
-        var httpClient = _httpClientFactory.CreateClient();
-        var payload = new AddHostPayload(hostname, backendUrl, path);
-        var json = JsonSerializer.Serialize(payload, PortlessJsonContext.Default.AddHostPayload);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-        try
-        {
-            var response = await httpClient.PostAsync($"{_proxyBaseUrl}/api/v1/add-host", content);
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                _logger.LogError("Failed to register route {Hostname} with proxy. Status: {Status}, Response: {Response}",
-                    hostname, response.StatusCode, errorContent);
-                return false;
-            }
-            _logger.LogInformation("Route {Hostname} registered with proxy", hostname);
-            return true;
-        }
-        catch (HttpRequestException ex)
-        {
-            _logger.LogError(ex, "Failed to communicate with proxy for route registration");
-            return false;
-        }
+        // Single-backend overload delegates to multi-backend overload
+        return RegisterRouteAsync(hostname, [backendUrl], path);
     }
 
     public async Task<bool> RegisterRouteAsync(string hostname, string[] backendUrls, string? path = null, string? loadBalancePolicy = null)
@@ -65,7 +44,9 @@ public class ProxyRouteRegistrar : IProxyRouteRegistrar
                     hostname, response.StatusCode, errorContent);
                 return false;
             }
-            _logger.LogInformation("Route {Hostname} registered with proxy ({BackendCount} backends)", hostname, backendUrls.Length);
+
+            var backendLabel = backendUrls.Length == 1 ? backendUrls[0] : $"{backendUrls.Length} backends";
+            _logger.LogInformation("Route {Hostname} registered with proxy ({Backends})", hostname, backendLabel);
             return true;
         }
         catch (HttpRequestException ex)
