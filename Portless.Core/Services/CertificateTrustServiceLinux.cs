@@ -4,8 +4,6 @@ using System.Runtime.Versioning;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.Extensions.Logging;
 using Portless.Core.Models;
-using System.Diagnostics;
-using System.Text;
 
 namespace Portless.Core.Services;
 
@@ -304,31 +302,12 @@ public class CertificateTrustServiceLinux : ICertificateTrustService
 
         try
         {
-            var processInfo = new ProcessStartInfo
-            {
-                FileName = command,
-                Arguments = arguments,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false
-            };
+            var result = await ProcessHelper.RunAsync(command, arguments, cancellationToken);
 
-            using var process = Process.Start(processInfo);
-            if (process == null)
-            {
-                _logger.LogWarning("Failed to start certificate update command");
-                return;
-            }
-
-            var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
-            var error = await process.StandardError.ReadToEndAsync(cancellationToken);
-
-            await process.WaitForExitAsync(cancellationToken);
-
-            if (process.ExitCode != 0)
+            if (!result.Success)
             {
                 _logger.LogWarning("Certificate update command exited with code {ExitCode}. Error: {Error}",
-                    process.ExitCode, error);
+                    result.ExitCode, result.StandardError);
             }
             else
             {

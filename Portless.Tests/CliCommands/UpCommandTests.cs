@@ -17,6 +17,7 @@ public class UpCommandTests
     private readonly Mock<IPortlessConfigLoader> _configLoaderMock;
     private readonly Mock<IProxyRouteRegistrar> _registrarMock;
     private readonly Mock<IProxyProcessManager> _proxyManagerMock;
+    private readonly Mock<IProxyConnectionHelper> _proxyConnectionMock;
     private readonly UpCommand _command;
 
     public UpCommandTests()
@@ -24,10 +25,12 @@ public class UpCommandTests
         _configLoaderMock = new Mock<IPortlessConfigLoader>();
         _registrarMock = new Mock<IProxyRouteRegistrar>();
         _proxyManagerMock = new Mock<IProxyProcessManager>();
+        _proxyConnectionMock = new Mock<IProxyConnectionHelper>();
         _command = new UpCommand(
             _configLoaderMock.Object,
             _registrarMock.Object,
-            _proxyManagerMock.Object);
+            _proxyManagerMock.Object,
+            _proxyConnectionMock.Object);
     }
 
     [Fact]

@@ -30,38 +30,16 @@ public static class DashboardApiEndpoints
             var routes = await rs.LoadRoutesAsync();
             var uptime = DateTime.UtcNow - System.Diagnostics.Process.GetCurrentProcess().StartTime.ToUniversalTime();
 
-            int totalCaptured = 0;
-            double avgDurationMs = 0.0;
-            double errorRate = 0.0;
-            double requestsPerMinute = 0.0;
-
-            if (insp != null)
-            {
-                var recent = insp.GetRecent(100);
-                totalCaptured = insp.Count;
-                avgDurationMs = recent.Count > 0 ? Math.Round(recent.Average(r => r.DurationMs), 2) : 0.0;
-                errorRate = recent.Count > 0 ? Math.Round(recent.Count(r => r.StatusCode >= 400) / (double)recent.Count, 4) : 0.0;
-
-                if (recent.Count >= 2)
-                {
-                    var oldest = recent.Min(r => r.Timestamp);
-                    var newest = recent.Max(r => r.Timestamp);
-                    var span = newest - oldest;
-                    if (span.TotalMinutes > 0)
-                    {
-                        requestsPerMinute = Math.Round(recent.Count / span.TotalMinutes, 2);
-                    }
-                }
-            }
+            var stats = InspectorStatsCalculator.Compute(insp);
 
             return Results.Ok(new
             {
                 activeRoutes = routes.Length,
                 uptime = uptime.ToString(),
-                totalCaptured,
-                avgDurationMs,
-                errorRate,
-                requestsPerMinute
+                totalCaptured = stats?.TotalCaptured ?? 0,
+                avgDurationMs = stats?.AvgDurationMs ?? 0.0,
+                errorRate = stats?.ErrorRate ?? 0.0,
+                requestsPerMinute = stats?.RequestsPerMinute ?? 0.0
             });
         });
 

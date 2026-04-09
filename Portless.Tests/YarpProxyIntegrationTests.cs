@@ -14,39 +14,16 @@ namespace Portless.Tests;
 /// Tests verify advanced routing scenarios, header forwarding, and API endpoints.
 /// </summary>
 [Collection("Integration Tests")]
-public class YarpProxyIntegrationTests : IAsyncLifetime
+public class YarpProxyIntegrationTests : IntegrationTestBase
 {
     private WebApplicationFactory<Program> _factory = null!;
     private HttpClient _client = null!;
-    private string _tempDir = null!;
 
-    public async Task InitializeAsync()
+    public override async Task InitializeAsync()
     {
-        // Use isolated temp state directory to prevent interference from other tests
-        _tempDir = Path.Combine(Path.GetTempPath(), $"portless-yarp-test-{Guid.NewGuid():N}");
-        Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", _tempDir);
-        Directory.CreateDirectory(_tempDir);
-        await File.WriteAllTextAsync(Path.Combine(_tempDir, "routes.json"), "[]");
-
-        _factory = new WebApplicationFactory<Program>();
-        _client = _factory.CreateClient();
-    }
-
-    public async Task DisposeAsync()
-    {
-        _client?.Dispose();
-        _factory?.Dispose();
-        Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", null);
-        // Cleanup only our own temp dir
-        try
-        {
-            if (_tempDir != null && Directory.Exists(_tempDir))
-            {
-                Directory.Delete(_tempDir, true);
-            }
-        }
-        catch { }
-        await Task.CompletedTask;
+        await base.InitializeAsync();
+        _factory = CreateProxyApp();
+        _client = CreateHttpClient(_factory);
     }
 
     [Fact]
@@ -57,28 +34,12 @@ public class YarpProxyIntegrationTests : IAsyncLifetime
 
         var routes = new List<RouteConfig>
         {
-            new RouteConfig
-            {
-                RouteId = "route-test.localhost",
-                ClusterId = "cluster-test.localhost",
-                Match = new RouteMatch
-                {
-                    Hosts = new[] { "test.localhost" },
-                    Path = "/{**catch-all}"
-                }
-            }
+            YarpTestFactory.CreateRoute("route-test.localhost", "cluster-test.localhost", new[] { "test.localhost" })
         };
 
         var clusters = new List<ClusterConfig>
         {
-            new ClusterConfig
-            {
-                ClusterId = "cluster-test.localhost",
-                Destinations = new Dictionary<string, DestinationConfig>
-                {
-                    ["backend1"] = new DestinationConfig { Address = "http://localhost:5000" }
-                }
-            }
+            YarpTestFactory.CreateCluster("cluster-test.localhost", "http://localhost:5000")
         };
 
         config.Update(routes, clusters);
@@ -112,46 +73,14 @@ public class YarpProxyIntegrationTests : IAsyncLifetime
 
         var routes = new List<RouteConfig>
         {
-            new RouteConfig
-            {
-                RouteId = "route-api.localhost",
-                ClusterId = "cluster-api.localhost",
-                Match = new RouteMatch
-                {
-                    Hosts = new[] { "api.localhost" },
-                    Path = "/{**catch-all}"
-                }
-            },
-            new RouteConfig
-            {
-                RouteId = "route-web.localhost",
-                ClusterId = "cluster-web.localhost",
-                Match = new RouteMatch
-                {
-                    Hosts = new[] { "web.localhost" },
-                    Path = "/{**catch-all}"
-                }
-            }
+            YarpTestFactory.CreateRoute("route-api.localhost", "cluster-api.localhost", new[] { "api.localhost" }),
+            YarpTestFactory.CreateRoute("route-web.localhost", "cluster-web.localhost", new[] { "web.localhost" })
         };
 
         var clusters = new List<ClusterConfig>
         {
-            new ClusterConfig
-            {
-                ClusterId = "cluster-api.localhost",
-                Destinations = new Dictionary<string, DestinationConfig>
-                {
-                    ["api-backend"] = new DestinationConfig { Address = "http://localhost:5001" }
-                }
-            },
-            new ClusterConfig
-            {
-                ClusterId = "cluster-web.localhost",
-                Destinations = new Dictionary<string, DestinationConfig>
-                {
-                    ["web-backend"] = new DestinationConfig { Address = "http://localhost:3000" }
-                }
-            }
+            YarpTestFactory.CreateCluster("cluster-api.localhost", "http://localhost:5001", "api-backend"),
+            YarpTestFactory.CreateCluster("cluster-web.localhost", "http://localhost:3000", "web-backend")
         };
 
         config.Update(routes, clusters);
@@ -252,28 +181,12 @@ public class YarpProxyIntegrationTests : IAsyncLifetime
         // Step 1: Add initial route
         var initialRoutes = new List<RouteConfig>
         {
-            new RouteConfig
-            {
-                RouteId = "route-persistent.localhost",
-                ClusterId = "cluster-persistent.localhost",
-                Match = new RouteMatch
-                {
-                    Hosts = new[] { "persistent.localhost" },
-                    Path = "/{**catch-all}"
-                }
-            }
+            YarpTestFactory.CreateRoute("route-persistent.localhost", "cluster-persistent.localhost", new[] { "persistent.localhost" })
         };
 
         var initialClusters = new List<ClusterConfig>
         {
-            new ClusterConfig
-            {
-                ClusterId = "cluster-persistent.localhost",
-                Destinations = new Dictionary<string, DestinationConfig>
-                {
-                    ["backend1"] = new DestinationConfig { Address = "http://localhost:5000" }
-                }
-            }
+            YarpTestFactory.CreateCluster("cluster-persistent.localhost", "http://localhost:5000")
         };
 
         config.Update(initialRoutes, initialClusters);

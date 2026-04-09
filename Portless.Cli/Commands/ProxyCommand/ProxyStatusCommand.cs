@@ -1,3 +1,4 @@
+using Portless.Core.Services;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Portless.Cli.Services;
@@ -26,7 +27,7 @@ public class ProxyStatusCommand : AsyncCommand<ProxyStatusSettings>
             }
 
             AnsiConsole.MarkupLine("[green]✓[/] Proxy is [bold]running[/]");
-            AnsiConsole.MarkupLine("  URL: [blue]http://localhost:{0}[/]", status.port ?? 1355);
+            AnsiConsole.MarkupLine("  URL: [blue]http://localhost:{0}[/]", status.port ?? ProxyConstants.DefaultHttpPort);
             AnsiConsole.MarkupLine("  PID: {0}", status.pid ?? 0);
 
             // Show protocol information

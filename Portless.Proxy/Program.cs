@@ -21,7 +21,7 @@ builder.Logging.SetMinimumLevel(LogLevel.Information);
 builder.Services.AddSignalR();
 
 // Read port and HTTPS configuration from environment variables
-var port = builder.Configuration["PORTLESS_PORT"] ?? "1355";
+var port = builder.Configuration[ProxyConstants.PortEnvVar] ?? ProxyConstants.DefaultHttpPort.ToString();
 var enableHttps = builder.Configuration["PORTLESS_HTTPS_ENABLED"] == "true";
 
 // Register certificate services for HTTPS support
@@ -62,7 +62,7 @@ builder.WebHost.ConfigureKestrel((context, options) =>
     options.Limits.MaxConcurrentUpgradedConnections = 1000; // Default is 100
 
     // HTTP endpoint (always active for backward compatibility)
-    options.ListenAnyIP(1355, listenOptions =>
+    options.ListenAnyIP(ProxyConstants.DefaultHttpPort, listenOptions =>
     {
         // Enable both HTTP/1.1 and HTTP/2 (Kestrel will negotiate via ALPN)
         listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
@@ -113,8 +113,8 @@ var app = builder.Build();
 
 // Add startup logging
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
-logger.LogInformation("Portless Proxy starting on port {Port}", 1355);
-logger.LogInformation("Proxy URL: http://localhost:{Port}", 1355);
+logger.LogInformation("Portless Proxy starting on port {Port}", ProxyConstants.DefaultHttpPort);
+logger.LogInformation("Proxy URL: http://localhost:{Port}", ProxyConstants.DefaultHttpPort);
 if (enableHttps)
 {
     logger.LogInformation("Proxy URL (HTTPS): https://localhost:{Port}", 1356);

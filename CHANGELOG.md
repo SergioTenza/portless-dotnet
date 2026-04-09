@@ -5,6 +5,26 @@ All notable changes to Portless.NET will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.0] - 2026-04-09
+
+### Added - VS Code Extension (Phase 1 MVP)
+
+- **Portless.NET VS Code extension** (`portless-vscode/`)
+  - Auto-activates when workspace contains `portless.config.yaml`
+  - Sidebar tree view showing proxy routes with health status icons
+  - Status bar button to start/stop the proxy
+  - Click route to open in browser
+  - Auto-refresh every 5 seconds when proxy is running
+  - Configurable proxy port via `portless.proxyPort` setting
+  - Zero runtime dependencies (built-in Node.js HTTP client)
+
+### Changed
+
+- All CLI command tests now use `[Collection("SpectreConsoleTests")]` with `DisableParallelization` for CI stability
+- E2E tool test invokes portless directly from `~/.dotnet/tools/portless`
+- E2E proxy health check timeout increased to 90s for slow CI runners
+- ProjectNameDetectorTests use isolated temp directories instead of `/tmp`
+
 ## [4.0.0] - 2026-04-08
 
 ### Added - Web Dashboard

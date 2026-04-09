@@ -1,3 +1,5 @@
+using Portless.Cli.Services;
+using Portless.Core.Services;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System.Net.Http.Json;
@@ -6,7 +8,12 @@ namespace Portless.Cli.Commands.PluginCommand;
 
 public sealed class PluginCommand : AsyncCommand<PluginSettings>
 {
-    private static readonly string ProxyBaseUrl = $"http://localhost:{Environment.GetEnvironmentVariable("PORTLESS_PORT") ?? "1355"}";
+    private readonly IProxyHttpClient _proxyHttp;
+
+    public PluginCommand(IProxyHttpClient proxyHttp)
+    {
+        _proxyHttp = proxyHttp;
+    }
 
     public override async Task<int> ExecuteAsync(CommandContext context, PluginSettings settings, CancellationToken cancellationToken)
     {
@@ -27,8 +34,8 @@ public sealed class PluginCommand : AsyncCommand<PluginSettings>
     {
         try
         {
-            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
-            var response = await http.GetAsync($"{ProxyBaseUrl}/api/v1/plugins");
+            using var http = _proxyHttp.CreateClient();
+            var response = await http.GetAsync($"{ProxyConstants.GetProxyBaseUrl()}/api/v1/plugins");
             response.EnsureSuccessStatusCode();
 
             var plugins = await response.Content.ReadFromJsonAsync<List<PluginInfo>>();
@@ -86,11 +93,7 @@ public sealed class PluginCommand : AsyncCommand<PluginSettings>
             return 1;
         }
 
-        var stateDir = Environment.GetEnvironmentVariable("PORTLESS_STATE_DIR")
-            ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".portless");
-        var pluginsDir = Path.Combine(stateDir, "plugins");
-        Directory.CreateDirectory(pluginsDir);
-
+        var pluginsDir = PluginDirectoryResolver.GetPluginsDirectory();
         var pluginName = new DirectoryInfo(path).Name;
         var destDir = Path.Combine(pluginsDir, pluginName);
 
@@ -101,19 +104,13 @@ public sealed class PluginCommand : AsyncCommand<PluginSettings>
 
         CopyDirectory(path, destDir);
 
-        // If --enable flag is set, ensure no .disabled marker exists
         if (enableAfterInstall)
         {
             var disabledFile = Path.Combine(destDir, ".disabled");
-            if (File.Exists(disabledFile))
-            {
-                File.Delete(disabledFile);
-            }
+            if (File.Exists(disabledFile)) File.Delete(disabledFile);
         }
 
-        // Reload plugins
-        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
-        await http.PostAsync($"{ProxyBaseUrl}/api/v1/plugins/reload", null);
+        await _proxyHttp.NotifyPluginReloadAsync();
 
         AnsiConsole.MarkupLine($"[green]Plugin '{Markup.Escape(pluginName)}' installed successfully.[/]");
         return 0;
@@ -127,9 +124,7 @@ public sealed class PluginCommand : AsyncCommand<PluginSettings>
             return 1;
         }
 
-        var stateDir = Environment.GetEnvironmentVariable("PORTLESS_STATE_DIR")
-            ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".portless");
-        var pluginDir = Path.Combine(stateDir, "plugins", name);
+        var pluginDir = PluginDirectoryResolver.GetPluginDirectory(name);
 
         if (!Directory.Exists(pluginDir))
         {
@@ -138,9 +133,7 @@ public sealed class PluginCommand : AsyncCommand<PluginSettings>
         }
 
         Directory.Delete(pluginDir, true);
-
-        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
-        await http.PostAsync($"{ProxyBaseUrl}/api/v1/plugins/reload", null);
+        await _proxyHttp.NotifyPluginReloadAsync();
 
         AnsiConsole.MarkupLine($"[green]Plugin '{Markup.Escape(name)}' uninstalled.[/]");
         return 0;
@@ -155,9 +148,7 @@ public sealed class PluginCommand : AsyncCommand<PluginSettings>
             return 1;
         }
 
-        var stateDir = Environment.GetEnvironmentVariable("PORTLESS_STATE_DIR")
-            ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".portless");
-        var pluginDir = Path.Combine(stateDir, "plugins", name);
+        var pluginDir = PluginDirectoryResolver.GetPluginDirectory(name);
 
         if (!Directory.Exists(pluginDir))
         {
@@ -166,21 +157,9 @@ public sealed class PluginCommand : AsyncCommand<PluginSettings>
         }
 
         var disabledFile = Path.Combine(pluginDir, ".disabled");
-        if (File.Exists(disabledFile))
-        {
-            File.Delete(disabledFile);
-        }
+        if (File.Exists(disabledFile)) File.Delete(disabledFile);
 
-        // Reload plugins via API
-        try
-        {
-            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
-            await http.PostAsync($"{ProxyBaseUrl}/api/v1/plugins/reload", null);
-        }
-        catch (HttpRequestException)
-        {
-            // Proxy may not be running; still mark as enabled locally
-        }
+        await _proxyHttp.NotifyPluginReloadAsync();
 
         AnsiConsole.MarkupLine($"[green]Plugin '{Markup.Escape(name)}' enabled.[/]");
         return 0;
@@ -195,9 +174,7 @@ public sealed class PluginCommand : AsyncCommand<PluginSettings>
             return 1;
         }
 
-        var stateDir = Environment.GetEnvironmentVariable("PORTLESS_STATE_DIR")
-            ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".portless");
-        var pluginDir = Path.Combine(stateDir, "plugins", name);
+        var pluginDir = PluginDirectoryResolver.GetPluginDirectory(name);
 
         if (!Directory.Exists(pluginDir))
         {
@@ -211,16 +188,7 @@ public sealed class PluginCommand : AsyncCommand<PluginSettings>
             await File.WriteAllTextAsync(disabledFile, string.Empty);
         }
 
-        // Reload plugins via API
-        try
-        {
-            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
-            await http.PostAsync($"{ProxyBaseUrl}/api/v1/plugins/reload", null);
-        }
-        catch (HttpRequestException)
-        {
-            // Proxy may not be running; still mark as disabled locally
-        }
+        await _proxyHttp.NotifyPluginReloadAsync();
 
         AnsiConsole.MarkupLine($"[yellow]Plugin '{Markup.Escape(name)}' disabled.[/]");
         return 0;
@@ -245,7 +213,6 @@ public sealed class PluginCommand : AsyncCommand<PluginSettings>
 
         Directory.CreateDirectory(dir);
 
-        // Create plugin.yaml
         var yaml = $"""
             name: {slug}
             version: 1.0.0
@@ -260,7 +227,6 @@ public sealed class PluginCommand : AsyncCommand<PluginSettings>
             """;
         await File.WriteAllTextAsync(Path.Combine(dir, "plugin.yaml"), yaml);
 
-        // Create C# source
         var className = string.Join("", slug.Split('-').Select(p => char.ToUpper(p[0]) + p[1..]));
         var ns = slug.Replace("-", "");
         var cs = string.Join(Environment.NewLine, [
@@ -295,7 +261,6 @@ public sealed class PluginCommand : AsyncCommand<PluginSettings>
         ]);
         await File.WriteAllTextAsync(Path.Combine(dir, $"{className}Plugin.cs"), cs);
 
-        // Create .csproj
         var csproj = $"""
             <Project Sdk="Microsoft.NET.Sdk">
               <PropertyGroup>
@@ -319,8 +284,7 @@ public sealed class PluginCommand : AsyncCommand<PluginSettings>
     {
         try
         {
-            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
-            await http.PostAsync($"{ProxyBaseUrl}/api/v1/plugins/reload", null);
+            await _proxyHttp.NotifyPluginReloadAsync();
             AnsiConsole.MarkupLine("[green]Plugins reloaded.[/]");
             return 0;
         }

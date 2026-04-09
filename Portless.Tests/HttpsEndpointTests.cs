@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Portless.Core.Services;
-using Portless.Proxy;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -18,58 +17,32 @@ namespace Portless.Tests;
 /// Tests verify TLS certificate serving, dual HTTP/HTTPS endpoints, and certificate binding.
 /// </summary>
 [Collection("Integration Tests")]
-public class HttpsEndpointTests : IClassFixture<WebApplicationFactory<Program>>, IAsyncLifetime
+public class HttpsEndpointTests : IntegrationTestBase
 {
     private WebApplicationFactory<Program> _factory = null!;
-    private readonly ITestOutputHelper _output;
-    private string? _tempDir;
     private ICertificateManager? _certManager;
 
-    public HttpsEndpointTests(WebApplicationFactory<Program> factory, ITestOutputHelper output)
+    public HttpsEndpointTests(ITestOutputHelper output)
     {
-        _output = output;
+        Output = output;
     }
 
-    public async Task InitializeAsync()
+    public override async Task InitializeAsync()
     {
-        // Create temp directory
-        _tempDir = Path.Combine(Path.GetTempPath(), $"portless-test-{Guid.NewGuid()}");
-        Directory.CreateDirectory(_tempDir);
-
-        // Set environment variable before creating factory
-        Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", _tempDir);
+        await base.InitializeAsync();
         Environment.SetEnvironmentVariable("PORTLESS_HTTPS_ENABLED", "true");
 
-        // Configure factory to use temp directory and enable HTTPS
-        // IMPORTANT: Use ConfigureServices only to avoid TestServer default behavior
-        _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+        _factory = CreateProxyApp(builder =>
         {
             builder.ConfigureServices(services =>
             {
                 // Override any services if needed for testing
             });
-            // Don't set UseSetting here as it's too late - set via environment above
         });
 
         // Resolve ICertificateManager from services
         var scope = _factory.Services.CreateScope();
         _certManager = scope.ServiceProvider.GetRequiredService<ICertificateManager>();
-    }
-
-    public async Task DisposeAsync()
-    {
-        // Delete temp directory with try-catch
-        if (_tempDir != null && Directory.Exists(_tempDir))
-        {
-            try
-            {
-                Directory.Delete(_tempDir, recursive: true);
-            }
-            catch (Exception ex)
-            {
-                _output.WriteLine($"Warning: Failed to delete temp directory {_tempDir}: {ex.Message}");
-            }
-        }
     }
 
     [Fact]
@@ -95,7 +68,7 @@ public class HttpsEndpointTests : IClassFixture<WebApplicationFactory<Program>>,
         var certificate = await _certManager.GetServerCertificateAsync();
 
         Assert.NotNull(certificate);
-        _output.WriteLine($"HTTPS configuration verified, certificate subject: {certificate.Subject}");
+        Output.WriteLine($"HTTPS configuration verified, certificate subject: {certificate.Subject}");
 
         // In a real integration test environment, we would also verify:
         // 1. Port 1356 accepts TCP connections (requires real Kestrel, not TestServer)
@@ -118,7 +91,7 @@ public class HttpsEndpointTests : IClassFixture<WebApplicationFactory<Program>>,
         // Act & Assert - Verify certificate properties
         // Subject should contain localhost
         var subject = certificate.Subject;
-        _output.WriteLine($"Certificate subject: {subject}");
+        Output.WriteLine($"Certificate subject: {subject}");
         Assert.Contains("localhost", subject, StringComparison.OrdinalIgnoreCase);
 
         // Certificate should be valid for server authentication
@@ -135,8 +108,8 @@ public class HttpsEndpointTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.True(now < certificate.NotAfter, "Certificate should not be expired");
         Assert.True(now >= certificate.NotBefore, "Certificate should be valid now");
 
-        _output.WriteLine($"Certificate valid from {certificate.NotBefore} to {certificate.NotAfter}");
-        _output.WriteLine($"Certificate has SAN extension: {sanExtension.Oid?.Value}");
+        Output.WriteLine($"Certificate valid from {certificate.NotBefore} to {certificate.NotAfter}");
+        Output.WriteLine($"Certificate has SAN extension: {sanExtension.Oid?.Value}");
 
         // Note: Actual TLS handshake testing requires real HTTPS client connecting to real Kestrel server
         // TestServer doesn't perform full TLS handshake, so we verify certificate properties instead
@@ -164,7 +137,7 @@ public class HttpsEndpointTests : IClassFixture<WebApplicationFactory<Program>>,
             $"HTTP endpoint should respond, got {response.StatusCode}"
         );
 
-        _output.WriteLine($"POST /api/v1/add-host returned {response.StatusCode}");
+        Output.WriteLine($"POST /api/v1/add-host returned {response.StatusCode}");
 
         // Verify we can make another HTTP request
         // The important thing is that the HTTP endpoint is accessible
@@ -175,7 +148,7 @@ public class HttpsEndpointTests : IClassFixture<WebApplicationFactory<Program>>,
             $"GET /api/v1/add-host should fail appropriately, got {response2.StatusCode}"
         );
 
-        _output.WriteLine("HTTP endpoint remains functional when HTTPS is enabled");
+        Output.WriteLine("HTTP endpoint remains functional when HTTPS is enabled");
     }
 
     [Fact]
@@ -215,7 +188,7 @@ public class HttpsEndpointTests : IClassFixture<WebApplicationFactory<Program>>,
             // HTTPS should not be enabled by default
             Assert.NotEqual("true", httpsEnabled);
 
-            _output.WriteLine("HTTPS is disabled by default as expected");
+            Output.WriteLine("HTTPS is disabled by default as expected");
         }
         finally
         {
@@ -228,7 +201,7 @@ public class HttpsEndpointTests : IClassFixture<WebApplicationFactory<Program>>,
                 }
                 catch (Exception ex)
                 {
-                    _output.WriteLine($"Warning: Failed to delete temp directory: {ex.Message}");
+                    Output.WriteLine($"Warning: Failed to delete temp directory: {ex.Message}");
                 }
             }
         }
@@ -244,14 +217,14 @@ public class HttpsEndpointTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.NotNull(initialCert);
 
         var initialThumbprint = initialCert.Thumbprint;
-        _output.WriteLine($"Initial certificate thumbprint: {initialThumbprint}");
+        Output.WriteLine($"Initial certificate thumbprint: {initialThumbprint}");
 
         // Act - Delete certificate and restart with new factory
-        var certPath = Path.Combine(_tempDir!, "cert.pfx");
+        var certPath = Path.Combine(TempDir, "cert.pfx");
         if (File.Exists(certPath))
         {
             File.Delete(certPath);
-            _output.WriteLine($"Deleted certificate at {certPath}");
+            Output.WriteLine($"Deleted certificate at {certPath}");
         }
 
         // Create new factory instance (simulates restart)
@@ -273,14 +246,14 @@ public class HttpsEndpointTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.NotNull(newCert);
 
         var newThumbprint = newCert.Thumbprint;
-        _output.WriteLine($"New certificate thumbprint: {newThumbprint}");
+        Output.WriteLine($"New certificate thumbprint: {newThumbprint}");
 
         // The new certificate should have a different thumbprint (regenerated)
         // or the same if cached (implementation dependent)
         // Key assertion: Certificate is available after deletion
         Assert.NotNull(newCert);
 
-        _output.WriteLine("Certificate successfully regenerated after deletion");
+        Output.WriteLine("Certificate successfully regenerated after deletion");
     }
 
     [Fact]
@@ -305,7 +278,7 @@ public class HttpsEndpointTests : IClassFixture<WebApplicationFactory<Program>>,
         var keySize = certificate.GetRSAPublicKey()?.KeySize ?? 0;
         Assert.True(keySize >= 2048, $"Certificate key size should be at least 2048 bits, got {keySize}");
 
-        _output.WriteLine($"Certificate key size: {keySize} bits");
+        Output.WriteLine($"Certificate key size: {keySize} bits");
 
         // In Program.cs, Kestrel is configured with:
         // options.ConfigureHttpsDefaults(httpsOptions =>
@@ -321,8 +294,8 @@ public class HttpsEndpointTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.NotNull(certHash);
         Assert.True(certHash.Length > 0, "Certificate hash should be present");
 
-        _output.WriteLine("Certificate supports TLS 1.2+ protocols");
-        _output.WriteLine("Note: Actual TLS protocol enforcement verified with real Kestrel server");
+        Output.WriteLine("Certificate supports TLS 1.2+ protocols");
+        Output.WriteLine("Note: Actual TLS protocol enforcement verified with real Kestrel server");
     }
 }
 

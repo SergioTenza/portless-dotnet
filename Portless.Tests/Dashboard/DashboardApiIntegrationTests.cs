@@ -7,31 +7,18 @@ using Portless.Core.Services;
 namespace Portless.Tests.Dashboard;
 
 [Collection("Integration Tests")]
-public sealed class DashboardApiIntegrationTests : IAsyncLifetime
+public sealed class DashboardApiIntegrationTests : IntegrationTestBase
 {
-    private readonly WebApplicationFactory<Program> _factory;
-    private readonly HttpClient _client;
-    private readonly string _tempDir;
+    private WebApplicationFactory<Program> _factory = null!;
+    private HttpClient _client = null!;
 
-    public DashboardApiIntegrationTests()
+    protected override string TempDirPrefix => "portless-test-dashboard";
+
+    public override async Task InitializeAsync()
     {
-        _tempDir = Path.Combine(Path.GetTempPath(), $"portless-test-dashboard-{Guid.NewGuid():N}");
-        Directory.CreateDirectory(_tempDir);
-
-        _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
-        {
-            builder.UseSetting("PORTLESS_STATE_DIR", _tempDir);
-        });
-        _client = _factory.CreateClient();
-    }
-
-    public Task InitializeAsync() => Task.CompletedTask;
-
-    public async Task DisposeAsync()
-    {
-        _client.Dispose();
-        await _factory.DisposeAsync();
-        try { Directory.Delete(_tempDir, true); } catch { }
+        await base.InitializeAsync();
+        _factory = CreateProxyApp();
+        _client = CreateHttpClient(_factory);
     }
 
     [Fact]

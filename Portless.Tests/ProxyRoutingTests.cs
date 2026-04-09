@@ -16,41 +16,18 @@ namespace Portless.Tests
     /// Integration tests for YARP-based proxy routing functionality.
     /// Tests verify Host header routing behavior, multiple hostname support,
     /// invalid hostname handling, and dynamic configuration updates.
-[Collection("Integration Tests")]
+    [Collection("Integration Tests")]
     /// </summary>
-    public class ProxyRoutingTests : IAsyncLifetime
+    public class ProxyRoutingTests : IntegrationTestBase
     {
     private WebApplicationFactory<Program> _factory = null!;
     private HttpClient _client = null!;
-    private string _tempDir = null!;
 
-    public async Task InitializeAsync()
+    public override async Task InitializeAsync()
     {
-        // Use isolated temp state directory to prevent interference from other tests
-        _tempDir = Path.Combine(Path.GetTempPath(), $"portless-routing-test-{Guid.NewGuid():N}");
-        Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", _tempDir);
-        Directory.CreateDirectory(_tempDir);
-        await File.WriteAllTextAsync(Path.Combine(_tempDir, "routes.json"), "[]");
-
-        _factory = new WebApplicationFactory<Program>();
-        _client = _factory.CreateClient();
-    }
-
-    public async Task DisposeAsync()
-    {
-        _client?.Dispose();
-        _factory?.Dispose();
-        Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", null);
-        // Cleanup only our own temp dir
-        try
-        {
-            if (_tempDir != null && Directory.Exists(_tempDir))
-            {
-                Directory.Delete(_tempDir, true);
-            }
-        }
-        catch { }
-        await Task.CompletedTask;
+        await base.InitializeAsync();
+        _factory = CreateProxyApp();
+        _client = CreateHttpClient(_factory);
     }
 
         [Fact]
@@ -60,30 +37,14 @@ namespace Portless.Tests
             var config = _factory.Services.GetRequiredService<DynamicConfigProvider>();
 
             // Add a route for api1.localhost -> localhost:5000
-            var routes = new List<Yarp.ReverseProxy.Configuration.RouteConfig>
+            var routes = new List<RouteConfig>
             {
-                new Yarp.ReverseProxy.Configuration.RouteConfig
-                {
-                    RouteId = "route-api1.localhost",
-                    ClusterId = "cluster-api1.localhost",
-                    Match = new Yarp.ReverseProxy.Configuration.RouteMatch
-                    {
-                        Hosts = new[] { "api1.localhost" },
-                        Path = "/{**catch-all}"
-                    }
-                }
+                YarpTestFactory.CreateRoute("route-api1.localhost", "cluster-api1.localhost", new[] { "api1.localhost" })
             };
 
-            var clusters = new List<Yarp.ReverseProxy.Configuration.ClusterConfig>
+            var clusters = new List<ClusterConfig>
             {
-                new Yarp.ReverseProxy.Configuration.ClusterConfig
-                {
-                    ClusterId = "cluster-api1.localhost",
-                    Destinations = new Dictionary<string, DestinationConfig>
-                    {
-                        ["backend1"] = new Yarp.ReverseProxy.Configuration.DestinationConfig { Address = "http://localhost:5000" }
-                    }
-                }
+                YarpTestFactory.CreateCluster("cluster-api1.localhost", "http://localhost:5000")
             };
 
             config.Update(routes, clusters);
@@ -118,48 +79,16 @@ namespace Portless.Tests
             // Arrange
             var config = _factory.Services.GetRequiredService<DynamicConfigProvider>();
 
-            var routes = new List<Yarp.ReverseProxy.Configuration.RouteConfig>
+            var routes = new List<RouteConfig>
             {
-                new Yarp.ReverseProxy.Configuration.RouteConfig
-                {
-                    RouteId = "route-api1.localhost",
-                    ClusterId = "cluster-api1.localhost",
-                    Match = new Yarp.ReverseProxy.Configuration.RouteMatch
-                    {
-                        Hosts = new[] { "api1.localhost" },
-                        Path = "/{**catch-all}"
-                    }
-                },
-                new RouteConfig
-                {
-                    RouteId = "route-web1.localhost",
-                    ClusterId = "cluster-web1.localhost",
-                    Match = new Yarp.ReverseProxy.Configuration.RouteMatch
-                    {
-                        Hosts = new[] { "web1.localhost" },
-                        Path = "/{**catch-all}"
-                    }
-                }
+                YarpTestFactory.CreateRoute("route-api1.localhost", "cluster-api1.localhost", new[] { "api1.localhost" }),
+                YarpTestFactory.CreateRoute("route-web1.localhost", "cluster-web1.localhost", new[] { "web1.localhost" })
             };
 
-            var clusters = new List<Yarp.ReverseProxy.Configuration.ClusterConfig>
+            var clusters = new List<ClusterConfig>
             {
-                new Yarp.ReverseProxy.Configuration.ClusterConfig
-                {
-                    ClusterId = "cluster-api1.localhost",
-                    Destinations = new Dictionary<string, DestinationConfig>
-                    {
-                        ["backend1"] = new Yarp.ReverseProxy.Configuration.DestinationConfig { Address = "http://localhost:5000" }
-                    }
-                },
-                new ClusterConfig
-                {
-                    ClusterId = "cluster-web1.localhost",
-                    Destinations = new Dictionary<string, DestinationConfig>
-                    {
-                        ["backend1"] = new Yarp.ReverseProxy.Configuration.DestinationConfig { Address = "http://localhost:3000" }
-                    }
-                }
+                YarpTestFactory.CreateCluster("cluster-api1.localhost", "http://localhost:5000"),
+                YarpTestFactory.CreateCluster("cluster-web1.localhost", "http://localhost:3000")
             };
 
             config.Update(routes, clusters);
@@ -201,30 +130,14 @@ namespace Portless.Tests
             var config = _factory.Services.GetRequiredService<DynamicConfigProvider>();
 
             // Add a route for api1.localhost only
-            var routes = new List<Yarp.ReverseProxy.Configuration.RouteConfig>
+            var routes = new List<RouteConfig>
             {
-                new Yarp.ReverseProxy.Configuration.RouteConfig
-                {
-                    RouteId = "route-api1.localhost",
-                    ClusterId = "cluster-api1.localhost",
-                    Match = new Yarp.ReverseProxy.Configuration.RouteMatch
-                    {
-                        Hosts = new[] { "api1.localhost" },
-                        Path = "/{**catch-all}"
-                    }
-                }
+                YarpTestFactory.CreateRoute("route-api1.localhost", "cluster-api1.localhost", new[] { "api1.localhost" })
             };
 
-            var clusters = new List<Yarp.ReverseProxy.Configuration.ClusterConfig>
+            var clusters = new List<ClusterConfig>
             {
-                new Yarp.ReverseProxy.Configuration.ClusterConfig
-                {
-                    ClusterId = "cluster-api1.localhost",
-                    Destinations = new Dictionary<string, DestinationConfig>
-                    {
-                        ["backend1"] = new Yarp.ReverseProxy.Configuration.DestinationConfig { Address = "http://localhost:5000" }
-                    }
-                }
+                YarpTestFactory.CreateCluster("cluster-api1.localhost", "http://localhost:5000")
             };
 
             config.Update(routes, clusters);
@@ -250,28 +163,12 @@ namespace Portless.Tests
             // Step 1: Add initial route
             var initialRoutes = new List<RouteConfig>
             {
-                new RouteConfig
-                {
-                    RouteId = "route-api1.localhost",
-                    ClusterId = "cluster-api1.localhost",
-                    Match = new Yarp.ReverseProxy.Configuration.RouteMatch
-                    {
-                        Hosts = new[] { "api1.localhost" },
-                        Path = "/{**catch-all}"
-                    }
-                }
+                YarpTestFactory.CreateRoute("route-api1.localhost", "cluster-api1.localhost", new[] { "api1.localhost" })
             };
 
             var initialClusters = new List<ClusterConfig>
             {
-                new ClusterConfig
-                {
-                    ClusterId = "cluster-api1.localhost",
-                    Destinations = new Dictionary<string, DestinationConfig>
-                    {
-                        ["backend1"] = new Yarp.ReverseProxy.Configuration.DestinationConfig { Address = "http://localhost:5000" }
-                    }
-                }
+                YarpTestFactory.CreateCluster("cluster-api1.localhost", "http://localhost:5000")
             };
 
             config.Update(initialRoutes, initialClusters);
@@ -295,28 +192,12 @@ namespace Portless.Tests
             // Step 2: Add second route via configuration update
             var updatedRoutes = new List<RouteConfig>(initialRoutes)
             {
-                new RouteConfig
-                {
-                    RouteId = "route-web1.localhost",
-                    ClusterId = "cluster-web1.localhost",
-                    Match = new Yarp.ReverseProxy.Configuration.RouteMatch
-                    {
-                        Hosts = new[] { "web1.localhost" },
-                        Path = "/{**catch-all}"
-                    }
-                }
+                YarpTestFactory.CreateRoute("route-web1.localhost", "cluster-web1.localhost", new[] { "web1.localhost" })
             };
 
             var updatedClusters = new List<ClusterConfig>(initialClusters)
             {
-                new ClusterConfig
-                {
-                    ClusterId = "cluster-web1.localhost",
-                    Destinations = new Dictionary<string, DestinationConfig>
-                    {
-                        ["backend1"] = new Yarp.ReverseProxy.Configuration.DestinationConfig { Address = "http://localhost:3000" }
-                    }
-                }
+                YarpTestFactory.CreateCluster("cluster-web1.localhost", "http://localhost:3000")
             };
 
             config.Update(updatedRoutes, updatedClusters);

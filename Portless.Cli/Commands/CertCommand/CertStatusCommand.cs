@@ -43,8 +43,7 @@ public class CertStatusCommand : AsyncCommand<CertStatusSettings>
             {
                 // Display certificate file information (no trust status on non-Windows)
                 AnsiConsole.MarkupLine("Certificate: [green]Valid[/]");
-                AnsiConsole.MarkupLine("SHA-256: {0}", metadata.Sha256Thumbprint ?? "N/A");
-                AnsiConsole.MarkupLine("Expires: {0}", metadata.ExpiresAt ?? "N/A");
+                CertFormatter.WriteCertMetadata(metadata.Sha256Thumbprint, metadata.ExpiresAt);
                 AnsiConsole.MarkupLine("\n[yellow]Trust Status: Manual installation required[/]");
                 AnsiConsole.MarkupLine("[dim]Certificate trust installation is Windows-only in v1.2.[/dim]");
                 AnsiConsole.MarkupLine("\n[bold]Manual trust required:[/]");
@@ -86,8 +85,7 @@ public class CertStatusCommand : AsyncCommand<CertStatusSettings>
             if (settings.Verbose)
             {
                 AnsiConsole.MarkupLine("\n[bold]Certificate Details:[/]");
-                AnsiConsole.MarkupLine("  SHA-256: {0}", metadata.Sha256Thumbprint ?? "N/A");
-                AnsiConsole.MarkupLine("  Expires: {0}", metadata.ExpiresAt ?? "N/A");
+                CertFormatter.WriteCertMetadata(metadata.Sha256Thumbprint, metadata.ExpiresAt, "  ");
                 AnsiConsole.MarkupLine("  Store: Cert:\\LocalMachine\\Root");
                 AnsiConsole.MarkupLine("  Subject: {0}", cert.Subject);
                 AnsiConsole.MarkupLine("  Issuer: {0}", cert.Issuer);

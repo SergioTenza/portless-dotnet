@@ -50,28 +50,12 @@ public class Http2IntegrationTests : IClassFixture<WebApplicationFactory<Program
 
         var routes = new List<RouteConfig>
         {
-            new RouteConfig
-            {
-                RouteId = "route-http2-test.localhost",
-                ClusterId = "cluster-http2-test",
-                Match = new RouteMatch
-                {
-                    Hosts = new[] { "http2-test.localhost" },
-                    Path = "/{**catch-all}"
-                }
-            }
+            YarpTestFactory.CreateRoute("route-http2-test.localhost", "cluster-http2-test", new[] { "http2-test.localhost" })
         };
 
         var clusters = new List<ClusterConfig>
         {
-            new ClusterConfig
-            {
-                ClusterId = "cluster-http2-test",
-                Destinations = new Dictionary<string, DestinationConfig>
-                {
-                    ["backend1"] = new DestinationConfig { Address = "http://localhost:5000" }
-                }
-            }
+            YarpTestFactory.CreateCluster("cluster-http2-test", "http://localhost:5000")
         };
 
         config.Update(routes, clusters);
@@ -103,28 +87,12 @@ public class Http2IntegrationTests : IClassFixture<WebApplicationFactory<Program
 
         var routes = new List<RouteConfig>
         {
-            new RouteConfig
-            {
-                RouteId = "route-protocol-test.localhost",
-                ClusterId = "cluster-protocol-test",
-                Match = new RouteMatch
-                {
-                    Hosts = new[] { "protocol-test.localhost" },
-                    Path = "/{**catch-all}"
-                }
-            }
+            YarpTestFactory.CreateRoute("route-protocol-test.localhost", "cluster-protocol-test", new[] { "protocol-test.localhost" })
         };
 
         var clusters = new List<ClusterConfig>
         {
-            new ClusterConfig
-            {
-                ClusterId = "cluster-protocol-test",
-                Destinations = new Dictionary<string, DestinationConfig>
-                {
-                    ["backend1"] = new DestinationConfig { Address = "http://localhost:5001" }
-                }
-            }
+            YarpTestFactory.CreateCluster("cluster-protocol-test", "http://localhost:5001")
         };
 
         config.Update(routes, clusters);
@@ -149,28 +117,12 @@ public class Http2IntegrationTests : IClassFixture<WebApplicationFactory<Program
 
         var routes = new List<RouteConfig>
         {
-            new RouteConfig
-            {
-                RouteId = "route-headers-test.localhost",
-                ClusterId = "cluster-headers-test",
-                Match = new RouteMatch
-                {
-                    Hosts = new[] { "headers-test.localhost" },
-                    Path = "/{**catch-all}"
-                }
-            }
+            YarpTestFactory.CreateRoute("route-headers-test.localhost", "cluster-headers-test", new[] { "headers-test.localhost" })
         };
 
         var clusters = new List<ClusterConfig>
         {
-            new ClusterConfig
-            {
-                ClusterId = "cluster-headers-test",
-                Destinations = new Dictionary<string, DestinationConfig>
-                {
-                    ["backend1"] = new DestinationConfig { Address = "http://localhost:5002" }
-                }
-            }
+            YarpTestFactory.CreateCluster("cluster-headers-test", "http://localhost:5002")
         };
 
         config.Update(routes, clusters);

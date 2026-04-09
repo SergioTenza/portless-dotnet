@@ -332,34 +332,13 @@ public static class PortlessApiEndpoints
         // GET /api/v1/inspect/stats - Inspector statistics
         endpoints.MapGet("/api/v1/inspect/stats", (IRequestInspector? inspector) =>
         {
-            if (inspector == null)
-            {
-                return Results.Ok(new { totalCaptured = 0, avgDurationMs = 0.0, errorRate = 0.0, requestsPerMinute = 0.0 });
-            }
-
-            var recent = inspector.GetRecent(100);
-            var avgDuration = recent.Count > 0 ? recent.Average(r => r.DurationMs) : 0.0;
-            var errorRate = recent.Count > 0 ? recent.Count(r => r.StatusCode >= 400) / (double)recent.Count : 0.0;
-
-            // Calculate requests per minute from recent requests timestamps
-            double requestsPerMinute = 0.0;
-            if (recent.Count >= 2)
-            {
-                var oldest = recent.Min(r => r.Timestamp);
-                var newest = recent.Max(r => r.Timestamp);
-                var span = newest - oldest;
-                if (span.TotalMinutes > 0)
-                {
-                    requestsPerMinute = recent.Count / span.TotalMinutes;
-                }
-            }
-
+            var stats = InspectorStatsCalculator.Compute(inspector);
             return Results.Ok(new
             {
-                totalCaptured = inspector.Count,
-                avgDurationMs = Math.Round(avgDuration, 2),
-                errorRate = Math.Round(errorRate, 4),
-                requestsPerMinute = Math.Round(requestsPerMinute, 2)
+                totalCaptured = stats?.TotalCaptured ?? 0,
+                avgDurationMs = stats?.AvgDurationMs ?? 0.0,
+                errorRate = stats?.ErrorRate ?? 0.0,
+                requestsPerMinute = stats?.RequestsPerMinute ?? 0.0
             });
         });
 

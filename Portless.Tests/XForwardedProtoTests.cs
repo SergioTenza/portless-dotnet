@@ -7,7 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Portless.Core.Configuration;
 using Portless.Core.Services;
-using Portless.Proxy;
 using Portless.Tests.TestApi;
 using Xunit;
 using Xunit.Abstractions;
@@ -20,35 +19,25 @@ namespace Portless.Tests;
 /// Tests verify protocol header preservation for HTTP and HTTPS client requests.
 /// </summary>
 [Collection("Integration Tests")]
-public class XForwardedProtoTests : IClassFixture<WebApplicationFactory<Program>>, IAsyncLifetime
+public class XForwardedProtoTests : IntegrationTestBase
 {
     private WebApplicationFactory<Program>? _factory;
-    private readonly ITestOutputHelper _output;
-    private readonly WebApplicationFactory<Program> _factoryFixture;
-    private string? _tempDir;
     private ICertificateManager? _certManager;
     private HeaderEchoServer? _echoServer;
 
-    public XForwardedProtoTests(WebApplicationFactory<Program> factoryFixture, ITestOutputHelper output)
+    public XForwardedProtoTests(ITestOutputHelper output)
     {
-        _factoryFixture = factoryFixture;
-        _output = output;
+        Output = output;
     }
 
-    public async Task InitializeAsync()
+    public override async Task InitializeAsync()
     {
-        // Create temp directory
-        _tempDir = Path.Combine(Path.GetTempPath(), $"portless-test-xfp-{Guid.NewGuid()}");
-        Directory.CreateDirectory(_tempDir);
-
-        // Set environment variable before creating factory
-        Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", _tempDir);
+        await base.InitializeAsync();
         // Note: Keep HTTPS disabled for most tests to avoid redirects
         // Individual tests that need HTTPS will enable it
         Environment.SetEnvironmentVariable("PORTLESS_HTTPS_ENABLED", "false");
 
-        // Configure factory to use temp directory
-        _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+        _factory = CreateProxyApp(builder =>
         {
             builder.ConfigureServices(services =>
             {
@@ -66,29 +55,17 @@ public class XForwardedProtoTests : IClassFixture<WebApplicationFactory<Program>
         _echoServer = new HeaderEchoServer(logger);
         await _echoServer.StartAsync();
 
-        _output.WriteLine($"Echo server started on {_echoServer.BaseUrl}");
+        Output.WriteLine($"Echo server started on {_echoServer.BaseUrl}");
     }
 
-    public async Task DisposeAsync()
+    public override Task DisposeAsync()
     {
         // Dispose echo server
         if (_echoServer != null)
         {
-            await _echoServer.DisposeAsync();
+            return _echoServer.DisposeAsync().AsTask().ContinueWith(_ => base.DisposeAsync());
         }
-
-        // Delete temp directory with try-catch
-        if (_tempDir != null && Directory.Exists(_tempDir))
-        {
-            try
-            {
-                Directory.Delete(_tempDir, recursive: true);
-            }
-            catch (Exception ex)
-            {
-                _output.WriteLine($"Warning: Failed to delete temp directory {_tempDir}: {ex.Message}");
-            }
-        }
+        return base.DisposeAsync();
     }
 
     [Fact]
@@ -103,28 +80,12 @@ public class XForwardedProtoTests : IClassFixture<WebApplicationFactory<Program>
 
         var routes = new List<RouteConfig>
         {
-            new RouteConfig
-            {
-                RouteId = "route-xfp-http.localhost",
-                ClusterId = "cluster-xfp-http.localhost",
-                Match = new RouteMatch
-                {
-                    Hosts = new[] { "xfp-http.localhost" },
-                    Path = "/{**catch-all}"
-                }
-            }
+            YarpTestFactory.CreateRoute("route-xfp-http.localhost", "cluster-xfp-http.localhost", new[] { "xfp-http.localhost" })
         };
 
         var clusters = new List<ClusterConfig>
         {
-            new ClusterConfig
-            {
-                ClusterId = "cluster-xfp-http.localhost",
-                Destinations = new Dictionary<string, DestinationConfig>
-                {
-                    ["backend"] = new DestinationConfig { Address = _echoServer.BaseUrl }
-                }
-            }
+            YarpTestFactory.CreateCluster("cluster-xfp-http.localhost", _echoServer.BaseUrl, "backend")
         };
 
         config.Update(routes, clusters);
@@ -152,7 +113,7 @@ public class XForwardedProtoTests : IClassFixture<WebApplicationFactory<Program>
         Assert.NotNull(xForwardedProto);
         Assert.Equal("http", xForwardedProto.ToLower());
 
-        _output.WriteLine($"X-Forwarded-Proto header for HTTP request: {xForwardedProto}");
+        Output.WriteLine($"X-Forwarded-Proto header for HTTP request: {xForwardedProto}");
     }
 
     [Fact]
@@ -190,28 +151,12 @@ public class XForwardedProtoTests : IClassFixture<WebApplicationFactory<Program>
 
             var routes = new List<RouteConfig>
             {
-                new RouteConfig
-                {
-                    RouteId = "route-xfp-https.localhost",
-                    ClusterId = "cluster-xfp-https.localhost",
-                    Match = new RouteMatch
-                    {
-                        Hosts = new[] { "xfp-https.localhost" },
-                        Path = "/{**catch-all}"
-                    }
-                }
+                YarpTestFactory.CreateRoute("route-xfp-https.localhost", "cluster-xfp-https.localhost", new[] { "xfp-https.localhost" })
             };
 
             var clusters = new List<ClusterConfig>
             {
-                new ClusterConfig
-                {
-                    ClusterId = "cluster-xfp-https.localhost",
-                    Destinations = new Dictionary<string, DestinationConfig>
-                    {
-                        ["backend"] = new DestinationConfig { Address = _echoServer.BaseUrl }
-                    }
-                }
+                YarpTestFactory.CreateCluster("cluster-xfp-https.localhost", _echoServer.BaseUrl, "backend")
             };
 
             config.Update(routes, clusters);
@@ -223,7 +168,7 @@ public class XForwardedProtoTests : IClassFixture<WebApplicationFactory<Program>
 
             // Verify certificate is available
             Assert.NotNull(certificate);
-            _output.WriteLine($"Certificate subject: {certificate.Subject}");
+            Output.WriteLine($"Certificate subject: {certificate.Subject}");
 
             // For TestServer-based testing, we verify the configuration is correct
             // In a real integration test with actual HTTPS, we would:
@@ -233,8 +178,8 @@ public class XForwardedProtoTests : IClassFixture<WebApplicationFactory<Program>
             // 4. Verify X-Forwarded-Proto header is "https"
 
             // Since TestServer doesn't support real HTTPS, we document the expected behavior
-            _output.WriteLine("HTTPS configuration verified for X-Forwarded-Proto tests");
-            _output.WriteLine("Real HTTPS testing requires actual Kestrel server with TLS handshake");
+            Output.WriteLine("HTTPS configuration verified for X-Forwarded-Proto tests");
+            Output.WriteLine("Real HTTPS testing requires actual Kestrel server with TLS handshake");
 
             // Verify the route configuration was accepted
             using var client = httpsFactory.CreateClient();
@@ -263,12 +208,12 @@ public class XForwardedProtoTests : IClassFixture<WebApplicationFactory<Program>
                 }
                 catch (Exception ex)
                 {
-                    _output.WriteLine($"Warning: Failed to delete HTTPS temp directory: {ex.Message}");
+                    Output.WriteLine($"Warning: Failed to delete HTTPS temp directory: {ex.Message}");
                 }
             }
 
             // Reset environment variables
-            Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", _tempDir);
+            Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", TempDir);
             Environment.SetEnvironmentVariable("PORTLESS_HTTPS_ENABLED", "false");
         }
     }
@@ -285,28 +230,12 @@ public class XForwardedProtoTests : IClassFixture<WebApplicationFactory<Program>
 
         var routes = new List<RouteConfig>
         {
-            new RouteConfig
-            {
-                RouteId = "route-xfp-scheme.localhost",
-                ClusterId = "cluster-xfp-scheme.localhost",
-                Match = new RouteMatch
-                {
-                    Hosts = new[] { "xfp-scheme.localhost" },
-                    Path = "/{**catch-all}"
-                }
-            }
+            YarpTestFactory.CreateRoute("route-xfp-scheme.localhost", "cluster-xfp-scheme.localhost", new[] { "xfp-scheme.localhost" })
         };
 
         var clusters = new List<ClusterConfig>
         {
-            new ClusterConfig
-            {
-                ClusterId = "cluster-xfp-scheme.localhost",
-                Destinations = new Dictionary<string, DestinationConfig>
-                {
-                    ["backend"] = new DestinationConfig { Address = _echoServer.BaseUrl }
-                }
-            }
+            YarpTestFactory.CreateCluster("cluster-xfp-scheme.localhost", _echoServer.BaseUrl, "backend")
         };
 
         config.Update(routes, clusters);
@@ -325,7 +254,7 @@ public class XForwardedProtoTests : IClassFixture<WebApplicationFactory<Program>
         var xForwardedProto1 = _echoServer.GetHeader("X-Forwarded-Proto");
         Assert.NotNull(xForwardedProto1);
         Assert.Equal("http", xForwardedProto1.ToLower());
-        _output.WriteLine($"Request 1 X-Forwarded-Proto: {xForwardedProto1}");
+        Output.WriteLine($"Request 1 X-Forwarded-Proto: {xForwardedProto1}");
 
         // Act - Make second HTTP request (same scheme)
         _echoServer.ClearHeaders();
@@ -339,12 +268,12 @@ public class XForwardedProtoTests : IClassFixture<WebApplicationFactory<Program>
         var xForwardedProto2 = _echoServer.GetHeader("X-Forwarded-Proto");
         Assert.NotNull(xForwardedProto2);
         Assert.Equal("http", xForwardedProto2.ToLower());
-        _output.WriteLine($"Request 2 X-Forwarded-Proto: {xForwardedProto2}");
+        Output.WriteLine($"Request 2 X-Forwarded-Proto: {xForwardedProto2}");
 
         // Assert - Both requests should have correct X-Forwarded-Proto header
         Assert.Equal("http", xForwardedProto1.ToLower());
         Assert.Equal("http", xForwardedProto2.ToLower());
 
-        _output.WriteLine("X-Forwarded-Proto header preserves original scheme for all requests");
+        Output.WriteLine("X-Forwarded-Proto header preserves original scheme for all requests");
     }
 }

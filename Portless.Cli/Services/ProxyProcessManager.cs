@@ -8,7 +8,6 @@ namespace Portless.Cli.Services;
 
 public class ProxyProcessManager : IProxyProcessManager
 {
-    private const string DefaultPort = "1355";
     private const string HttpsPort = "1356";
     private readonly string _stateDirectory;
     private readonly string _pidFilePath;
@@ -34,10 +33,10 @@ public class ProxyProcessManager : IProxyProcessManager
         }
 
         // Log deprecation warning if PORTLESS_PORT is set
-        var portlessPort = Environment.GetEnvironmentVariable("PORTLESS_PORT");
+        var portlessPort = Environment.GetEnvironmentVariable(ProxyConstants.PortEnvVar);
         if (!string.IsNullOrEmpty(portlessPort))
         {
-            Console.WriteLine($"Warning: PORTLESS_PORT environment variable is deprecated. Fixed ports: HTTP=1355, HTTPS=1356");
+            Console.WriteLine($"Warning: {ProxyConstants.PortEnvVar} environment variable is deprecated. Fixed ports: HTTP={ProxyConstants.DefaultHttpPort}, HTTPS={ProxyConstants.DefaultHttpsPort}");
         }
 
         // Build path to Portless.Proxy.csproj using AppContext.BaseDirectory (AOT-safe)
@@ -58,7 +57,7 @@ public class ProxyProcessManager : IProxyProcessManager
             startInfo = new ProcessStartInfo
             {
                 FileName = "cmd.exe",
-                Arguments = $"/c set PORTLESS_PORT={DefaultPort} && set PORTLESS_HTTPS_ENABLED={enableHttps.ToString().ToLower()} && set DOTNET_MODIFIABLE_ASSEMBLIES=debug && dotnet run --project \"{proxyProjectPath}\" --urls http://*:{DefaultPort}",
+                Arguments = $"/c set PORTLESS_PORT={ProxyConstants.DefaultHttpPort} && set PORTLESS_HTTPS_ENABLED={enableHttps.ToString().ToLower()} && set DOTNET_MODIFIABLE_ASSEMBLIES=debug && dotnet run --project \"{proxyProjectPath}\" --urls http://*:{ProxyConstants.DefaultHttpPort}",
                 UseShellExecute = true,
                 CreateNoWindow = true,
                 WindowStyle = ProcessWindowStyle.Hidden
@@ -71,11 +70,11 @@ public class ProxyProcessManager : IProxyProcessManager
             startInfo = new ProcessStartInfo
             {
                 FileName = dotnetExe,
-                Arguments = $"run --project \"{proxyProjectPath}\" --urls http://*:{DefaultPort}",
+                Arguments = $"run --project \"{proxyProjectPath}\" --urls http://*:{ProxyConstants.DefaultHttpPort}",
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
-            startInfo.Environment["PORTLESS_PORT"] = DefaultPort;
+            startInfo.Environment[ProxyConstants.PortEnvVar] = ProxyConstants.DefaultHttpPort.ToString();
             startInfo.Environment["PORTLESS_HTTPS_ENABLED"] = enableHttps.ToString().ToLower();
             startInfo.Environment["DOTNET_MODIFIABLE_ASSEMBLIES"] = "debug";
         }
@@ -176,7 +175,7 @@ public class ProxyProcessManager : IProxyProcessManager
 
         // For now, return default port
         // Port tracking can be enhanced later by storing port in a separate file
-        return (true, int.Parse(DefaultPort), pid);
+        return (true, ProxyConstants.GetHttpPort(), pid);
     }
 
     public async Task<int[]> GetActiveManagedProcessesAsync()

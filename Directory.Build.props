@@ -4,7 +4,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>preview</LangVersion>
-    <Version>4.0.0</Version>
+    <Version>4.1.1</Version>
     <Authors>Sergio Tenza, Portless.NET Contributors</Authors>
     <Description>Stable .localhost URLs for local .NET development - reverse proxy with YARP</Description>
     <PackageProjectUrl>https://github.com/SergioTenza/portless-dotnet</PackageProjectUrl>

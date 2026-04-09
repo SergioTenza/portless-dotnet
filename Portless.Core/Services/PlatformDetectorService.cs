@@ -1,6 +1,5 @@
 // Portless.Core/Services/PlatformDetectorService.cs
 using System.Runtime.InteropServices;
-using System.Diagnostics;
 using System.Security.Principal;
 using Microsoft.Extensions.Logging;
 using Portless.Core.Models;
@@ -52,22 +51,7 @@ public class PlatformDetectorService : IPlatformDetectorService
             // Unix-like: check if running as root (UID == 0)
             try
             {
-                using var process = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = "id",
-                        Arguments = "-u",
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        UseShellExecute = false
-                    }
-                };
-
-                process.Start();
-                var output = process.StandardOutput.ReadToEnd().Trim();
-                process.WaitForExit();
-
+                var output = ProcessHelper.RunToString("id", "-u");
                 return output == "0";
             }
             catch

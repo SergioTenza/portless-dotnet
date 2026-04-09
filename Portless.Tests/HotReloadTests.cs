@@ -14,10 +14,9 @@ using System.Text.Json.Serialization;
 namespace Portless.Tests;
 
 [Collection("Integration Tests")]
-public class HotReloadTests : IAsyncLifetime
+public class HotReloadTests : IntegrationTestBase
 {
-    private readonly string _testDirectory;
-    private readonly string _testRoutesFile;
+    private string _testRoutesFile;
     private IRouteStore? _routeStore;
 #pragma warning disable CS0649 // Field is used for test lifecycle management; assigned conditionally
     private IHost? _testHost;
@@ -31,43 +30,33 @@ public class HotReloadTests : IAsyncLifetime
         AllowTrailingCommas = true
     };
 
+    protected override bool CreateRoutesJson => false;
+
     public HotReloadTests()
     {
-        _testDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-        _testRoutesFile = Path.Combine(_testDirectory, "routes.json");
-        Directory.CreateDirectory(_testDirectory);
+        // Note: TempDir is not yet created here; it's set in InitializeAsync
+        _testRoutesFile = null!; // Will be set in InitializeAsync
     }
 
-    public Task InitializeAsync()
+    public override async Task InitializeAsync()
     {
+        await base.InitializeAsync();
+        _testRoutesFile = Path.Combine(TempDir, "routes.json");
+
         // Clean up any existing test file from previous runs
         if (File.Exists(_testRoutesFile))
         {
             File.Delete(_testRoutesFile);
         }
 
-        // Set environment variable for RouteStore to use test directory
-        Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", _testDirectory);
-
         // Initialize RouteStore which will use PORTLESS_STATE_DIR
         _routeStore = new RouteStore();
-        return Task.CompletedTask;
     }
 
-    public async Task DisposeAsync()
+    public override void Dispose()
     {
         _testHost?.Dispose();
-        if (Directory.Exists(_testDirectory))
-        {
-            try
-            {
-                Directory.Delete(_testDirectory, recursive: true);
-            }
-            catch
-            {
-                // Ignore cleanup errors
-            }
-        }
+        base.Dispose();
     }
 
     [Fact]
@@ -84,7 +73,7 @@ public class HotReloadTests : IAsyncLifetime
         await File.WriteAllTextAsync(_testRoutesFile, "[]"); // Create empty file
 
         // Simulate file watcher behavior
-        var watcher = new FileSystemWatcher(_testDirectory)
+        var watcher = new FileSystemWatcher(TempDir)
         {
             Filter = "routes.json",
             NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size
