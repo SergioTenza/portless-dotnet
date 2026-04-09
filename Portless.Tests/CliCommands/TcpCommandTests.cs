@@ -12,6 +12,7 @@ using Xunit;
 
 namespace Portless.Tests.CliCommands;
 
+[Collection("SpectreConsoleTests")]
 public class TcpCommandTests
 {
     private readonly Mock<IHttpClientFactory> _httpClientFactoryMock;

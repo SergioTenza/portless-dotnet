@@ -19,6 +19,7 @@ using Xunit;
 
 namespace Portless.Tests.CliCommands;
 
+[Collection("SpectreConsoleTests")]
 public class CertCheckCommandTests
 {
     private readonly Mock<ICertificateManager> _certManagerMock;
@@ -233,6 +234,7 @@ internal static class CertCertificateGenerator
     }
 }
 
+[Collection("SpectreConsoleTests")]
 public class CertInstallCommandTests
 {
     private readonly Mock<ICertificateManager> _certManagerMock;
@@ -265,6 +267,7 @@ public class CertInstallCommandTests
     }
 }
 
+[Collection("SpectreConsoleTests")]
 public class CertRenewCommandTests
 {
     private readonly Mock<ICertificateManager> _certManagerMock;
@@ -408,6 +411,7 @@ public class CertRenewCommandTests
     }
 }
 
+[Collection("SpectreConsoleTests")]
 public class CertStatusCommandTests
 {
     private readonly Mock<ICertificateManager> _certManagerMock;
@@ -484,6 +488,7 @@ public class CertStatusCommandTests
     }
 }
 
+[Collection("SpectreConsoleTests")]
 public class CertUninstallCommandTests
 {
     private readonly Mock<ICertificateManager> _certManagerMock;

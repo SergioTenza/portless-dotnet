@@ -123,16 +123,39 @@ public class ToolPackE2ETests : IAsyncLifetime
             return;
         }
 
-        // Act - Invoke the tool
-        var runResult = await RunDotnetAsync("tool", "run", "portless", "--help");
+        // Act - Invoke the tool directly from ~/.dotnet/tools
+        var toolsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".dotnet", "tools");
+        var portlessExe = Path.Combine(toolsPath, "portless");
 
-        _output.WriteLine($"Run exit code: {runResult.ExitCode}");
-        _output.WriteLine($"Run output: {runResult.StandardOutput}");
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = portlessExe,
+            Arguments = "--help",
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            WorkingDirectory = _fixture.SolutionRoot
+        };
+        startInfo.Environment["PORTLESS_STATE_DIR"] = _fixture.StateDirectory;
+
+        using var process = Process.Start(startInfo)
+            ?? throw new InvalidOperationException("Failed to start portless process");
+        var output = await process.StandardOutput.ReadToEndAsync();
+        var error = await process.StandardError.ReadToEndAsync();
+        await process.WaitForExitAsync();
+
+        _output.WriteLine($"Run exit code: {process.ExitCode}");
+        _output.WriteLine($"Run output: {output}");
+        if (!string.IsNullOrEmpty(error))
+        {
+            _output.WriteLine($"Run error: {error}");
+        }
 
         // Assert
-        Assert.Equal(0, runResult.ExitCode);
-        Assert.Contains("run", runResult.StandardOutput);
-        Assert.Contains("list", runResult.StandardOutput);
+        Assert.Equal(0, process.ExitCode);
+        Assert.Contains("run", output);
+        Assert.Contains("list", output);
     }
 
     private async Task<(int ExitCode, string StandardOutput, string StandardError)> RunDotnetAsync(

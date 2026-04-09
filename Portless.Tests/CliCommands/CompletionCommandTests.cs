@@ -7,6 +7,7 @@ using CompletionSettings = Cli::Portless.Cli.Commands.CompletionCommand.Completi
 
 namespace Portless.Tests.CliCommands;
 
+[Collection("SpectreConsoleTests")]
 public class CompletionCommandTests
 {
     private readonly CompletionCommand _command;

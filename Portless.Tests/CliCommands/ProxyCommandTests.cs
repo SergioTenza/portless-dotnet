@@ -14,6 +14,7 @@ using ProxyStopSettings = Cli::Portless.Cli.Commands.ProxyCommand.ProxyStopSetti
 
 namespace Portless.Tests.CliCommands;
 
+[Collection("SpectreConsoleTests")]
 public class ProxyStartCommandTests
 {
     private readonly Mock<IProxyProcessManager> _proxyManagerMock;
@@ -118,6 +119,7 @@ public class ProxyStartCommandTests
     }
 }
 
+[Collection("SpectreConsoleTests")]
 public class ProxyStatusCommandTests
 {
     private readonly Mock<IProxyProcessManager> _proxyManagerMock;
@@ -195,6 +197,7 @@ public class ProxyStatusCommandTests
     }
 }
 
+[Collection("SpectreConsoleTests")]
 public class ProxyStopCommandTests
 {
     private readonly Mock<IProxyProcessManager> _proxyManagerMock;
