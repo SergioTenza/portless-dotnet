@@ -36,15 +36,19 @@ namespace Portless.Tests;
 /// - Cleanup: Always StopAsync() to avoid hanging connections
 /// </summary>
 [Collection("Integration Tests")]
-public class SignalRIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
+public class SignalRIntegrationTests : IntegrationTestBase
 {
-    private readonly WebApplicationFactory<Program> _factory;
-    private readonly ITestOutputHelper _output;
+    private WebApplicationFactory<Program> _factory = null!;
 
-    public SignalRIntegrationTests(WebApplicationFactory<Program> factory, ITestOutputHelper output)
+    public SignalRIntegrationTests(ITestOutputHelper output)
     {
-        _factory = factory;
-        _output = output;
+        Output = output;
+    }
+
+    public override async Task InitializeAsync()
+    {
+        await base.InitializeAsync();
+        _factory = CreateProxyApp();
     }
 
     #region Connection Tests
@@ -60,7 +64,7 @@ public class SignalRIntegrationTests : IClassFixture<WebApplicationFactory<Progr
         // Arrange
         var client = _factory.CreateClient();
         var hubUrl = GetHubUrl(_factory, "/testhub");
-        _output.WriteLine($"Connecting to hub at: {hubUrl}");
+        Output.WriteLine($"Connecting to hub at: {hubUrl}");
 
         var connection = new HubConnectionBuilder()
             .WithUrl(hubUrl, options =>
@@ -77,7 +81,7 @@ public class SignalRIntegrationTests : IClassFixture<WebApplicationFactory<Progr
 
         // Assert
         Assert.Equal(HubConnectionState.Connected, connection.State);
-        _output.WriteLine($"Connection state: {connection.State}");
+        Output.WriteLine($"Connection state: {connection.State}");
 
         // Cleanup
         await connection.StopAsync();
@@ -110,7 +114,7 @@ public class SignalRIntegrationTests : IClassFixture<WebApplicationFactory<Progr
         var tcs = new TaskCompletionSource<(string user, string message)>();
         connection.On<string, string>("ReceiveMessage", (user, message) =>
         {
-            _output.WriteLine($"Received message from {user}: {message}");
+            Output.WriteLine($"Received message from {user}: {message}");
             tcs.SetResult((user, message));
         });
 
@@ -154,7 +158,7 @@ public class SignalRIntegrationTests : IClassFixture<WebApplicationFactory<Progr
 
         connection.On<string, string>("ReceiveMessage", (user, message) =>
         {
-            _output.WriteLine($"Received message from {user}: {message}");
+            Output.WriteLine($"Received message from {user}: {message}");
             lock (messages)
             {
                 messages.Add((user, message));

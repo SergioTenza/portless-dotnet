@@ -3,7 +3,6 @@ using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Portless.Core.Services;
-using Portless.Proxy;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -14,29 +13,20 @@ namespace Portless.Tests;
 /// Tests verify SAN extensions, 5-year validity, and certificate metadata.
 /// </summary>
 [Collection("Integration Tests")]
-public class CertificateGenerationTests : IClassFixture<WebApplicationFactory<Program>>, IAsyncLifetime
+public class CertificateGenerationTests : IntegrationTestBase
 {
     private WebApplicationFactory<Program> _factory = null!;
-    private readonly ITestOutputHelper _output;
-    private string? _tempDir;
     private ICertificateManager? _certManager;
 
-    public CertificateGenerationTests(WebApplicationFactory<Program> factory, ITestOutputHelper output)
+    public CertificateGenerationTests(ITestOutputHelper output)
     {
-        _output = output;
+        Output = output;
     }
 
-    public async Task InitializeAsync()
+    public override async Task InitializeAsync()
     {
-        // Create temp directory
-        _tempDir = Path.Combine(Path.GetTempPath(), $"portless-test-{Guid.NewGuid()}");
-        Directory.CreateDirectory(_tempDir);
-
-        // Set environment variable before creating factory
-        Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", _tempDir);
-
-        // Configure factory to use temp directory
-        _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+        await base.InitializeAsync();
+        _factory = CreateProxyApp(builder =>
         {
             // Additional configuration if needed
         });
@@ -44,22 +34,6 @@ public class CertificateGenerationTests : IClassFixture<WebApplicationFactory<Pr
         // Resolve ICertificateManager from services
         var scope = _factory.Services.CreateScope();
         _certManager = scope.ServiceProvider.GetRequiredService<ICertificateManager>();
-    }
-
-    public async Task DisposeAsync()
-    {
-        // Delete temp directory with try-catch
-        if (_tempDir != null && Directory.Exists(_tempDir))
-        {
-            try
-            {
-                Directory.Delete(_tempDir, recursive: true);
-            }
-            catch (Exception ex)
-            {
-                _output.WriteLine($"Warning: Failed to delete temp directory {_tempDir}: {ex.Message}");
-            }
-        }
     }
 
     [Fact]
@@ -92,7 +66,7 @@ public class CertificateGenerationTests : IClassFixture<WebApplicationFactory<Pr
         // For a more thorough check, we could decode the ASN.1 data
         // but checking the extension exists and has the correct OID is sufficient
         // to verify certificate generation includes SAN extensions
-        _output.WriteLine($"SAN Extension OID: {sanOid}, Length: {sanExtension.RawData.Length} bytes");
+        Output.WriteLine($"SAN Extension OID: {sanOid}, Length: {sanExtension.RawData.Length} bytes");
     }
 
     [Fact]

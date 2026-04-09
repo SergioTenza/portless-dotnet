@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Portless.Core.Models;
 using Portless.Core.Services;
-using Portless.Proxy;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,30 +14,21 @@ namespace Portless.Tests;
 /// Tests verify certificate regeneration before expiration and metadata updates.
 /// </summary>
 [Collection("Integration Tests")]
-public class CertificateRenewalTests : IClassFixture<WebApplicationFactory<Program>>, IAsyncLifetime
+public class CertificateRenewalTests : IntegrationTestBase
 {
     private WebApplicationFactory<Program> _factory = null!;
-    private readonly ITestOutputHelper _output;
-    private string? _tempDir;
     private ICertificateManager? _certManager;
     private ICertificateStorageService? _storageService;
 
-    public CertificateRenewalTests(WebApplicationFactory<Program> factory, ITestOutputHelper output)
+    public CertificateRenewalTests(ITestOutputHelper output)
     {
-        _output = output;
+        Output = output;
     }
 
-    public async Task InitializeAsync()
+    public override async Task InitializeAsync()
     {
-        // Create temp directory
-        _tempDir = Path.Combine(Path.GetTempPath(), $"portless-test-{Guid.NewGuid()}");
-        Directory.CreateDirectory(_tempDir);
-
-        // Set environment variable before creating factory
-        Environment.SetEnvironmentVariable("PORTLESS_STATE_DIR", _tempDir);
-
-        // Configure factory
-        _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+        await base.InitializeAsync();
+        _factory = CreateProxyApp(builder =>
         {
             // Additional configuration if needed
         });
@@ -47,22 +37,6 @@ public class CertificateRenewalTests : IClassFixture<WebApplicationFactory<Progr
         var scope = _factory.Services.CreateScope();
         _certManager = scope.ServiceProvider.GetRequiredService<ICertificateManager>();
         _storageService = scope.ServiceProvider.GetRequiredService<ICertificateStorageService>();
-    }
-
-    public async Task DisposeAsync()
-    {
-        // Delete temp directory with try-catch
-        if (_tempDir != null && Directory.Exists(_tempDir))
-        {
-            try
-            {
-                Directory.Delete(_tempDir, recursive: true);
-            }
-            catch (Exception ex)
-            {
-                _output.WriteLine($"Warning: Failed to delete temp directory {_tempDir}: {ex.Message}");
-            }
-        }
     }
 
     [Fact]
@@ -76,7 +50,7 @@ public class CertificateRenewalTests : IClassFixture<WebApplicationFactory<Progr
         Assert.NotNull(initialCert);
 
         var initialThumbprint = initialCert.GetCertHashString(HashAlgorithmName.SHA256);
-        _output.WriteLine($"Initial thumbprint: {initialThumbprint}");
+        Output.WriteLine($"Initial thumbprint: {initialThumbprint}");
 
         // Act
         await _certManager.RegenerateCertificatesAsync();
@@ -85,7 +59,7 @@ public class CertificateRenewalTests : IClassFixture<WebApplicationFactory<Progr
         Assert.NotNull(newCert);
 
         var newThumbprint = newCert.GetCertHashString(HashAlgorithmName.SHA256);
-        _output.WriteLine($"New thumbprint: {newThumbprint}");
+        Output.WriteLine($"New thumbprint: {newThumbprint}");
 
         // Assert - New certificate has different thumbprint
         Assert.NotEqual(initialThumbprint, newThumbprint);
@@ -111,7 +85,7 @@ public class CertificateRenewalTests : IClassFixture<WebApplicationFactory<Progr
 
         var initialCert = await _certManager.GetServerCertificateAsync();
         var initialThumbprint = initialCert.GetCertHashString(HashAlgorithmName.SHA256);
-        _output.WriteLine($"Initial thumbprint: {initialThumbprint}");
+        Output.WriteLine($"Initial thumbprint: {initialThumbprint}");
 
         var initialMetadata = await _storageService.LoadCertificateMetadataAsync();
         Assert.NotNull(initialMetadata);
@@ -130,14 +104,14 @@ public class CertificateRenewalTests : IClassFixture<WebApplicationFactory<Progr
 
         // Assert - New thumbprint in metadata
         Assert.NotEqual(initialThumbprint, newMetadata.Sha256Thumbprint);
-        _output.WriteLine($"New metadata thumbprint: {newMetadata.Sha256Thumbprint}");
+        Output.WriteLine($"New metadata thumbprint: {newMetadata.Sha256Thumbprint}");
 
         // Assert - Expiration date is approximately 5 years from now
         var actualExpiration = DateTimeOffset.FromUnixTimeSeconds(newMetadata.ExpiresAtUnix);
         var expectedExpiration = DateTimeOffset.UtcNow.AddYears(5);
         var daysDiff = (actualExpiration - expectedExpiration).TotalDays;
         Assert.InRange(Math.Abs(daysDiff), 0, 2); // Within 2 days of 5 years
-        _output.WriteLine($"Certificate expires at: {actualExpiration:u} (expected ~{expectedExpiration:u})");
+        Output.WriteLine($"Certificate expires at: {actualExpiration:u} (expected ~{expectedExpiration:u})");
 
         // Verify the new thumbprint matches the actual certificate
         var newCert = await _certManager.GetServerCertificateAsync();
@@ -156,7 +130,7 @@ public class CertificateRenewalTests : IClassFixture<WebApplicationFactory<Progr
         Assert.NotNull(cert);
 
         var actualThumbprint = cert.GetCertHashString(HashAlgorithmName.SHA256);
-        _output.WriteLine($"Certificate thumbprint: {actualThumbprint}");
+        Output.WriteLine($"Certificate thumbprint: {actualThumbprint}");
 
         // Act - Load certificate metadata
         var metadata = await _certManager.GetCertificateStatusAsync();
@@ -176,6 +150,6 @@ public class CertificateRenewalTests : IClassFixture<WebApplicationFactory<Progr
         var expectedDays = 365 * 5;
 
         Assert.InRange(daysUntilExpiration, expectedDays - 2, expectedDays + 2);
-        _output.WriteLine($"Certificate expires in {daysUntilExpiration} days ({metadata.ExpiresAt})");
+        Output.WriteLine($"Certificate expires in {daysUntilExpiration} days ({metadata.ExpiresAt})");
     }
 }

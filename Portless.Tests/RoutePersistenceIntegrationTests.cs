@@ -11,41 +11,18 @@ namespace Portless.Tests;
 /// Tests verify save/load, file locking, cleanup, and hot-reload functionality.
 /// </summary>
 [Collection("Integration Tests")]
-public class RoutePersistenceIntegrationTests : IAsyncLifetime
+public class RoutePersistenceIntegrationTests : IntegrationTestBase
 {
-    private readonly string _testDirectory;
-    private readonly string _routesFilePath;
+    private string _routesFilePath = null!;
     private IRouteStore? _routeStore;
 
-    public RoutePersistenceIntegrationTests()
-    {
-        _testDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-        _routesFilePath = Path.Combine(_testDirectory, "routes.json");
-        Directory.CreateDirectory(_testDirectory);
-    }
+    protected override bool CreateRoutesJson => false;
 
-    public async Task InitializeAsync()
+    public override async Task InitializeAsync()
     {
-        // Create RouteStore with test directory
-        // Note: This requires RouteStore to accept a custom directory or use test double
-        // For now, we'll use a test-specific implementation
-        _routeStore = new TestRouteStore(_testDirectory);
-    }
-
-    public async Task DisposeAsync()
-    {
-        // Delete test directory with retry logic
-        if (Directory.Exists(_testDirectory))
-        {
-            try
-            {
-                Directory.Delete(_testDirectory, recursive: true);
-            }
-            catch
-            {
-                // Ignore cleanup errors in tests
-            }
-        }
+        await base.InitializeAsync();
+        _routesFilePath = Path.Combine(TempDir, "routes.json");
+        _routeStore = new TestRouteStore(TempDir);
     }
 
     [Fact]
@@ -89,7 +66,7 @@ public class RoutePersistenceIntegrationTests : IAsyncLifetime
         await _routeStore!.SaveRoutesAsync(originalRoutes);
 
         // Act - Create new RouteStore instance to test loading
-        var newStore = new TestRouteStore(_testDirectory);
+        var newStore = new TestRouteStore(TempDir);
         var loadedRoutes = await newStore.LoadRoutesAsync();
 
         // Assert
@@ -239,7 +216,7 @@ internal class TestRouteStore : IRouteStore
         Directory.CreateDirectory(stateDirectory);
     }
 
-    public Task<RouteInfo[]> LoadRoutesAsync(CancellationToken cancellationToken = default)
+    public Task<RouteInfo[]> LoadRoutesAsync(CancellationToken cancellationToken=default)
     {
         if (!File.Exists(_routesFilePath))
         {
@@ -270,7 +247,7 @@ internal class TestRouteStore : IRouteStore
         }
     }
 
-    public Task SaveRoutesAsync(RouteInfo[] routes, CancellationToken cancellationToken = default)
+    public Task SaveRoutesAsync(RouteInfo[] routes, CancellationToken cancellationToken=default)
     {
         Directory.CreateDirectory(_stateDirectory);
 
