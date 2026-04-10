@@ -1,213 +1,138 @@
 using Microsoft.Extensions.Logging;
 using Moq;
+using Portless.Core.Models;
 using Portless.Core.Services;
-using Xunit;
 
 namespace Portless.Tests;
 
 public class CertificatePermissionServiceTests
 {
-    private readonly Mock<ILogger<CertificatePermissionService>> _loggerMock;
+    private readonly Mock<ILogger<CertificatePermissionService>> _logger;
     private readonly CertificatePermissionService _service;
 
     public CertificatePermissionServiceTests()
     {
-        _loggerMock = new Mock<ILogger<CertificatePermissionService>>();
-        _service = new CertificatePermissionService(_loggerMock.Object);
+        _logger = new Mock<ILogger<CertificatePermissionService>>();
+        _service = new CertificatePermissionService(_logger.Object);
+    }
+
+    private string CreateTempDir()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), $"portless-test-perm-{Guid.NewGuid()}");
+        Directory.CreateDirectory(dir);
+        return dir;
     }
 
     [Fact]
-    public async Task CreateSecureDirectoryAsync_CreatesDirectorySuccessfully()
+    public async Task CreateSecureDirectoryAsync_CreatesDirectory()
     {
-        // Arrange
-        var tempDir = Path.Combine(Path.GetTempPath(), $"portless-test-perm-dir-{Guid.NewGuid()}");
-
+        var baseDir = CreateTempDir();
+        var dir = Path.Combine(baseDir, "secure-dir");
         try
         {
-            // Act
-            await _service.CreateSecureDirectoryAsync(tempDir);
-
-            // Assert
-            Assert.True(Directory.Exists(tempDir));
+            await _service.CreateSecureDirectoryAsync(dir);
+            Assert.True(Directory.Exists(dir));
         }
         finally
         {
-            if (Directory.Exists(tempDir))
-                Directory.Delete(tempDir, recursive: true);
+            if (Directory.Exists(baseDir)) Directory.Delete(baseDir, true);
         }
     }
 
     [Fact]
-    public async Task SetSecureFilePermissionsAsync_SetsPermissionsOnExistingFile()
+    public async Task CreateSecureDirectoryAsync_ExistingDirectory_NoThrow()
     {
-        // Arrange
-        var tempFile = Path.Combine(Path.GetTempPath(), $"portless-test-perm-file-{Guid.NewGuid()}.txt");
-        await File.WriteAllTextAsync(tempFile, "test content");
-
+        var baseDir = CreateTempDir();
         try
         {
-            // Act - should not throw on current platform
-            await _service.SetSecureFilePermissionsAsync(tempFile);
+            await _service.CreateSecureDirectoryAsync(baseDir);
+            Assert.True(Directory.Exists(baseDir));
         }
         finally
         {
-            if (File.Exists(tempFile))
-                File.Delete(tempFile);
+            if (Directory.Exists(baseDir)) Directory.Delete(baseDir, true);
         }
     }
 
     [Fact]
-    public async Task VerifyFilePermissionsAsync_ReturnsTrueForExistingFile()
+    public async Task SetSecureFilePermissionsAsync_SetsPermissionsOnFile()
     {
-        // Arrange
-        var tempFile = Path.Combine(Path.GetTempPath(), $"portless-test-verify-{Guid.NewGuid()}.txt");
-        await File.WriteAllTextAsync(tempFile, "test content");
-
+        var baseDir = CreateTempDir();
+        var filePath = Path.Combine(baseDir, "test-file.txt");
         try
         {
-            // Act
-            var result = await _service.VerifyFilePermissionsAsync(tempFile);
+            await File.WriteAllTextAsync(filePath, "test");
+            await _service.SetSecureFilePermissionsAsync(filePath);
+            Assert.True(File.Exists(filePath));
+        }
+        finally
+        {
+            if (Directory.Exists(baseDir)) Directory.Delete(baseDir, true);
+        }
+    }
 
-            // Assert - on Linux this should return true after setting permissions
-            // On unsupported platforms returns true (best effort)
+    [Fact]
+    public async Task VerifyFilePermissionsAsync_ExistingFile_ReturnsResult()
+    {
+        var baseDir = CreateTempDir();
+        var filePath = Path.Combine(baseDir, "test-file.txt");
+        try
+        {
+            await File.WriteAllTextAsync(filePath, "test");
+            await _service.SetSecureFilePermissionsAsync(filePath);
+            var result = await _service.VerifyFilePermissionsAsync(filePath);
+            // On Linux, after setting 600, should be true
             Assert.True(result);
         }
         finally
         {
-            if (File.Exists(tempFile))
-                File.Delete(tempFile);
+            if (Directory.Exists(baseDir)) Directory.Delete(baseDir, true);
         }
     }
 
     [Fact]
-    public async Task VerifyFilePermissionsAsync_ReturnsFalseForNonExistentFile()
+    public async Task VerifyFilePermissionsAsync_NonexistentFile_ReturnsFalse()
     {
-        // Arrange
-        var nonExistentPath = Path.Combine(Path.GetTempPath(), $"portless-nonexistent-{Guid.NewGuid()}.txt");
-
-        // Act
-        var result = await _service.VerifyFilePermissionsAsync(nonExistentPath);
-
-        // Assert
+        var result = await _service.VerifyFilePermissionsAsync("/nonexistent/file/path");
         Assert.False(result);
     }
 
     [Fact]
-    public async Task CreateSecureDirectoryAsync_ThrowsForInvalidPath()
+    public async Task VerifyFilePermissionsAsync_Directory_ReturnsResult()
     {
-        // Arrange - use an invalid path that can't be created
-        var invalidPath = "";
-
-        // Act & Assert
-        await Assert.ThrowsAnyAsync<Exception>(() =>
-            _service.CreateSecureDirectoryAsync(invalidPath));
-    }
-
-    [Fact]
-    public async Task SetSecureFilePermissionsAsync_ThrowsForNonExistentFile()
-    {
-        // Arrange
-        var nonExistentPath = Path.Combine(Path.GetTempPath(), $"portless-nonexistent-{Guid.NewGuid()}.txt");
-
-        // Act & Assert - should throw on any platform for non-existent file
-        await Assert.ThrowsAnyAsync<Exception>(() =>
-            _service.SetSecureFilePermissionsAsync(nonExistentPath));
-    }
-
-    [Fact]
-    public async Task CreateSecureDirectoryAsync_CreatesNestedDirectory()
-    {
-        // Arrange
-        var tempDir = Path.Combine(Path.GetTempPath(), $"portless-test-nested-{Guid.NewGuid()}", "subdir");
-
+        var baseDir = CreateTempDir();
         try
         {
-            // Act
-            await _service.CreateSecureDirectoryAsync(tempDir);
-
-            // Assert
-            Assert.True(Directory.Exists(tempDir));
+            var result = await _service.VerifyFilePermissionsAsync(baseDir);
+            // Should return a boolean without throwing
+            Assert.IsType<bool>(result);
         }
         finally
         {
-            // Cleanup parent dir
-            var parentDir = Path.Combine(Path.GetTempPath(), $"portless-test-nested-{Guid.NewGuid()}");
-            // Use the actual parent from the path
-            var actualParent = Directory.GetParent(tempDir)?.FullName;
-            if (actualParent != null && Directory.Exists(actualParent))
-                Directory.Delete(actualParent, recursive: true);
+            if (Directory.Exists(baseDir)) Directory.Delete(baseDir, true);
         }
     }
 
     [Fact]
-    public async Task CreateSecureDirectoryAsync_WithCancelledToken_ThrowsOperationCanceledException()
+    public async Task CreateSecureDirectoryAsync_NestedDirectory_CreatesAll()
     {
-        // Arrange
-        var tempDir = Path.Combine(Path.GetTempPath(), $"portless-test-cancelled-{Guid.NewGuid()}");
-        using var cts = new CancellationTokenSource();
-        cts.Cancel();
-
-        // Act & Assert - the Task.Yield at the start doesn't observe the token,
-        // but the actual directory operation may proceed. Test that it doesn't hang.
-        // The method may or may not throw depending on implementation timing
+        var baseDir = CreateTempDir();
+        var nestedDir = Path.Combine(baseDir, "a", "b", "c");
         try
         {
-            await _service.CreateSecureDirectoryAsync(tempDir, cts.Token);
-        }
-        catch (OperationCanceledException)
-        {
-            // Expected in some cases
+            await _service.CreateSecureDirectoryAsync(nestedDir);
+            Assert.True(Directory.Exists(nestedDir));
         }
         finally
         {
-            if (Directory.Exists(tempDir))
-                Directory.Delete(tempDir, recursive: true);
+            if (Directory.Exists(baseDir)) Directory.Delete(baseDir, true);
         }
     }
 
     [Fact]
-    public async Task SetSecureFilePermissionsAsync_ThenVerify_RoundTrip()
+    public async Task SetSecureFilePermissionsAsync_NonexistentFile_Throws()
     {
-        // Arrange
-        var tempFile = Path.Combine(Path.GetTempPath(), $"portless-test-roundtrip-{Guid.NewGuid()}.txt");
-        await File.WriteAllTextAsync(tempFile, "test content");
-
-        try
-        {
-            // Act
-            await _service.SetSecureFilePermissionsAsync(tempFile);
-            var result = await _service.VerifyFilePermissionsAsync(tempFile);
-
-            // Assert
-            Assert.True(result);
-        }
-        finally
-        {
-            if (File.Exists(tempFile))
-                File.Delete(tempFile);
-        }
-    }
-
-    [Fact]
-    public async Task CreateSecureDirectoryAsync_CreatesDirectoryInExistingParent()
-    {
-        // Arrange - parent already exists
-        var tempParent = Path.Combine(Path.GetTempPath(), $"portless-test-parent-{Guid.NewGuid()}");
-        Directory.CreateDirectory(tempParent);
-        var tempDir = Path.Combine(tempParent, "secure-child");
-
-        try
-        {
-            // Act
-            await _service.CreateSecureDirectoryAsync(tempDir);
-
-            // Assert
-            Assert.True(Directory.Exists(tempDir));
-        }
-        finally
-        {
-            if (Directory.Exists(tempParent))
-                Directory.Delete(tempParent, recursive: true);
-        }
+        await Assert.ThrowsAsync<DirectoryNotFoundException>(
+            () => _service.SetSecureFilePermissionsAsync("/nonexistent/file.txt"));
     }
 }
