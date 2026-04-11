@@ -27,7 +27,8 @@
 [![Build](https://github.com/SergioTenza/portless-dotnet/actions/workflows/ci.yml/badge.svg)](https://github.com/SergioTenza/portless-dotnet/actions/workflows/ci.yml)
 [![NuGet](https://img.shields.io/nuget/v/Portless.NET.Tool.svg)](https://www.nuget.org/packages/Portless.NET.Tool/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![.NET](https://img.shields.io/badge/.NET-10-512BD4.svg)](https://dotnet.microsoft.com/download/dotnet/10.0)
+|[![.NET](https://img.shields.io/badge/.NET-10-512BD4.svg)](https://dotnet.microsoft.com/download/dotnet/10.0)
+|[![Buy Me A Coffee](https://img.shields.io/badge/Support-Buy%20Me%20a%20Coffee-yellow?logo=buymeacoffee&logoColor=white)](https://buymeacoffee.com/sergeix)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](#cross-platform)
 
 ---
