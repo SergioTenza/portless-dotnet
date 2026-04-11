@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: "\U0001F4DA Documentation"
+    url: https://github.com/SergioTenza/portless-dotnet#readme
+    about: Check the README and documentation before opening an issue.
+  - name: "\U0001F4AC Discussions"
+    url: https://github.com/SergioTenza/portless-dotnet/discussions
+    about: Ask questions, share ideas, or discuss Portless.NET with the community.

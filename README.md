@@ -1,28 +1,16 @@
-<p align="center">
-  <img src="docs/assets/logo.jpg" alt="Portless.NET Logo" width="200" />
-</p>
+<div align="center">
 
-<h1 align="center">Portless.NET</h1>
+![Portless.NET Logo](docs/assets/logo.jpg)
 
-<p align="center">
-  <strong>Stable <code>.localhost</code> URLs for local development — no more port numbers.</strong>
-</p>
+# Portless.NET
 
-<p align="center">
-  <img src="https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet" alt=".NET 10" />
-</p>
+**Stable `.localhost` URLs for local development — no more port numbers.**
 
-<p align="center">
-  <a href="#quick-start">Quick Start</a> •
-  <a href="#commands">Commands</a> •
-  <a href="#configuration">Configuration</a> •
-  <a href="#docker">Docker</a> •
-  <a href="#development">Development</a>
-</p>
+![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)
 
-<p align="center">
-  <img src="https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet" alt=".NET 10" />
-</p>
+[Quick Start](#quick-start) • [Commands](#commands) • [Configuration](#configuration) • [Docker](#docker) • [Development](#development)
+
+</div>
 
 [![Build](https://github.com/SergioTenza/portless-dotnet/actions/workflows/ci.yml/badge.svg)](https://github.com/SergioTenza/portless-dotnet/actions/workflows/ci.yml)
 [![NuGet](https://img.shields.io/nuget/v/Portless.NET.Tool.svg)](https://www.nuget.org/packages/Portless.NET.Tool/)
@@ -495,6 +483,4 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 ---
 
-<p align="center">
-  Built with ❤️ by <a href="https://github.com/SergioTenza">Sergio Tenza</a> and contributors
-</p>
+*Built with ❤️ by [Sergio Tenza](https://github.com/SergioTenza) and contributors*
